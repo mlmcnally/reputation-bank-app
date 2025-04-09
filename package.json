@@ -1,0 +1,18 @@
+{
+  "name": "reputation-bank-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.6",
+    "html2pdf.js": "^0.10.1",
+    "next": "13.4.19",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "st-pageflip": "^2.0.2"
+  }
+}
