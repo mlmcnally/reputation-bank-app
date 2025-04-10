@@ -1,8 +1,10 @@
+import Flipbook from '../components/Flipbook';
+
 export default function Home() {
   return (
-    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
-      <h1>The Reputation Bank App</h1>
-      <p>Interactive workbook coming soon...</p>
-    </div>
+    <main style={{ padding: '1rem' }}>
+      <h1 style={{ textAlign: 'center' }}>The Reputation Bank Workbook</h1>
+      <Flipbook />
+    </main>
   );
 }
