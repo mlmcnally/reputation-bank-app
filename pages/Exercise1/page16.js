@@ -14,7 +14,7 @@ export default function Exercise1Page16() {
       const { data, error } = await supabase
         .from('exercise1_page16')
         .select('response')
-        .eq('user_id', user.id)
+        .eq('uuid', user.id)  // changed from user_id to uuid
         .single()
 
       if (data) setResponse(data.response)
@@ -27,7 +27,7 @@ export default function Exercise1Page16() {
     setLoading(true)
     const { error } = await supabase
       .from('exercise1_page16')
-      .upsert({ user_id: userId, response })
+      .upsert({ uuid: userId, response })  // changed from user_id to uuid
 
     setLoading(false)
 
