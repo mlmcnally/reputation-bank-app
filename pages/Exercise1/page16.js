@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../utils/supabaseClient'; 
+import { supabase } from '../../utils/supabaseClient'; 
 
 export default function Exercise1Page16() {
   const [response, setResponse] = useState('')
