@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '../../utils/supabaseClient';
 
 // Get environment variables for Supabase URL and anon key
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
