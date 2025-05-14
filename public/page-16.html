@@ -1,101 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Exercise 1 - Page 16</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f9f9f9;
-      color: #333;
-    }
-    .container {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      max-width: 1200px;
-      margin: 40px auto;
-      padding: 20px;
-      gap: 20px;
-    }
-    .left-column {
-      flex: 1 1 45%;
-      min-width: 300px;
-    }
-    .left-column img {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-    .right-column {
-      flex: 1 1 50%;
-      min-width: 300px;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-    .right-column h2 {
-      margin-top: 0;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input[type="text"], textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-    }
-    textarea {
-      resize: vertical;
-    }
-    .next-button {
-      display: block;
-      margin: 30px auto 0;
-      padding: 12px 24px;
-      font-size: 1rem;
-      background-color: #0070f3;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .next-button:hover {
-      background-color: #005bb5;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercise 1 – Page 16</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-  <div class="container">
-    <div class="left-column">
-      <img src="/exercise1-page-16.jpg" alt="Exercise 1 Page 16" />
+<body class="bg-gray-100 text-gray-900">
+  <div class="flex flex-col md:flex-row min-h-screen p-4 gap-6">
+    
+    <!-- Left Side: Image Preview -->
+    <div class="w-full md:w-1/2 bg-white p-4 shadow rounded">
+      <h2 class="text-lg font-semibold mb-4">Exercise 1 Page 16</h2>
+      <img src="/exercise1-page-16.jpg" alt="Exercise 1 Page 16" class="w-full h-auto rounded border">
     </div>
 
-    <div class="right-column">
-      <h2>Exercise 1 – Page 16</h2>
-
-      <label for="stakeholder-name">Stakeholder Name</label>
-      <input type="text" id="stakeholder-name" name="stakeholder-name" placeholder="Enter stakeholder name" />
-
-      <label for="opinion">Opinion</label>
-      <textarea id="opinion" name="opinion" rows="4" placeholder="What are their views or perspectives?"></textarea>
-
-      <label for="advocacy">Advocacy</label>
-      <textarea id="advocacy" name="advocacy" rows="4" placeholder="How are they advocating for or against your business?"></textarea>
-
-      <label for="action">Action</label>
-      <textarea id="action" name="action" rows="4" placeholder="What actions are they taking?"></textarea>
-
-      <button class="next-button" onclick="window.location.href='page-17.html'">Next Page →</button>
+    <!-- Right Side: Interactive Form -->
+    <div class="w-full md:w-1/2 bg-white p-4 shadow rounded">
+      <h2 class="text-2xl font-bold mb-6">Exercise 1 – Page 16</h2>
+      <form class="space-y-4">
+        <div>
+          <label for="stakeholder" class="block font-semibold mb-1">Stakeholder Name</label>
+          <input type="text" id="stakeholder" name="stakeholder" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Enter stakeholder name">
+        </div>
+        <div>
+          <label for="opinion" class="block font-semibold mb-1">Opinion</label>
+          <textarea id="opinion" name="opinion" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="What are their views or perspectives?"></textarea>
+        </div>
+        <div>
+          <label for="advocacy" class="block font-semibold mb-1">Advocacy</label>
+          <textarea id="advocacy" name="advocacy" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="How are they advocating for or against your business?"></textarea>
+        </div>
+        <div>
+          <label for="action" class="block font-semibold mb-1">Action</label>
+          <textarea id="action" name="action" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="What actions are they taking?"></textarea>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-4">Next Page →</button>
+      </form>
     </div>
   </div>
 </body>
