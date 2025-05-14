@@ -7,31 +7,45 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 40px auto;
-      max-width: 800px;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
       background-color: #f9f9f9;
       color: #333;
     }
-    h1 {
-      text-align: center;
+    .container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+      gap: 20px;
     }
-    .page-image {
+    .left-column {
+      flex: 1 1 45%;
+      min-width: 300px;
+    }
+    .left-column img {
       width: 100%;
-      margin-bottom: 20px;
+      height: auto;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
-    .exercise-entry {
+    .right-column {
+      flex: 1 1 50%;
+      min-width: 300px;
       background: white;
-      padding: 15px;
+      padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
+    }
+    .right-column h2 {
+      margin-top: 0;
     }
     label {
       display: block;
-      margin-top: 10px;
+      margin-top: 15px;
+      font-weight: bold;
     }
     input[type="text"], textarea {
       width: 100%;
@@ -61,55 +75,28 @@
   </style>
 </head>
 <body>
-  <h1>Exercise 1 – Page 16</h1>
+  <div class="container">
+    <div class="left-column">
+      <img src="/images/page-16.jpg" alt="Exercise 1 Page 16" />
+    </div>
 
-  <img src="/images/page-16.jpg" alt="Exercise 1 Page 16" class="page-image" />
+    <div class="right-column">
+      <h2>Exercise 1 – Page 16</h2>
 
-  <div class="exercise-entry">
-    <label><strong>Stakeholder Name</strong>
-      <input type="text" name="stakeholder-name-1" placeholder="Enter stakeholder name" />
-    </label>
-    <label><strong>Opinion, Advocacy, and Action</strong>
-      <textarea name="details-1" rows="4" placeholder="Describe their position and actions"></textarea>
-    </label>
+      <label for="stakeholder-name">Stakeholder Name</label>
+      <input type="text" id="stakeholder-name" name="stakeholder-name" placeholder="Enter stakeholder name" />
+
+      <label for="opinion">Opinion</label>
+      <textarea id="opinion" name="opinion" rows="4" placeholder="What are their views or perspectives?"></textarea>
+
+      <label for="advocacy">Advocacy</label>
+      <textarea id="advocacy" name="advocacy" rows="4" placeholder="How are they advocating for or against your business?"></textarea>
+
+      <label for="action">Action</label>
+      <textarea id="action" name="action" rows="4" placeholder="What actions are they taking?"></textarea>
+
+      <button class="next-button" onclick="window.location.href='page-17.html'">Next Page →</button>
+    </div>
   </div>
-
-  <div class="exercise-entry">
-    <label><strong>Stakeholder Name</strong>
-      <input type="text" name="stakeholder-name-2" placeholder="Enter stakeholder name" />
-    </label>
-    <label><strong>Opinion, Advocacy, and Action</strong>
-      <textarea name="details-2" rows="4" placeholder="Describe their position and actions"></textarea>
-    </label>
-  </div>
-
-  <div class="exercise-entry">
-    <label><strong>Stakeholder Name</strong>
-      <input type="text" name="stakeholder-name-3" placeholder="Enter stakeholder name" />
-    </label>
-    <label><strong>Opinion, Advocacy, and Action</strong>
-      <textarea name="details-3" rows="4" placeholder="Describe their position and actions"></textarea>
-    </label>
-  </div>
-
-  <div class="exercise-entry">
-    <label><strong>Stakeholder Name</strong>
-      <input type="text" name="stakeholder-name-4" placeholder="Enter stakeholder name" />
-    </label>
-    <label><strong>Opinion, Advocacy, and Action</strong>
-      <textarea name="details-4" rows="4" placeholder="Describe their position and actions"></textarea>
-    </label>
-  </div>
-
-  <div class="exercise-entry">
-    <label><strong>Stakeholder Name</strong>
-      <input type="text" name="stakeholder-name-5" placeholder="Enter stakeholder name" />
-    </label>
-    <label><strong>Opinion, Advocacy, and Action</strong>
-      <textarea name="details-5" rows="4" placeholder="Describe their position and actions"></textarea>
-    </label>
-  </div>
-
-  <button class="next-button" onclick="window.location.href='page-17.html'">Next Page →</button>
 </body>
 </html>
