@@ -89,6 +89,51 @@
     // Make the function globally accessible to the Save button
     window.saveData = saveData;
   });
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    const supabaseClient = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    async function saveData() {
+      const stakeholder = document.getElementById("stakeholder").value.trim();
+      const opinion = document.getElementById("opinion").value.trim();
+      const advocacy = document.getElementById("advocacy").value.trim();
+      const action = document.getElementById("action").value.trim();
+      const statusMsg = document.getElementById("status-message");
+
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+      if (userError || !user?.id) {
+        statusMsg.textContent = "You must be logged in to save your work.";
+        statusMsg.classList.add("text-red-600");
+        return;
+      }
+
+      const { error } = await supabaseClient.from("exercise1_page16").insert([
+        {
+          user_id: user.id,
+          stakeholder,
+          opinion,
+          advocacy,
+          action
+        }
+      ]);
+
+      if (error) {
+        statusMsg.textContent = "❌ Error saving data: " + error.message;
+        statusMsg.classList.add("text-red-600");
+      } else {
+        statusMsg.textContent = "✅ Saved successfully!";
+        statusMsg.classList.remove("text-red-600");
+        statusMsg.classList.add("text-green-600");
+      }
+    }
+
+    // Allow the Save button to trigger the function
+    window.saveData = saveData;
+  });
 </script>
 
 </body>
