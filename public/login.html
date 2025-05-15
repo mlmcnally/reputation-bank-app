@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login - The Reputation Bank</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.6/dist/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -83,9 +83,10 @@
   <div id="error-message"></div>
 
   <script>
-    const supabaseUrl = 'https://nidxvthbowdgdfuopmzk.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabase = supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
 
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
@@ -96,24 +97,23 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-        if (error) {
-          errorMessage.textContent = error.message;
-          errorMessage.style.display = 'block';
-        } else {
-          // Redirect to the interactive app page
-          window.location.href = '/page-16.html';
-        }
-      } catch (err) {
-        errorMessage.textContent = 'An unexpected error occurred. Please try again.';
+      if (error) {
+        errorMessage.textContent = error.message;
         errorMessage.style.display = 'block';
+      } else {
+        // ✅ Redirect to app on success
+        window.location.href = '/page-16.html';
       }
     });
+  </script>
+</body>
+</html>
+
   </script>
 </body>
 </html>
