@@ -46,9 +46,11 @@
   </div>
 
   <script>
-    const supabaseUrl = 'https://nidxvthbowdgdfuopmzk.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  window.addEventListener('DOMContentLoaded', function () {
+    const supabaseClient = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
 
     async function saveData() {
       const stakeholder = document.getElementById("stakeholder").value.trim();
@@ -57,14 +59,14 @@
       const action = document.getElementById("action").value.trim();
       const statusMsg = document.getElementById("status-message");
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
       if (userError || !user?.id) {
         statusMsg.textContent = "You must be logged in to save your work.";
         statusMsg.classList.add("text-red-600");
         return;
       }
 
-      const { error } = await supabase.from("exercise1_page16").insert([
+      const { error } = await supabaseClient.from("exercise1_page16").insert([
         {
           user_id: user.id,
           stakeholder,
@@ -83,7 +85,12 @@
         statusMsg.classList.add("text-green-600");
       }
     }
-  </script>
+
+    // Make the function globally accessible to the Save button
+    window.saveData = saveData;
+  });
+</script>
+
 </body>
 </html>
 
