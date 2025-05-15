@@ -63,3 +63,31 @@
         statusMsg.classList.add("text-red-600");
         return;
       }
+
+      const { error } = await supabase.from("exercise1_page16").insert([
+        {
+          user_id: user.id,
+          stakeholder,
+          opinion,
+          advocacy,
+          action
+        }
+      ]);
+
+      if (error) {
+        statusMsg.textContent = "❌ Error saving data: " + error.message;
+        statusMsg.classList.add("text-red-600");
+      } else {
+        statusMsg.textContent = "✅ Saved successfully!";
+        statusMsg.classList.remove("text-red-600");
+        statusMsg.classList.add("text-green-600");
+      }
+    }
+  </script>
+</body>
+</html>
+
+        statusMsg.textContent = "You must be logged in to save your work.";
+        statusMsg.classList.add("text-red-600");
+        return;
+      }
