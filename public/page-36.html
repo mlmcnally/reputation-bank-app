@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exercise 4 – Page 36</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="flex flex-col min-h-screen p-4 gap-6">
+    
+    <h2 class="text-2xl font-bold mb-2">Exercise 4 – Page 36</h2>
+    <p class="mb-6 text-gray-700">Compare your organization’s and Stakeholder 1’s Identity, Ambition, and Role. Then enter where they intersect below.</p>
+
+    <!-- Preloaded Data Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Stakeholder -->
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="font-semibold text-lg mb-2">Stakeholder 1 (from Exercise 2 – Page 26)</h3>
+        <p class="text-sm text-gray-600">Identity</p>
+        <p id="stakeholder-identity" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+        <p class="text-sm text-gray-600">Ambition</p>
+        <p id="stakeholder-ambition" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+        <p class="text-sm text-gray-600">Role</p>
+        <p id="stakeholder-role" class="p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+      </div>
+
+      <!-- Organization -->
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="font-semibold text-lg mb-2">Your Organization (from Exercise 3 – Page 34)</h3>
+        <p class="text-sm text-gray-600">Identity</p>
+        <p id="org-identity" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+        <p class="text-sm text-gray-600">Ambition</p>
+        <p id="org-ambition" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+        <p class="text-sm text-gray-600">Role</p>
+        <p id="org-role" class="p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+      </div>
+    </div>
+
+    <!-- Intersecting Form -->
+    <form id="exercise-form" class="mt-6 space-y-4 max-w-2xl bg-white p-6 rounded shadow" onsubmit="return false;">
+      <h3 class="text-xl font-bold mb-4">Where They Intersect</h3>
+      <div>
+        <label for="identity" class="block font-semibold mb-1">Identity</label>
+        <textarea id="identity" name="identity" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Where does your organization’s identity align with Stakeholder 1?"></textarea>
+      </div>
+      <div>
+        <label for="ambition" class="block font-semibold mb-1">Ambition</label>
+        <textarea id="ambition" name="ambition" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Where does your ambition align with Stakeholder 1?"></textarea>
+      </div>
+      <div>
+        <label for="role" class="block font-semibold mb-1">Role</label>
+        <textarea id="role" name="role" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Where does your role align with Stakeholder 1?"></textarea>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button type="button" onclick="saveData()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Save</button>
+      </div>
+      <p id="status-message" class="text-sm mt-3 text-gray-600"></p>
+    </form>
+  </div>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', async function () {
+      const supabaseClient = window.supabase.createClient(
+        'https://nidxvthbowdgdfuopmzk.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+      );
+
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+      const statusMsg = document.getElementById("status-message");
+
+      if (userError || !user?.id) {
+        statusMsg.textContent = "You must be logged in.";
+        statusMsg.classList.add("text-red-600");
+        return;
+      }
+
+      // Load Exercise 2 (Stakeholder 1) data
+      const { data: stakeholderData } = await supabaseClient
+        .from("exercise2_page26")
+        .select("identity, ambition, role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (stakeholderData) {
+        document.getElementById("stakeholder-identity").textContent = stakeholderData.identity || "";
+        document.getElementById("stakeholder-ambition").textContent = stakeholderData.ambition || "";
+        document.getElementById("stakeholder-role").textContent = stakeholderData.role || "";
+      }
+
+      // Load Exercise 3 (Organization) data
+      const { data: orgData } = await supabaseClient
+        .from("exercise3_page34")
+        .select("identity, ambition, role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (orgData) {
+        document.getElementById("org-identity").textContent = orgData.identity || "";
+        document.getElementById("org-ambition").textContent = orgData.ambition || "";
+        document.getElementById("org-role").textContent = orgData.role || "";
+      }
+
+      // Save function
+      window.saveData = async function () {
+        const identity = document.getElementById("identity").value.trim();
+        const ambition = document.getElementById("ambition").value.trim();
+        const role = document.getElementById("role").value.trim();
+
+        const { error } = await supabaseClient.from("exercise4_page36").insert([
+          {
+            user_id: user.id,
+            identity,
+            ambition,
+            role
+          }
+        ]);
+
+        if (error) {
+          statusMsg.textContent = "❌ Error saving data: " + error.message;
+          statusMsg.classList.add("text-red-600");
+        } else {
+          statusMsg.textContent = "✅ Saved successfully!";
+          statusMsg.classList.remove("text-red-600");
+          statusMsg.classList.add("text-green-600");
+        }
+      };
+    });
+  </script>
+</body>
+</html>
