@@ -8,56 +8,64 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
-  <div class="flex flex-col min-h-screen p-4 gap-6">
+  <div class="flex flex-col md:flex-row min-h-screen p-4 gap-6">
     
-    <h2 class="text-2xl font-bold mb-2">Exercise 4 – Page 36</h2>
-    <p class="mb-6 text-gray-700">Compare your organization’s and Stakeholder 1’s Identity, Ambition, and Role. Then enter where they intersect below.</p>
-
-    <!-- Preloaded Data Section -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Stakeholder -->
-      <div class="bg-white p-4 rounded shadow">
-        <h3 class="font-semibold text-lg mb-2">Stakeholder 1 (from Exercise 2 – Page 26)</h3>
-        <p class="text-sm text-gray-600">Identity</p>
-        <p id="stakeholder-identity" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
-        <p class="text-sm text-gray-600">Ambition</p>
-        <p id="stakeholder-ambition" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
-        <p class="text-sm text-gray-600">Role</p>
-        <p id="stakeholder-role" class="p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
-      </div>
-
-      <!-- Organization -->
-      <div class="bg-white p-4 rounded shadow">
-        <h3 class="font-semibold text-lg mb-2">Your Organization (from Exercise 3 – Page 34)</h3>
-        <p class="text-sm text-gray-600">Identity</p>
-        <p id="org-identity" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
-        <p class="text-sm text-gray-600">Ambition</p>
-        <p id="org-ambition" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
-        <p class="text-sm text-gray-600">Role</p>
-        <p id="org-role" class="p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
-      </div>
+    <!-- Left: Scaled-Down Page Thumbnail -->
+    <div class="w-full md:w-1/3 bg-white p-4 shadow rounded">
+      <h2 class="text-lg font-semibold mb-4">Exercise 4 Page 36</h2>
+      <img src="/exercise4-page-36.jpg" alt="Exercise 4 Page 36" class="w-full max-w-xs h-auto mx-auto border rounded">
     </div>
 
-    <!-- Intersecting Form -->
-    <form id="exercise-form" class="mt-6 space-y-4 max-w-2xl bg-white p-6 rounded shadow" onsubmit="return false;">
-      <h3 class="text-xl font-bold mb-4">Where They Intersect</h3>
-      <div>
-        <label for="identity" class="block font-semibold mb-1">Identity</label>
-        <textarea id="identity" name="identity" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Where does your organization’s identity align with Stakeholder 1?"></textarea>
+    <!-- Right: Comparison and Form -->
+    <div class="w-full md:w-2/3 space-y-6">
+      <p class="text-gray-700 text-base">Compare your organization’s and Stakeholder 1’s Identity, Ambition, and Role. Then enter where they intersect below.</p>
+
+      <!-- Read-Only Comparison -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Stakeholder -->
+        <div class="bg-white p-4 rounded shadow">
+          <h3 class="font-semibold text-lg mb-2">Stakeholder 1 (Exercise 2 – Page 26)</h3>
+          <p class="text-sm font-medium text-gray-600">Identity</p>
+          <p id="stakeholder-identity" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+          <p class="text-sm font-medium text-gray-600">Ambition</p>
+          <p id="stakeholder-ambition" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+          <p class="text-sm font-medium text-gray-600">Role</p>
+          <p id="stakeholder-role" class="p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+        </div>
+
+        <!-- Organization -->
+        <div class="bg-white p-4 rounded shadow">
+          <h3 class="font-semibold text-lg mb-2">Your Organization (Exercise 3 – Page 34)</h3>
+          <p class="text-sm font-medium text-gray-600">Identity</p>
+          <p id="org-identity" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+          <p class="text-sm font-medium text-gray-600">Ambition</p>
+          <p id="org-ambition" class="mb-2 p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+          <p class="text-sm font-medium text-gray-600">Role</p>
+          <p id="org-role" class="p-2 border rounded bg-gray-100 min-h-[2rem]"></p>
+        </div>
       </div>
-      <div>
-        <label for="ambition" class="block font-semibold mb-1">Ambition</label>
-        <textarea id="ambition" name="ambition" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Where does your ambition align with Stakeholder 1?"></textarea>
-      </div>
-      <div>
-        <label for="role" class="block font-semibold mb-1">Role</label>
-        <textarea id="role" name="role" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Where does your role align with Stakeholder 1?"></textarea>
-      </div>
-      <div class="flex gap-2 mt-4">
-        <button type="button" onclick="saveData()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Save</button>
-      </div>
-      <p id="status-message" class="text-sm mt-3 text-gray-600"></p>
-    </form>
+
+      <!-- Intersect Input Form -->
+      <form id="exercise-form" class="bg-white p-6 rounded shadow space-y-4" onsubmit="return false;">
+        <h3 class="text-xl font-bold mb-2">Where They Intersect</h3>
+        <div>
+          <label for="identity" class="block font-semibold mb-1">Identity</label>
+          <textarea id="identity" name="identity" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Where does your identity align?"></textarea>
+        </div>
+        <div>
+          <label for="ambition" class="block font-semibold mb-1">Ambition</label>
+          <textarea id="ambition" name="ambition" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Where does your ambition align?"></textarea>
+        </div>
+        <div>
+          <label for="role" class="block font-semibold mb-1">Role</label>
+          <textarea id="role" name="role" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Where does your role align?"></textarea>
+        </div>
+        <div class="flex justify-start">
+          <button type="button" onclick="saveData()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Save</button>
+        </div>
+        <p id="status-message" class="text-sm mt-3 text-gray-600"></p>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -76,7 +84,7 @@
         return;
       }
 
-      // Load Exercise 2 (Stakeholder 1) data
+      // Load Stakeholder data (Exercise 2 – Page 26)
       const { data: stakeholderData } = await supabaseClient
         .from("exercise2_page26")
         .select("identity, ambition, role")
@@ -89,7 +97,7 @@
         document.getElementById("stakeholder-role").textContent = stakeholderData.role || "";
       }
 
-      // Load Exercise 3 (Organization) data
+      // Load Org data (Exercise 3 – Page 34)
       const { data: orgData } = await supabaseClient
         .from("exercise3_page34")
         .select("identity, ambition, role")
