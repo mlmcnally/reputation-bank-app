@@ -27,51 +27,61 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    const supabaseUrl = 'https://YOUR-SUPABASE-URL.supabase.co';
-    const supabaseKey = 'YOUR-PUBLIC-ANON-KEY';
+    const supabaseUrl = 'https://nidxvthbowdgdfuopmzk.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const user = await supabase.auth.getUser().then(({ data }) => data.user);
-    if (!user) {
-      window.location.href = '/login.html';
-    }
-
     const form = document.getElementById('exercise3-form');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const identity = form.identity.value;
-      const ambition = form.ambition.value;
-      const role = form.role.value;
 
-      const { error } = await supabase
-        .from('exercise3_page34')
-        .upsert({
-          user_id: user.id,
-          identity,
-          ambition,
-          role,
-        }, { onConflict: ['user_id'] });
+    async function checkUserAndInit() {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
 
-      if (error) {
-        alert('Error saving your response.');
-        console.error(error);
-      } else {
-        alert('Saved successfully!');
+      if (!user) {
+        window.location.href = '/login.html';
+        return;
       }
-    });
 
-    // Optionally load existing data
-    const { data: existingData } = await supabase
-      .from('exercise3_page34')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+      // Load any saved data
+      const { data: existingData } = await supabase
+        .from('exercise3_page34')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
 
-    if (existingData) {
-      form.identity.value = existingData.identity || '';
-      form.ambition.value = existingData.ambition || '';
-      form.role.value = existingData.role || '';
+      if (existingData) {
+        form.identity.value = existingData.identity || '';
+        form.ambition.value = existingData.ambition || '';
+        form.role.value = existingData.role || '';
+      }
+
+      // Save form data
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const identity = form.identity.value;
+        const ambition = form.ambition.value;
+        const role = form.role.value;
+
+        const { error } = await supabase
+          .from('exercise3_page34')
+          .upsert({
+            user_id: user.id,
+            identity,
+            ambition,
+            role,
+          }, { onConflict: ['user_id'] });
+
+        if (error) {
+          alert('Error saving your response.');
+          console.error(error);
+        } else {
+          alert('Saved successfully!');
+        }
+      });
     }
+
+    checkUserAndInit();
   </script>
 </body>
 </html>
