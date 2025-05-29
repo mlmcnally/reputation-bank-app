@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercise 5 – Page 48</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="flex flex-col md:flex-row min-h-screen p-4 gap-6">
+    
+    <!-- Left: Page Thumbnail -->
+    <div class="w-full md:w-1/3 bg-white p-4 shadow rounded">
+      <h2 class="text-lg font-semibold mb-4">Exercise 5 Page 48</h2>
+      <img src="/exercise5-page-48.jpg" alt="Exercise 5 Page 48" class="w-full h-auto border rounded max-w-xs mx-auto">
+    </div>
+
+    <!-- Right: Interactive Form -->
+    <div class="w-full md:w-2/3 space-y-6">
+      <h2 class="text-2xl font-bold">Stakeholder Engagement Admission Tickets</h2>
+      <p class="text-gray-700 mb-4">Based on Exercises 2 and 4, complete admission ticket ideas to engage each stakeholder. You can suggest up to three for each.</p>
+
+      <form id="ticket-form" class="space-y-8" onsubmit="return false;">
+        <div id="stakeholder-sections" class="space-y-10"></div>
+        <button type="button" onclick="saveAll()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Save All</button>
+        <p id="status-message" class="text-sm mt-3 text-gray-600"></p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const supabaseClient = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    async function loadStakeholderData() {
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+      const container = document.getElementById("stakeholder-sections");
+      const statusMsg = document.getElementById("status-message");
+
+      if (userError || !user?.id) {
+        statusMsg.textContent = "You must be logged in.";
+        statusMsg.classList.add("text-red-600");
+        return;
+      }
+
+      for (let i = 1; i <= 6; i++) {
+        const ex2 = await supabaseClient.from(`exercise2_page2${5+i}`).select("stakeholder, role").eq("user_id", user.id).single();
+        const ex4 = await supabaseClient.from(`exercise4_page3${5+i}`).select("role").eq("user_id", user.id).single();
+
+        const stakeholder = ex2.data?.stakeholder || "";
+        const role = ex2.data?.role || "";
+        const intersectingRole = ex4.data?.role || "";
+
+        const section = document.createElement("div");
+        section.classList.add("bg-white", "p-4", "rounded", "shadow");
+
+        section.innerHTML = `
+          <h3 class="font-semibold text-lg mb-2">Stakeholder ${i}</h3>
+          <p><strong>Name:</strong> <span id="name-${i}">${stakeholder}</span></p>
+          <p><strong>Role:</strong> ${role}</p>
+          <p><strong>Intersecting Role:</strong> ${intersectingRole}</p>
+
+          <div class="mt-4 space-y-3">
+            <label class="block font-medium">Admission Ticket Idea 1</label>
+            <textarea class="w-full border border-gray-300 rounded px-3 py-2" name="ticket1-${i}" placeholder="Generous contribution idea"></textarea>
+
+            <label class="block font-medium">Admission Ticket Idea 2</label>
+            <textarea class="w-full border border-gray-300 rounded px-3 py-2" name="ticket2-${i}" placeholder="Second idea"></textarea>
+
+            <label class="block font-medium">Admission Ticket Idea 3</label>
+            <textarea class="w-full border border-gray-300 rounded px-3 py-2" name="ticket3-${i}" placeholder="Third idea"></textarea>
+          </div>
+        `;
+
+        container.appendChild(section);
+      }
+    }
+
+    async function saveAll() {
+      const statusMsg = document.getElementById("status-message");
+      const { data: { user } } = await supabaseClient.auth.getUser();
+
+      for (let i = 1; i <= 6; i++) {
+        const ticket1 = document.querySelector(`[name='ticket1-${i}']`).value.trim();
+        const ticket2 = document.querySelector(`[name='ticket2-${i}']`).value.trim();
+        const ticket3 = document.querySelector(`[name='ticket3-${i}']`).value.trim();
+        const stakeholderName = document.querySelector(`#name-${i}`).textContent.trim();
+
+        await supabaseClient.from("exercise5_page48").insert([
+          {
+            user_id: user.id,
+            stakeholder_number: i,
+            stakeholder_name: stakeholderName,
+            ticket_1: ticket1,
+            ticket_2: ticket2,
+            ticket_3: ticket3
+          }
+        ]);
+      }
+
+      statusMsg.textContent = "✅ All admission tickets saved successfully!";
+      statusMsg.classList.remove("text-red-600");
+      statusMsg.classList.add("text-green-600");
+    }
+
+    window.addEventListener("DOMContentLoaded", loadStakeholderData);
+  </script>
+</body>
+</html>
