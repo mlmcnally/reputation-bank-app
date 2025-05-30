@@ -10,10 +10,10 @@
   <div class="min-h-screen flex flex-col items-center justify-start p-4 space-y-4">
     <h1 class="text-xl font-bold mt-2">The Reputation Bank Workbook</h1>
 
-    <!-- Container with explicit height constraint -->
-    <div class="w-full flex justify-center items-center" style="max-height: 80vh; overflow: hidden;">
+    <!-- Fixed height container to constrain image size across browsers -->
+    <div class="flex justify-center items-center h-[80vh] w-full overflow-hidden">
       <img src="/page-1.jpg" alt="Page 1"
-           class="h-auto w-auto max-h-full max-w-full object-contain border rounded shadow" />
+           class="object-scale-down h-full w-auto border rounded shadow" />
     </div>
 
     <!-- Flipbook Controls -->
@@ -25,4 +25,3 @@
   </div>
 </body>
 </html>
-
