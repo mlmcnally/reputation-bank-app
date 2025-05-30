@@ -7,23 +7,29 @@ export default function Flipbook() {
   const goNext = () => setPage((p) => Math.min(p + 1, totalPages));
   const goBack = () => setPage((p) => Math.max(p - 1, 1));
 
-  const paddedPage = String(page).padStart(1, '0');
-  const imageUrl = `/pdf-pages/page-${paddedPage}.jpg`;
+  const imageUrl = `/page-${page}.jpg`;
 
   return (
     <div style={{ textAlign: 'center', padding: '1rem' }}>
       <img
         src={imageUrl}
         alt={`Page ${page}`}
-        style={{ width: '100%', maxWidth: '800px', borderRadius: '12px' }}
+        style={{
+          width: '100%',
+          maxWidth: '700px',
+          maxHeight: '75vh',
+          objectFit: 'contain',
+          borderRadius: '12px',
+          border: '1px solid #ccc'
+        }}
       />
       <div style={{ marginTop: '1rem' }}>
         <button onClick={goBack} disabled={page === 1}>
-          ⬅️ Back
+          ⬅ Back
         </button>
         <span style={{ margin: '0 1rem' }}>Page {page} of {totalPages}</span>
         <button onClick={goNext} disabled={page === totalPages}>
-          Next ➡️
+          Next ➡
         </button>
       </div>
     </div>
