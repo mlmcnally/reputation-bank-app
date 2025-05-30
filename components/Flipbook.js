@@ -15,9 +15,10 @@ export default function Flipbook() {
         src={imageUrl}
         alt={`Page ${page}`}
         style={{
-          width: '100%',
-          maxWidth: '700px',
-          maxHeight: '75vh',
+          maxHeight: '88vh',
+          width: 'auto',
+          height: 'auto',
+          maxWidth: '100%',
           objectFit: 'contain',
           borderRadius: '12px',
           border: '1px solid #ccc'
