@@ -6,7 +6,7 @@ export default function Flipbook() {
   const [page, setPage] = useState(1);
   const router = useRouter();
 
-  // All interactive exercise pages
+  // Set of all interactive exercise pages
   const interactivePages = new Set([
     16, 17, 18, 19, 20, 21,      // Exercise 1
     26, 27, 28, 29, 30, 31,      // Exercise 2
@@ -30,6 +30,11 @@ export default function Flipbook() {
       router.push(`/page-${page}.html`);
     }
   }, [page, router]);
+
+  // Do NOT render image if we're about to redirect
+  if (interactivePages.has(page)) {
+    return null;
+  }
 
   const goNext = () => setPage((p) => Math.min(p + 1, totalPages));
   const goBack = () => setPage((p) => Math.max(p - 1, 1));
