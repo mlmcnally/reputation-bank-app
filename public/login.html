@@ -24,7 +24,6 @@
 
   <div id="error-message" style="margin-top: 15px; color: red; display: none;"></div>
 
-  <!-- ✅ Move the script to the end so it loads after the DOM -->
   <script>
     window.addEventListener('DOMContentLoaded', function () {
       const supabaseClient = window.supabase.createClient(
@@ -54,13 +53,11 @@
           errorMessage.style.display = 'block';
         } else {
           console.log("✅ Login successful:", data);
-          window.location.href = '/page-1.html';
+          // 🔁 Updated to point to React-based flipbook homepage
+          window.location.href = '/';
         }
       });
     });
   </script>
 </body>
 </html>
-
-
-
