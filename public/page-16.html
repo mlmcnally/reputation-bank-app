@@ -53,8 +53,21 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
       );
 
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const { data, error } = await supabase
+        .from('exercise1_page16')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        document.getElementById("stakeholder").value = data.stakeholder || "";
+        document.getElementById("opinion").value = data.opinion || "";
+        document.getElementById("advocacy").value = data.advocacy || "";
+        document.getElementById("action").value = data.action || "";
+      }
 
       window.saveData = async function () {
         const stakeholder = document.getElementById("stakeholder").value.trim();
@@ -62,9 +75,9 @@
         const advocacy = document.getElementById("advocacy").value.trim();
         const action = document.getElementById("action").value.trim();
 
-        const { error } = await supabase.from("exercise1_page16").insert([
+        const { error } = await supabase.from("exercise1_page16").upsert([
           { user_id: user.id, stakeholder, opinion, advocacy, action }
-        ]);
+        ], { onConflict: ['user_id'] });
 
         const statusMsg = document.getElementById("status");
         if (error) {
