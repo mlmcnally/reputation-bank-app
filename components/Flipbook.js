@@ -3,10 +3,8 @@ import { useRouter } from 'next/router';
 
 export default function Flipbook() {
   const totalPages = 109;
-  const [page, setPage] = useState(1);
   const router = useRouter();
 
-  // Set of all interactive exercise pages
   const interactivePages = new Set([
     16, 17, 18, 19, 20, 21,      // Exercise 1
     26, 27, 28, 29, 30, 31,      // Exercise 2
@@ -25,13 +23,30 @@ export default function Flipbook() {
     104                         // Exercise 15
   ]);
 
+  // 🆕 Read from URL hash like #page/15
+  const getInitialPage = () => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      const match = hash.match(/#page\/(\d+)/);
+      if (match) {
+        const pageNum = parseInt(match[1]);
+        if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+          return pageNum;
+        }
+      }
+    }
+    return 1;
+  };
+
+  const [page, setPage] = useState(getInitialPage);
+
+  // 🚨 Redirect to interactive page if needed
   useEffect(() => {
     if (interactivePages.has(page)) {
       router.push(`/page-${page}.html`);
     }
   }, [page, router]);
 
-  // Do NOT render image if we're about to redirect
   if (interactivePages.has(page)) {
     return null;
   }
