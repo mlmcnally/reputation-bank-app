@@ -10,33 +10,38 @@
 
   <h2>Exercise 1 – Page 16</h2>
   <a href="/#page/16" style="display: inline-block; margin-bottom: 1rem; color: #3b82f6;">← Back to Flipbook</a>
+  <button onclick="window.print()" style="margin-left: 1rem; padding: 6px 12px;">🖨️ Print</button>
 
-  <form id="exercise-form" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 600px;">
-    <label>
-      <strong>Stakeholder Name</strong><br/>
-      <input type="text" id="stakeholder" required placeholder="Enter stakeholder name" style="width: 100%; margin-bottom: 1rem; padding: 8px;" />
-    </label>
+  <div style="display: flex; gap: 2rem; align-items: flex-start;">
+    <img src="/page-16.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <label>
-      <strong>Opinion</strong><br/>
-      <textarea id="opinion" placeholder="What are their views or perspectives?" style="width: 100%; height: 80px; margin-bottom: 1rem; padding: 8px;"></textarea>
-    </label>
+    <form id="exercise-form" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1;">
+      <label>
+        <strong>Stakeholder Name</strong><br/>
+        <input type="text" id="stakeholder" required style="width: 100%; margin-bottom: 1rem; padding: 8px;" />
+      </label>
 
-    <label>
-      <strong>Advocacy</strong><br/>
-      <textarea id="advocacy" placeholder="How are they advocating for or against your business?" style="width: 100%; height: 80px; margin-bottom: 1rem; padding: 8px;"></textarea>
-    </label>
+      <label>
+        <strong>Opinion</strong><br/>
+        <textarea id="opinion" style="width: 100%; height: 80px; margin-bottom: 1rem; padding: 8px;"></textarea>
+      </label>
 
-    <label>
-      <strong>Action</strong><br/>
-      <textarea id="action" placeholder="What actions are they taking?" style="width: 100%; height: 80px; margin-bottom: 1rem; padding: 8px;"></textarea>
-    </label>
+      <label>
+        <strong>Advocacy</strong><br/>
+        <textarea id="advocacy" style="width: 100%; height: 80px; margin-bottom: 1rem; padding: 8px;"></textarea>
+      </label>
 
-    <button type="button" onclick="saveData()" style="padding: 10px 16px; margin-right: 10px;">💾 Save</button>
-    <button type="button" onclick="saveAndGoNext()" style="padding: 10px 16px; background-color: #3b82f6; color: white; border: none;">➡ Save & Next</button>
+      <label>
+        <strong>Action</strong><br/>
+        <textarea id="action" style="width: 100%; height: 80px; margin-bottom: 1rem; padding: 8px;"></textarea>
+      </label>
 
-    <div id="status" style="margin-top: 1rem; color: green;"></div>
-  </form>
+      <button type="button" onclick="saveData()" style="padding: 10px 16px; margin-right: 10px;">💾 Save</button>
+      <button type="button" onclick="saveAndGoNext()" style="padding: 10px 16px; background-color: #3b82f6; color: white; border: none;">➡ Save & Next</button>
+
+      <div id="status" style="margin-top: 1rem; color: green;"></div>
+    </form>
+  </div>
 
   <script>
     const supabase = window.supabase.createClient(
@@ -44,15 +49,43 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
+    let userId = null;
+
+    async function loadExistingData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      userId = user.id;
+
+      const { data, error } = await supabase
+        .from('exercise1_page16')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (data) {
+        document.getElementById('stakeholder').value = data.stakeholder || '';
+        document.getElementById('opinion').value = data.opinion || '';
+        document.getElementById('advocacy').value = data.advocacy || '';
+        document.getElementById('action').value = data.action || '';
+      }
+    }
+
     async function saveData() {
       const stakeholder = document.getElementById('stakeholder').value;
       const opinion = document.getElementById('opinion').value;
       const advocacy = document.getElementById('advocacy').value;
       const action = document.getElementById('action').value;
 
+      if (!userId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        userId = user.id;
+      }
+
       const { data, error } = await supabase
         .from('exercise1_page16')
-        .insert([{ stakeholder, opinion, advocacy, action }]);
+        .upsert([{ user_id: userId, stakeholder, opinion, advocacy, action }], { onConflict: ['user_id'] });
 
       const status = document.getElementById('status');
       if (error) {
@@ -70,6 +103,8 @@
       await saveData();
       window.location.href = '/page-17.html';
     }
+
+    window.addEventListener('DOMContentLoaded', loadExistingData);
   </script>
 
 </body>
