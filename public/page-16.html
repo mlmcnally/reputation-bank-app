@@ -31,6 +31,66 @@
   </div>
 
   <script>
-    window.addEventListener('DOMContentLoaded', async function () {
-      const supabase = window.supabase.createClient(
-        'https://nidxvthbowdgdfuopmzk.
+    const supabase = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    async function loadData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("exercise1_page16")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (data) {
+        document.getElementById("stakeholder").value = data.stakeholder || "";
+        document.getElementById("opinion").value = data.opinion || "";
+        document.getElementById("advocacy").value = data.advocacy || "";
+        document.getElementById("action").value = data.action || "";
+      }
+    }
+
+    async function saveData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const payload = {
+        user_id: user.id,
+        stakeholder: document.getElementById("stakeholder").value.trim(),
+        opinion: document.getElementById("opinion").value.trim(),
+        advocacy: document.getElementById("advocacy").value.trim(),
+        action: document.getElementById("action").value.trim()
+      };
+
+      const { error } = await supabase
+        .from("exercise1_page16")
+        .upsert(payload, { onConflict: ['user_id'] });
+
+      const msg = document.getElementById("status");
+      if (error) {
+        msg.textContent = "❌ Error saving: " + error.message;
+        msg.style.color = "red";
+      } else {
+        msg.textContent = "✅ Saved successfully!";
+        msg.style.color = "green";
+      }
+    }
+
+    function saveAndGoNext() {
+      saveData().then(() => {
+        window.location.href = "/page-17.html";
+      });
+    }
+
+    function goBack() {
+      window.location.href = "/#page/15";
+    }
+
+    window.addEventListener("DOMContentLoaded", loadData);
+  </script>
+</body>
+</html>
