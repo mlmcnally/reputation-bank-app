@@ -10,35 +10,39 @@
 <body class="bg-gray-100 text-gray-900">
   <div class="flex flex-col md:flex-row min-h-screen p-4 gap-6">
     
-    <!-- Left Side: Image Preview -->
-    <div class="w-full md:w-1/2 bg-white p-4 shadow rounded">
-      <h2 class="text-lg font-semibold mb-4">Exercise 2 Page 26</h2>
-      <img src="/exercise2-page-26.jpg" alt="Exercise 2 Page 26" class="w-full h-auto rounded border">
+    <!-- Left: Page Thumbnail -->
+    <div class="w-full md:w-2/5 bg-white p-4 shadow rounded">
+      <h2 class="text-lg font-semibold mb-4">Exercise 2 – Page 26</h2>
+      <img src="/page-26.jpg" alt="Exercise 2 Page 26" class="w-full h-auto border rounded max-w-sm mx-auto">
+      <a href="/#page/25" class="block text-blue-600 text-sm mt-4 text-center">🔙 Back to Flipbook</a>
     </div>
 
-    <!-- Right Side: Interactive Form -->
-    <div class="w-full md:w-1/2 bg-white p-4 shadow rounded">
-      <h2 class="text-2xl font-bold mb-6">Exercise 2 – Page 26</h2>
-      <form id="exercise-form" class="space-y-4" onsubmit="return false;">
+    <!-- Right: Content and Form -->
+    <div class="w-full md:w-3/5 space-y-6">
+      <p class="text-gray-700 text-base">For Stakeholder 1, describe their identity, ambition, and role as you understand it.</p>
+
+      <form id="exercise-form" class="bg-white p-6 rounded shadow space-y-4" onsubmit="return false;">
         <div>
           <label for="stakeholder" class="block font-semibold mb-1">Stakeholder Name</label>
-          <input type="text" id="stakeholder" name="stakeholder" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Enter stakeholder name" />
+          <input id="stakeholder" name="stakeholder" type="text" class="w-full border border-gray-300 rounded px-3 py-2" />
         </div>
         <div>
           <label for="identity" class="block font-semibold mb-1">Identity</label>
-          <textarea id="identity" name="identity" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="Who are they?"></textarea>
+          <textarea id="identity" name="identity" class="w-full border border-gray-300 rounded px-3 py-2"></textarea>
         </div>
         <div>
           <label for="ambition" class="block font-semibold mb-1">Ambition</label>
-          <textarea id="ambition" name="ambition" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="What do they want?"></textarea>
+          <textarea id="ambition" name="ambition" class="w-full border border-gray-300 rounded px-3 py-2"></textarea>
         </div>
         <div>
           <label for="role" class="block font-semibold mb-1">Role</label>
-          <textarea id="role" name="role" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="What role do they play?"></textarea>
+          <textarea id="role" name="role" class="w-full border border-gray-300 rounded px-3 py-2"></textarea>
         </div>
-        <div class="flex gap-2 mt-4">
-          <button type="button" onclick="saveData()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Save</button>
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Next Page →</button>
+        <div class="flex flex-wrap gap-2 pt-2">
+          <button type="button" onclick="goBack()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">⬅ Back One Page</button>
+          <button type="button" onclick="print()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">🖨️ Print</button>
+          <button type="button" onclick="saveData()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">💾 Save</button>
+          <button type="button" onclick="saveAndNext()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save & Next ➡</button>
         </div>
         <p id="status-message" class="text-sm mt-3 text-gray-600"></p>
       </form>
@@ -46,48 +50,66 @@
   </div>
 
   <script>
-    window.addEventListener('DOMContentLoaded', function () {
-      const supabaseClient = window.supabase.createClient(
-        'https://nidxvthbowdgdfuopmzk.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-      );
+    const supabase = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
 
-      async function saveData() {
-        const stakeholder = document.getElementById("stakeholder").value.trim();
-        const identity = document.getElementById("identity").value.trim();
-        const ambition = document.getElementById("ambition").value.trim();
-        const role = document.getElementById("role").value.trim();
-        const statusMsg = document.getElementById("status-message");
+    async function loadData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-        if (userError || !user?.id) {
-          statusMsg.textContent = "You must be logged in to save your work.";
-          statusMsg.classList.add("text-red-600");
-          return;
-        }
+      const { data, error } = await supabase
+        .from("exercise2_page26")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
 
-        const { error } = await supabaseClient.from("exercise2_page26").insert([
-          {
-            user_id: user.id,
-            stakeholder,
-            identity,
-            ambition,
-            role
-          }
-        ]);
-
-        if (error) {
-          statusMsg.textContent = "❌ Error saving data: " + error.message;
-          statusMsg.classList.add("text-red-600");
-        } else {
-          statusMsg.textContent = "✅ Saved successfully!";
-          statusMsg.classList.remove("text-red-600");
-          statusMsg.classList.add("text-green-600");
-        }
+      if (data) {
+        document.getElementById("stakeholder").value = data.stakeholder || "";
+        document.getElementById("identity").value = data.identity || "";
+        document.getElementById("ambition").value = data.ambition || "";
+        document.getElementById("role").value = data.role || "";
       }
+    }
 
-      window.saveData = saveData;
-    });
+    async function saveData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const payload = {
+        user_id: user.id,
+        stakeholder: document.getElementById("stakeholder").value.trim(),
+        identity: document.getElementById("identity").value.trim(),
+        ambition: document.getElementById("ambition").value.trim(),
+        role: document.getElementById("role").value.trim()
+      };
+
+      const { error } = await supabase
+        .from("exercise2_page26")
+        .upsert(payload, { onConflict: ['user_id'] });
+
+      const msg = document.getElementById("status-message");
+      if (error) {
+        msg.textContent = "❌ Error saving: " + error.message;
+        msg.classList.remove("text-green-600");
+        msg.classList.add("text-red-600");
+      } else {
+        msg.textContent = "✅ Saved successfully!";
+        msg.classList.remove("text-red-600");
+        msg.classList.add("text-green-600");
+      }
+    }
+
+    function saveAndNext() {
+      saveData().then(() => window.location.href = "/page-27.html");
+    }
+
+    function goBack() {
+      window.location.href = "/#page/25";
+    }
+
+    window.addEventListener("DOMContentLoaded", loadData);
   </script>
 </body>
 </html>
