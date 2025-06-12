@@ -23,7 +23,10 @@
       <div style="margin-top: 1rem;">
         <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
         <button type="button" onclick="saveData()" style="margin-right: 10px;">💾 Save</button>
-        <button type="button" onclick="window.print()">🖨️ Print</button>
+        <button type="button" onclick="window.print()" style="margin-right: 10px;">🖨️ Print</button>
+        <button type="button" onclick="goToFlipbook()" style="background-color: #7c3aed; color: white; padding: 10px; border-radius: 5px;">
+          ➡ Go to Page 22
+        </button>
       </div>
       <div id="status" style="margin-top: 1rem; color: green;"></div>
     </form>
@@ -62,6 +65,9 @@
       }
       window.goBack = function () {
         window.location.href = "/page-20.html";
+      }
+      window.goToFlipbook = function () {
+        window.location.href = "/#page/22";
       }
     });
   </script>
