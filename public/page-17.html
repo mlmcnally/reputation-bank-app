@@ -46,16 +46,19 @@
   </div>
 
   <script>
-    window.addEventListener('DOMContentLoaded', async function () {
-      const supabase = window.supabase.createClient(
-        'https://nidxvthbowdgdfuopmzk.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-      );
+    const supabase = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
 
-      const { data: { user } } = await supabase.auth.getUser();
+    let user = null;
+
+    window.addEventListener('DOMContentLoaded', async function () {
+      const response = await supabase.auth.getUser();
+      user = response.data.user;
       if (!user) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('exercise1_page17')
         .select('*')
         .eq('user_id', user.id)
@@ -67,36 +70,36 @@
         document.getElementById("advocacy").value = data.advocacy || "";
         document.getElementById("action").value = data.action || "";
       }
-
-      window.saveData = async function () {
-        const stakeholder = document.getElementById("stakeholder").value.trim();
-        const opinion = document.getElementById("opinion").value.trim();
-        const advocacy = document.getElementById("advocacy").value.trim();
-        const action = document.getElementById("action").value.trim();
-
-        const { error } = await supabase.from("exercise1_page17").upsert([
-          { user_id: user.id, stakeholder, opinion, advocacy, action }
-        ], { onConflict: ['user_id'] });
-
-        const statusMsg = document.getElementById("status");
-        if (error) {
-          statusMsg.textContent = "❌ Error saving data: " + error.message;
-          statusMsg.style.color = "red";
-        } else {
-          statusMsg.textContent = "✅ Saved successfully!";
-          statusMsg.style.color = "green";
-        }
-      }
-
-      window.saveAndGoNext = async function () {
-        await saveData();
-        window.location.href = "/page-18.html";
-      }
-
-      window.goBack = function () {
-        window.location.href = "/page-16.html";
-      }
     });
+
+    window.saveData = async function () {
+      const stakeholder = document.getElementById("stakeholder").value.trim();
+      const opinion = document.getElementById("opinion").value.trim();
+      const advocacy = document.getElementById("advocacy").value.trim();
+      const action = document.getElementById("action").value.trim();
+
+      const { error } = await supabase.from("exercise1_page17").upsert([
+        { user_id: user.id, stakeholder, opinion, advocacy, action }
+      ], { onConflict: ['user_id'] });
+
+      const statusMsg = document.getElementById("status");
+      if (error) {
+        statusMsg.textContent = "❌ Error saving data: " + error.message;
+        statusMsg.style.color = "red";
+      } else {
+        statusMsg.textContent = "✅ Saved successfully!";
+        statusMsg.style.color = "green";
+      }
+    };
+
+    window.saveAndGoNext = async function () {
+      await saveData();
+      window.location.href = "/page-18.html";
+    };
+
+    window.goBack = function () {
+      window.location.href = "/page-16.html";
+    };
   </script>
 
 </body>
