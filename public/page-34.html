@@ -32,6 +32,7 @@
       <div style="margin-top: 1rem;">
         <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
         <button type="button" onclick="saveData()" style="margin-right: 10px;">💾 Save</button>
+        <button type="button" onclick="saveAndGoNext()" style="margin-right: 10px;">➡ Save & Go to Page 35</button>
         <button type="button" onclick="window.print()">🖨️ Print</button>
       </div>
 
@@ -80,6 +81,11 @@
         }
       }
 
+      window.saveAndGoNext = async function () {
+        await saveData();
+        window.location.href = "/#page/35";
+      }
+
       window.goBack = function () {
         window.location.href = "/page-33.jpg";
       }
@@ -87,3 +93,4 @@
   </script>
 </body>
 </html>
+
