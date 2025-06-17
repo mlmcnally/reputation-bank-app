@@ -23,39 +23,41 @@
 
       <form id="ticket-form" class="space-y-8" onsubmit="return false;">
         <div id="stakeholder-sections" class="space-y-10"></div>
-        <button type="button" onclick="saveAll()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Save All</button>
+
+        <div class="flex flex-wrap gap-4 mt-6">
+          <button type="button" onclick="goBack()" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">⬅ Back One Page</button>
+          <button type="button" onclick="saveAll()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">💾 Save</button>
+          <button type="button" onclick="saveAndGoNext()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">➡ Save & Go to Page 49</button>
+          <button type="button" onclick="window.print()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">🖨️ Print</button>
+        </div>
+
         <p id="status-message" class="text-sm mt-3 text-gray-600"></p>
       </form>
     </div>
   </div>
 
   <script>
-    const supabaseClient = window.supabase.createClient(
+    const supabase = window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
     async function loadStakeholderData() {
-      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-      const container = document.getElementById("stakeholder-sections");
-      const statusMsg = document.getElementById("status-message");
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) return;
 
-      if (userError || !user?.id) {
-        statusMsg.textContent = "You must be logged in.";
-        statusMsg.classList.add("text-red-600");
-        return;
-      }
+      const container = document.getElementById("stakeholder-sections");
 
       for (let i = 1; i <= 6; i++) {
-        const ex2 = await supabaseClient.from(`exercise2_page2${5+i}`).select("stakeholder, role").eq("user_id", user.id).single();
-        const ex4 = await supabaseClient.from(`exercise4_page3${5+i}`).select("role").eq("user_id", user.id).single();
+        const ex2 = await supabase.from(`exercise2_page2${5+i}`).select("stakeholder, role").eq("user_id", user.id).single();
+        const ex4 = await supabase.from(`exercise4_page3${5+i}`).select("role").eq("user_id", user.id).single();
 
         const stakeholder = ex2.data?.stakeholder || "";
         const role = ex2.data?.role || "";
         const intersectingRole = ex4.data?.role || "";
 
         const section = document.createElement("div");
-        section.classList.add("bg-white", "p-4", "rounded", "shadow");
+        section.className = "bg-white p-4 rounded shadow";
 
         section.innerHTML = `
           <h3 class="font-semibold text-lg mb-2">Stakeholder ${i}</h3>
@@ -81,7 +83,7 @@
 
     async function saveAll() {
       const statusMsg = document.getElementById("status-message");
-      const { data: { user } } = await supabaseClient.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       for (let i = 1; i <= 6; i++) {
         const ticket1 = document.querySelector(`[name='ticket1-${i}']`).value.trim();
@@ -89,7 +91,7 @@
         const ticket3 = document.querySelector(`[name='ticket3-${i}']`).value.trim();
         const stakeholderName = document.querySelector(`#name-${i}`).textContent.trim();
 
-        await supabaseClient.from("exercise5_page48").insert([
+        await supabase.from("exercise5_page48").upsert([
           {
             user_id: user.id,
             stakeholder_number: i,
@@ -98,69 +100,23 @@
             ticket_2: ticket2,
             ticket_3: ticket3
           }
-        ]);
-      }
-            <div style="margin-top: 1rem;">
-        <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
-        <button type="button" onclick="saveData()" style="margin-right: 10px;">💾 Save</button>
-        <button type="button" onclick="saveAndGoNext()" style="margin-right: 10px;">➡ Save & Go to Page 49</button>
-        <button type="button" onclick="window.print()">🖨️ Print</button>
-      </div>
-
-      <div id="status" style="margin-top: 1rem; color: green;"></div>
-    </form>
-  </div>
-
-  <script>
-    window.addEventListener('DOMContentLoaded', async function () {
-      const supabase = window.supabase.createClient(
-        'https://nidxvthbowdgdfuopmzk.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-      );
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('exercise5_page48')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (data) {
-        document.getElementById("identity").value = data.identity || "";
-        document.getElementById("ambition").value = data.ambition || "";
-        document.getElementById("role").value = data.role || "";
+        ], { onConflict: ['user_id', 'stakeholder_number'] });
       }
 
-      window.saveData = async function () {
-        const identity = document.getElementById("identity").value.trim();
-        const ambition = document.getElementById("ambition").value.trim();
-        const role = document.getElementById("role").value.trim();
+      statusMsg.textContent = "✅ All admission tickets saved successfully!";
+      statusMsg.className = "text-green-600 text-sm mt-3";
+    }
 
-        const { error } = await supabase.from("exercise5_page48").upsert([
-          { user_id: user.id, identity, ambition, role }
-        ], { onConflict: ['user_id'] });
+    async function saveAndGoNext() {
+      await saveAll();
+      window.location.href = "/#page/49";
+    }
 
-        const statusMsg = document.getElementById("status");
-        if (error) {
-          statusMsg.textContent = "❌ Error saving data: " + error.message;
-          statusMsg.style.color = "red";
-        } else {
-          statusMsg.textContent = "✅ Saved successfully!";
-          statusMsg.style.color = "green";
-        }
-      }
+    function goBack() {
+      window.location.href = "/#page/47";
+    }
 
-      window.saveAndGoNext = async function () {
-        await saveData();
-        window.location.href = "/#page/49";
-      }
-
-      window.goBack = function () {
-        window.location.href = "/#page/47";
-      }
-    });
+    window.addEventListener("DOMContentLoaded", loadStakeholderData);
   </script>
 </body>
 </html>
