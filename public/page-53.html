@@ -14,10 +14,15 @@
     <img src="/page-53.jpg" alt="Exercise Page 53" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
     <form id="exercise-form" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1;">
-      <label>
-        <strong>Your examples of following the Success Rules</strong><br/>
-        <textarea id="success_dos" style="width: 100%; height: 300px; margin-bottom: 1rem; padding: 8px;"></textarea>
-      </label>
+      <p><strong>Please provide at least 5 examples.</strong></p>
+
+      <!-- 10 input fields -->
+      ${Array.from({ length: 10 }).map((_, i) => `
+        <label>
+          <strong>Example ${i + 1}</strong><br/>
+          <textarea id="success_dos_${i + 1}" style="width: 100%; height: 60px; margin-bottom: 1rem; padding: 8px;"></textarea>
+        </label>
+      `).join('')}
 
       <div style="margin-top: 1rem;">
         <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
@@ -47,15 +52,18 @@
         .single();
 
       if (data) {
-        document.getElementById("success_dos").value = data.success_dos || "";
+        for (let i = 1; i <= 10; i++) {
+          document.getElementById(`success_dos_${i}`).value = data[`success_dos_${i}`] || "";
+        }
       }
 
       window.saveData = async function () {
-        const success_dos = document.getElementById("success_dos").value.trim();
+        const updates = { user_id: user.id };
+        for (let i = 1; i <= 10; i++) {
+          updates[`success_dos_${i}`] = document.getElementById(`success_dos_${i}`).value.trim();
+        }
 
-        const { error } = await supabase.from("exercise6_page53").upsert([
-          { user_id: user.id, success_dos }
-        ], { onConflict: ['user_id'] });
+        const { error } = await supabase.from("exercise6_page53").upsert([updates], { onConflict: ['user_id'] });
 
         const statusMsg = document.getElementById("status");
         if (error) {
@@ -65,16 +73,16 @@
           statusMsg.textContent = "✅ Saved successfully!";
           statusMsg.style.color = "green";
         }
-      }
+      };
 
       window.saveAndGoNext = async function () {
         await saveData();
         window.location.href = "/page-54.html";
-      }
+      };
 
       window.goBack = function () {
         window.location.href = "/#page/52";
-      }
+      };
     });
   </script>
 </body>
