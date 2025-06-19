@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exercise 7 – Page 68</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-6">
+  <h2 class="text-2xl font-semibold mb-6">Exercise 7 – Page 68</h2>
+
+  <div class="flex flex-col md:flex-row gap-6">
+    <!-- Left: Page Image -->
+    <div class="md:w-2/5">
+      <img src="/page-68.jpg" alt="Exercise 7 Page 68" class="w-full h-auto border rounded shadow">
+    </div>
+
+    <!-- Right: Interactive Form -->
+    <div class="md:w-3/5 bg-white p-6 rounded shadow">
+      <form id="exercise-form" class="space-y-4" onsubmit="return false;">
+        <div>
+          <label class="block font-medium mb-1" for="insight1">Insight 1</label>
+          <input type="text" id="insight1" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block font-medium mb-1" for="insight2">Insight 2</label>
+          <input type="text" id="insight2" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block font-medium mb-1" for="insight3">Insight 3</label>
+          <input type="text" id="insight3" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block font-medium mb-1" for="insight4">Insight 4</label>
+          <input type="text" id="insight4" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block font-medium mb-1" for="insight5">Insight 5</label>
+          <input type="text" id="insight5" class="w-full border rounded px-3 py-2" />
+        </div>
+
+        <!-- Communication Purpose -->
+        <div>
+          <label class="block font-medium mb-2">Primary Purpose for Communicating with this Stakeholder:</label>
+          <select id="communication_purpose" class="w-full border rounded px-3 py-2">
+            <option value="">Select a purpose</option>
+            <option value="Inform">Inform</option>
+            <option value="Educate">Educate</option>
+            <option value="Inspire">Inspire</option>
+            <option value="Advocate">Advocate</option>
+            <option value="Motivate">Motivate</option>
+          </select>
+        </div>
+
+        <!-- Buttons -->
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button type="button" onclick="goBack()" class="border px-4 py-2 rounded hover:bg-gray-100">⬅ Back One Page</button>
+          <button type="button" onclick="saveData()" class="border px-4 py-2 rounded hover:bg-gray-100">💾 Save</button>
+          <button type="button" onclick="saveAndGoNext()" class="border px-4 py-2 rounded hover:bg-gray-100">➡ Save & Go to Page 69</button>
+          <button type="button" onclick="window.print()" class="border px-4 py-2 rounded hover:bg-gray-100">🖨️ Print</button>
+        </div>
+
+        <div id="status" class="text-sm mt-4"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('exercise7_page68')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        document.getElementById("insight1").value = data.insight1 || "";
+        document.getElementById("insight2").value = data.insight2 || "";
+        document.getElementById("insight3").value = data.insight3 || "";
+        document.getElementById("insight4").value = data.insight4 || "";
+        document.getElementById("insight5").value = data.insight5 || "";
+        document.getElementById("communication_purpose").value = data.communication_purpose || "";
+      }
+    });
+
+    async function saveData() {
+      const status = document.getElementById("status");
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const payload = {
+        user_id: user.id,
+        insight1: document.getElementById("insight1").value.trim(),
+        insight2: document.getElementById("insight2").value.trim(),
+        insight3: document.getElementById("insight3").value.trim(),
+        insight4: document.getElementById("insight4").value.trim(),
+        insight5: document.getElementById("insight5").value.trim(),
+        communication_purpose: document.getElementById("communication_purpose").value
+      };
+
+      const { error } = await supabase
+        .from("exercise7_page68")
+        .upsert([payload], { onConflict: ['user_id'] });
+
+      if (error) {
+        status.textContent = "❌ Error saving data: " + error.message;
+        status.className = "text-red-600 text-sm mt-4";
+      } else {
+        status.textContent = "✅ Saved successfully!";
+        status.className = "text-green-600 text-sm mt-4";
+      }
+    }
+
+    function saveAndGoNext() {
+      saveData().then(() => {
+        window.location.href = "/#page/69";
+      });
+    }
+
+    function goBack() {
+      window.location.href = "/#page/67";
+    }
+  </script>
+</body>
+</html>
