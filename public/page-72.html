@@ -14,7 +14,6 @@
     }
     .container {
       display: flex;
-      flex-direction: row;
       height: 100vh;
     }
     .left-pane {
@@ -50,19 +49,19 @@
     .button-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 0.75rem;
       margin-top: 2rem;
     }
-    button {
-      padding: 0.75rem 1.25rem;
+    .button-row button {
       background-color: #4b5563;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      font-size: 0.95rem;
       cursor: pointer;
-      font-size: 1rem;
     }
-    button:hover {
+    .button-row button:hover {
       background-color: #374151;
     }
     img {
@@ -74,7 +73,7 @@
 <body>
   <div class="container">
     <div class="left-pane">
-      <img src="/page72.jpg" alt="Exercise 8 Page 72" />
+      <img src="/page-72.jpg" alt="Exercise 8 Page 72" />
     </div>
     <div class="right-pane">
       <h2>Change Communication Approaches</h2>
@@ -95,10 +94,10 @@
       <textarea id="best_approach"></textarea>
 
       <div class="button-row">
+        <button onclick="window.location.href='/#page/71'">Back</button>
         <button onclick="saveData()">Save</button>
         <button onclick="saveAndNext()">Save & Go to Page 73</button>
         <button onclick="window.print()">Print</button>
-        <button onclick="window.location.href='"/#page/71">Back to Page 71</button>
       </div>
     </div>
   </div>
@@ -143,7 +142,7 @@
 
     async function saveAndNext() {
       await saveData();
-      window.location.href = '/#page/71';
+      window.location.href = '/#page/73';
     }
 
     async function prefillData() {
