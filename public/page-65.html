@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exercise 7 – Page 65</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="font-family: sans-serif; background: #f3f4f6; padding: 2rem;">
+
+  <h2>Exercise 7 – Page 65</h2>
+
+  <div style="display: flex; gap: 2rem; align-items: flex-start;">
+    <img src="/page-65.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
+
+    <form id="exercise-form" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1;">
+      <label><strong>Stakeholder Name</strong><br/>
+        <input id="stakeholder" type="text" style="width: 100%; margin-bottom: 1rem;" />
+      </label>
+
+      <label><strong>Insight 1</strong><br/>
+        <textarea id="insight_1" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+      <label><strong>Insight 2</strong><br/>
+        <textarea id="insight_2" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+      <label><strong>Insight 3</strong><br/>
+        <textarea id="insight_3" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+      <label><strong>Insight 4</strong><br/>
+        <textarea id="insight_4" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+      <label><strong>Insight 5</strong><br/>
+        <textarea id="insight_5" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+
+      <label><strong>Purpose: Inform</strong><br/>
+        <textarea id="purpose_inform" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+      <label><strong>Purpose: Educate</strong><br/>
+        <textarea id="purpose_educate" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+      <label><strong>Purpose: Inspire</strong><br/>
+        <textarea id="purpose_inspire" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+      <label><strong>Purpose: Advocate</strong><br/>
+        <textarea id="purpose_advocate" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+      <label><strong>Purpose: Motivate</strong><br/>
+        <textarea id="purpose_motivate" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
+      </label>
+
+      <div style="margin-top: 1rem;">
+        <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
+        <button type="button" onclick="saveData()" style="margin-right: 10px;">💾 Save</button>
+        <button type="button" onclick="saveAndGoNext()" style="margin-right: 10px;">➡ Save & Go to Page 66</button>
+        <button type="button" onclick="window.print()">🖨️ Print</button>
+      </div>
+
+      <div id="status" style="margin-top: 1rem; color: green;"></div>
+    </form>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('exercise7_page65')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        document.getElementById("stakeholder").value = data.stakeholder || "";
+        for (let i = 1; i <= 5; i++) {
+          document.getElementById(`insight_${i}`).value = data[`insight_${i}`] || "";
+        }
+        ["inform", "educate", "inspire", "advocate", "motivate"].forEach(purpose => {
+          document.getElementById(`purpose_${purpose}`).value = data[`purpose_${purpose}`] || "";
+        });
+      }
+
+      window.saveData = async function () {
+        const payload = {
+          user_id: user.id,
+          stakeholder: document.getElementById("stakeholder").value.trim(),
+        };
+        for (let i = 1; i <= 5; i++) {
+          payload[`insight_${i}`] = document.getElementById(`insight_${i}`).value.trim();
+        }
+        ["inform", "educate", "inspire", "advocate", "motivate"].forEach(purpose => {
+          payload[`purpose_${purpose}`] = document.getElementById(`purpose_${purpose}`).value.trim();
+        });
+
+        const { error } = await supabase
+          .from('exercise7_page65')
+          .upsert([payload], { onConflict: ['user_id'] });
+
+        const statusMsg = document.getElementById("status");
+        if (error) {
+          statusMsg.textContent = "❌ Error saving data: " + error.message;
+          statusMsg.style.color = "red";
+        } else {
+          statusMsg.textContent = "✅ Saved successfully!";
+          statusMsg.style.color = "green";
+        }
+      }
+
+      window.saveAndGoNext = async function () {
+        await saveData();
+        window.location.href = "/page-66.html";
+      }
+
+      window.goBack = function () {
+        window.location.href = "/#page/64";
+      }
+    });
+  </script>
+</body>
+</html>
