@@ -98,7 +98,7 @@
         <button onclick="saveData()">Save</button>
         <button onclick="saveAndNext()">Save & Go to Page 73</button>
         <button onclick="window.print()">Print</button>
-        <button onclick="window.location.href='page-71.html'">Back to Page 71</button>
+        <button onclick="window.location.href='"/#page/71">Back to Page 71</button>
       </div>
     </div>
   </div>
@@ -143,7 +143,7 @@
 
     async function saveAndNext() {
       await saveData();
-      window.location.href = 'page-73.html';
+      window.location.href = '/#page/71';
     }
 
     async function prefillData() {
