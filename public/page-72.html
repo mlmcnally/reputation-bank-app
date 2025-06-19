@@ -14,25 +14,28 @@
     }
     .container {
       display: flex;
+      flex-direction: row;
       height: 100vh;
     }
     .left-pane {
       flex: 1;
+      background: #e5e7eb;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #e5e7eb;
     }
     .right-pane {
       flex: 1;
       padding: 2rem;
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
       background: white;
+      overflow-y: auto;
     }
     label {
       font-weight: bold;
-      display: block;
       margin-top: 1rem;
+      display: block;
     }
     textarea {
       width: 100%;
@@ -41,12 +44,17 @@
       margin-top: 0.25rem;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 1rem;
       resize: vertical;
+      font-size: 1rem;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 2rem;
     }
     button {
-      margin-top: 1.5rem;
-      padding: 0.75rem 1.5rem;
+      padding: 0.75rem 1.25rem;
       background-color: #4b5563;
       color: white;
       border: none;
@@ -57,12 +65,16 @@
     button:hover {
       background-color: #374151;
     }
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="left-pane">
-      <img src="/page-72.jpg" alt="Exercise 8 Page 72" style="max-width: 100%; max-height: 100%;" />
+      <img src="/page72.jpg" alt="Exercise 8 Page 72" />
     </div>
     <div class="right-pane">
       <h2>Change Communication Approaches</h2>
@@ -82,20 +94,13 @@
       <label for="best_approach">Best Change Communications Approach for Your Organization</label>
       <textarea id="best_approach"></textarea>
 
-      <button onclick="saveData()">Save</button>
-    </div>
-  </div>
-
-  !-- Buttons -->
-      <div style="margin-top: 1rem;">
-        <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
-        <button type="button" onclick="saveData()" style="margin-right: 10px;">💾 Save</button>
-        <button type="button" onclick="saveAndGoNext()" style="margin-right: 10px;">➡ Save & Go to Page 71</button>
-        <button type="button" onclick="window.print()">🖨️ Print</button>
+      <div class="button-row">
+        <button onclick="saveData()">Save</button>
+        <button onclick="saveAndNext()">Save & Go to Page 73</button>
+        <button onclick="window.print()">Print</button>
+        <button onclick="window.location.href='page-71.html'">Back to Page 71</button>
       </div>
-
-      <div id="status" style="margin-top: 1rem; color: green;"></div>
-    </form>
+    </div>
   </div>
 
   <script>
@@ -130,11 +135,15 @@
         .upsert(updates, { onConflict: ['user_id'] });
 
       if (error) {
-        console.error("Error saving data:", error.message);
         alert("Error saving data: " + error.message);
       } else {
         alert("Data saved successfully!");
       }
+    }
+
+    async function saveAndNext() {
+      await saveData();
+      window.location.href = 'page-73.html';
     }
 
     async function prefillData() {
