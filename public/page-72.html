@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exercise 8 – Page 72</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    .left-pane {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e5e7eb;
+    }
+    .right-pane {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+      background: white;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #4b5563;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover {
+      background-color: #374151;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-pane">
+      <img src="/exercise8-page72.jpg" alt="Exercise 8 Page 72" style="max-width: 100%; max-height: 100%;" />
+    </div>
+    <div class="right-pane">
+      <h2>Change Communication Approaches</h2>
+
+      <label for="change_description">Description of the Change Initiative</label>
+      <textarea id="change_description"></textarea>
+
+      <label for="stakeholders_affected">Stakeholders Affected by the Change</label>
+      <textarea id="stakeholders_affected"></textarea>
+
+      <label for="pros_cons_command">Pros/Cons of Command & Control Approach</label>
+      <textarea id="pros_cons_command"></textarea>
+
+      <label for="pros_cons_hearts">Pros/Cons of Hearts & Minds Approach</label>
+      <textarea id="pros_cons_hearts"></textarea>
+
+      <label for="best_approach">Best Change Communications Approach for Your Organization</label>
+      <textarea id="best_approach"></textarea>
+
+      <button onclick="saveData()">Save</button>
+    </div>
+  </div>
+
+  <script>
+    const supabase = supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    async function getUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    }
+
+    async function saveData() {
+      const user = await getUser();
+      if (!user) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const updates = {
+        user_id: user.id,
+        change_description: document.getElementById('change_description').value,
+        stakeholders_affected: document.getElementById('stakeholders_affected').value,
+        pros_cons_command: document.getElementById('pros_cons_command').value,
+        pros_cons_hearts: document.getElementById('pros_cons_hearts').value,
+        best_approach: document.getElementById('best_approach').value
+      };
+
+      const { error } = await supabase
+        .from('exercise8_page72')
+        .upsert(updates, { onConflict: ['user_id'] });
+
+      if (error) {
+        console.error("Error saving data:", error.message);
+        alert("Error saving data: " + error.message);
+      } else {
+        alert("Data saved successfully!");
+      }
+    }
+
+    async function prefillData() {
+      const user = await getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('exercise8_page72')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        for (const key in data) {
+          if (document.getElementById(key)) {
+            document.getElementById(key).value = data[key] || '';
+          }
+        }
+      }
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) window.location.href = '/login.html';
+      else prefillData();
+    });
+  </script>
+</body>
+</html>
