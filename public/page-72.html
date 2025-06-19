@@ -53,16 +53,19 @@
       margin-top: 2rem;
     }
     .button-row button {
-      background-color: #4b5563;
-      color: white;
-      border: none;
+      background: white;
+      color: black;
+      border: 1px solid #ccc;
       border-radius: 4px;
       padding: 0.5rem 1rem;
       font-size: 0.95rem;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
     .button-row button:hover {
-      background-color: #374151;
+      background-color: #f0f0f0;
     }
     img {
       max-width: 100%;
@@ -94,10 +97,10 @@
       <textarea id="best_approach"></textarea>
 
       <div class="button-row">
-        <button onclick="window.location.href='/#page/71'">Back</button>
-        <button onclick="saveData()">Save</button>
-        <button onclick="saveAndNext()">Save & Go to Page 73</button>
-        <button onclick="window.print()">Print</button>
+        <button onclick="window.location.href='/#page/71'">⬅ Back One Page</button>
+        <button onclick="saveData()">💾 Save</button>
+        <button onclick="saveAndNext()">➡ Save & Go to Page 73</button>
+        <button onclick="window.print()">🖨 Print</button>
       </div>
     </div>
   </div>
@@ -108,13 +111,9 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    async function getUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    }
-
     async function saveData() {
-      const user = await getUser();
+      const sessionRes = await supabase.auth.getSession();
+      const user = sessionRes?.data?.session?.user;
       if (!user) {
         alert("User not authenticated");
         return;
@@ -146,7 +145,8 @@
     }
 
     async function prefillData() {
-      const user = await getUser();
+      const sessionRes = await supabase.auth.getSession();
+      const user = sessionRes?.data?.session?.user;
       if (!user) return;
 
       const { data, error } = await supabase
