@@ -4,66 +4,63 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 7 – Page 68</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-100 text-gray-900 p-6">
-  <h2 class="text-2xl font-semibold mb-6">Exercise 7 – Page 68</h2>
+<body style="font-family: sans-serif; background: #f3f4f6; padding: 2rem;">
+  <h2>Exercise 7 – Page 68</h2>
 
-  <div class="flex flex-col md:flex-row gap-6">
-    <!-- Left: Page Image -->
-    <div class="md:w-2/5">
-      <img src="/page-68.jpg" alt="Exercise 7 Page 68" class="w-full h-auto border rounded shadow">
-    </div>
+  <div style="display: flex; gap: 2rem; align-items: flex-start;">
+    <img src="/page-68.jpg" alt="Exercise Page 68" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <!-- Right: Interactive Form -->
-    <div class="md:w-3/5 bg-white p-6 rounded shadow">
-      <form id="exercise-form" class="space-y-4" onsubmit="return false;">
-        <div>
-          <label class="block font-medium mb-1" for="insight1">Insight 1</label>
-          <input type="text" id="insight1" class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label class="block font-medium mb-1" for="insight2">Insight 2</label>
-          <input type="text" id="insight2" class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label class="block font-medium mb-1" for="insight3">Insight 3</label>
-          <input type="text" id="insight3" class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label class="block font-medium mb-1" for="insight4">Insight 4</label>
-          <input type="text" id="insight4" class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label class="block font-medium mb-1" for="insight5">Insight 5</label>
-          <input type="text" id="insight5" class="w-full border rounded px-3 py-2" />
-        </div>
+    <form id="exercise-form" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1;">
+      <label><strong>Stakeholder Name</strong><br/>
+        <input type="text" id="stakeholder_name" style="width: 100%; padding: 8px; margin-bottom: 1rem;" />
+      </label>
 
-        <!-- Communication Purpose -->
-        <div>
-          <label class="block font-medium mb-2">Primary Purpose for Communicating with this Stakeholder:</label>
-          <select id="communication_purpose" class="w-full border rounded px-3 py-2">
-            <option value="">Select a purpose</option>
-            <option value="Inform">Inform</option>
-            <option value="Educate">Educate</option>
-            <option value="Inspire">Inspire</option>
-            <option value="Advocate">Advocate</option>
-            <option value="Motivate">Motivate</option>
-          </select>
-        </div>
+      <!-- Insights -->
+      <label><strong>Insight 1</strong><br/>
+        <textarea id="insight1" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Insight 2</strong><br/>
+        <textarea id="insight2" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Insight 3</strong><br/>
+        <textarea id="insight3" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Insight 4</strong><br/>
+        <textarea id="insight4" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Insight 5</strong><br/>
+        <textarea id="insight5" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
 
-        <!-- Buttons -->
-        <div class="mt-6 flex flex-wrap gap-3">
-          <button type="button" onclick="goBack()" class="border px-4 py-2 rounded hover:bg-gray-100">⬅ Back One Page</button>
-          <button type="button" onclick="saveData()" class="border px-4 py-2 rounded hover:bg-gray-100">💾 Save</button>
-          <button type="button" onclick="saveAndGoNext()" class="border px-4 py-2 rounded hover:bg-gray-100">➡ Save & Go to Page 69</button>
-          <button type="button" onclick="window.print()" class="border px-4 py-2 rounded hover:bg-gray-100">🖨️ Print</button>
-        </div>
+      <!-- Purposes -->
+      <label><strong>Purpose: Inform</strong><br/>
+        <textarea id="purpose_inform" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Purpose: Educate</strong><br/>
+        <textarea id="purpose_educate" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Purpose: Inspire</strong><br/>
+        <textarea id="purpose_inspire" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Purpose: Advocate</strong><br/>
+        <textarea id="purpose_advocate" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Purpose: Motivate</strong><br/>
+        <textarea id="purpose_motivate" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
 
-        <div id="status" class="text-sm mt-4"></div>
-      </form>
-    </div>
+      <!-- Buttons -->
+      <div style="margin-top: 1rem;">
+        <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
+        <button type="button" onclick="saveData()" style="margin-right: 10px;">💾 Save</button>
+        <button type="button" onclick="saveAndGoNext()" style="margin-right: 10px;">➡ Save & Go to Page 69</button>
+        <button type="button" onclick="window.print()">🖨️ Print</button>
+      </div>
+
+      <div id="status" style="margin-top: 1rem; color: green;"></div>
+    </form>
   </div>
 
   <script>
@@ -72,7 +69,7 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    window.addEventListener('DOMContentLoaded', async () => {
+    window.addEventListener('DOMContentLoaded', async function () {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -83,51 +80,58 @@
         .single();
 
       if (data) {
+        document.getElementById("stakeholder_name").value = data.stakeholder_name || "";
         document.getElementById("insight1").value = data.insight1 || "";
         document.getElementById("insight2").value = data.insight2 || "";
         document.getElementById("insight3").value = data.insight3 || "";
         document.getElementById("insight4").value = data.insight4 || "";
         document.getElementById("insight5").value = data.insight5 || "";
-        document.getElementById("communication_purpose").value = data.communication_purpose || "";
+        document.getElementById("purpose_inform").value = data.purpose_inform || "";
+        document.getElementById("purpose_educate").value = data.purpose_educate || "";
+        document.getElementById("purpose_inspire").value = data.purpose_inspire || "";
+        document.getElementById("purpose_advocate").value = data.purpose_advocate || "";
+        document.getElementById("purpose_motivate").value = data.purpose_motivate || "";
+      }
+
+      window.saveData = async function () {
+        const input = id => document.getElementById(id).value.trim();
+
+        const { error } = await supabase.from("exercise7_page68").upsert([
+          {
+            user_id: user.id,
+            stakeholder_name: input("stakeholder_name"),
+            insight1: input("insight1"),
+            insight2: input("insight2"),
+            insight3: input("insight3"),
+            insight4: input("insight4"),
+            insight5: input("insight5"),
+            purpose_inform: input("purpose_inform"),
+            purpose_educate: input("purpose_educate"),
+            purpose_inspire: input("purpose_inspire"),
+            purpose_advocate: input("purpose_advocate"),
+            purpose_motivate: input("purpose_motivate")
+          }
+        ], { onConflict: ['user_id'] });
+
+        const status = document.getElementById("status");
+        if (error) {
+          status.textContent = "❌ Error saving data: " + error.message;
+          status.style.color = "red";
+        } else {
+          status.textContent = "✅ Saved successfully!";
+          status.style.color = "green";
+        }
+      }
+
+      window.saveAndGoNext = async function () {
+        await saveData();
+        window.location.href = "/page-69.html";
+      }
+
+      window.goBack = function () {
+        window.location.href = "/page-67.html";
       }
     });
-
-    async function saveData() {
-      const status = document.getElementById("status");
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const payload = {
-        user_id: user.id,
-        insight1: document.getElementById("insight1").value.trim(),
-        insight2: document.getElementById("insight2").value.trim(),
-        insight3: document.getElementById("insight3").value.trim(),
-        insight4: document.getElementById("insight4").value.trim(),
-        insight5: document.getElementById("insight5").value.trim(),
-        communication_purpose: document.getElementById("communication_purpose").value
-      };
-
-      const { error } = await supabase
-        .from("exercise7_page68")
-        .upsert([payload], { onConflict: ['user_id'] });
-
-      if (error) {
-        status.textContent = "❌ Error saving data: " + error.message;
-        status.className = "text-red-600 text-sm mt-4";
-      } else {
-        status.textContent = "✅ Saved successfully!";
-        status.className = "text-green-600 text-sm mt-4";
-      }
-    }
-
-    function saveAndGoNext() {
-      saveData().then(() => {
-        window.location.href = "/#page/69";
-      });
-    }
-
-    function goBack() {
-      window.location.href = "/#page/67";
-    }
   </script>
 </body>
 </html>
