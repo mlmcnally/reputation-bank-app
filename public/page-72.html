@@ -131,7 +131,7 @@
 
         console.log("Attempting to save updates:", updates);
 
-        const { error, data } = await supabase
+        const { error, data: result } = await supabase
           .from('exercise8_page72')
           .upsert(updates, { onConflict: ['user_id'] });
 
@@ -139,7 +139,7 @@
           console.error("Supabase save error:", error);
           alert("Error saving data: " + error.message);
         } else {
-          console.log("Save successful:", data);
+          console.log("Save successful:", result);
           alert("Data saved successfully!");
         }
       } catch (err) {
