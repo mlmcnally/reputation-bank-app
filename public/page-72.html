@@ -112,30 +112,39 @@
     );
 
     async function saveData() {
-      const sessionRes = await supabase.auth.getSession();
-      const user = sessionRes?.data?.session?.user;
-      if (!user) {
-        alert("User not authenticated");
-        return;
-      }
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
+        if (!user) {
+          alert("User not authenticated");
+          return;
+        }
 
-      const updates = {
-        user_id: user.id,
-        change_description: document.getElementById('change_description').value,
-        stakeholders_affected: document.getElementById('stakeholders_affected').value,
-        pros_cons_command: document.getElementById('pros_cons_command').value,
-        pros_cons_hearts: document.getElementById('pros_cons_hearts').value,
-        best_approach: document.getElementById('best_approach').value
-      };
+        const updates = {
+          user_id: user.id,
+          change_description: document.getElementById('change_description').value,
+          stakeholders_affected: document.getElementById('stakeholders_affected').value,
+          pros_cons_command: document.getElementById('pros_cons_command').value,
+          pros_cons_hearts: document.getElementById('pros_cons_hearts').value,
+          best_approach: document.getElementById('best_approach').value
+        };
 
-      const { error } = await supabase
-        .from('exercise8_page72')
-        .upsert(updates, { onConflict: ['user_id'] });
+        console.log("Attempting to save updates:", updates);
 
-      if (error) {
-        alert("Error saving data: " + error.message);
-      } else {
-        alert("Data saved successfully!");
+        const { error, data } = await supabase
+          .from('exercise8_page72')
+          .upsert(updates, { onConflict: ['user_id'] });
+
+        if (error) {
+          console.error("Supabase save error:", error);
+          alert("Error saving data: " + error.message);
+        } else {
+          console.log("Save successful:", data);
+          alert("Data saved successfully!");
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        alert("Unexpected error occurred while saving.");
       }
     }
 
@@ -145,8 +154,8 @@
     }
 
     async function prefillData() {
-      const sessionRes = await supabase.auth.getSession();
-      const user = sessionRes?.data?.session?.user;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
       if (!user) return;
 
       const { data, error } = await supabase
@@ -161,6 +170,8 @@
             document.getElementById(key).value = data[key] || '';
           }
         }
+      } else if (error) {
+        console.error("Prefill error:", error);
       }
     }
 
