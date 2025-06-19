@@ -62,7 +62,7 @@
 <body>
   <div class="container">
     <div class="left-pane">
-      <img src="/exercise8-page72.jpg" alt="Exercise 8 Page 72" style="max-width: 100%; max-height: 100%;" />
+      <img src="/page-72.jpg" alt="Exercise 8 Page 72" style="max-width: 100%; max-height: 100%;" />
     </div>
     <div class="right-pane">
       <h2>Change Communication Approaches</h2>
@@ -84,6 +84,18 @@
 
       <button onclick="saveData()">Save</button>
     </div>
+  </div>
+
+  !-- Buttons -->
+      <div style="margin-top: 1rem;">
+        <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
+        <button type="button" onclick="saveData()" style="margin-right: 10px;">💾 Save</button>
+        <button type="button" onclick="saveAndGoNext()" style="margin-right: 10px;">➡ Save & Go to Page 71</button>
+        <button type="button" onclick="window.print()">🖨️ Print</button>
+      </div>
+
+      <div id="status" style="margin-top: 1rem; color: green;"></div>
+    </form>
   </div>
 
   <script>
