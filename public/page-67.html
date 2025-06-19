@@ -7,7 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body style="font-family: sans-serif; background: #f3f4f6; padding: 2rem;">
-
   <h2>Exercise 7 – Page 67</h2>
 
   <div style="display: flex; gap: 2rem; align-items: flex-start;">
@@ -15,35 +14,44 @@
 
     <form id="exercise-form" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1;">
       <label><strong>Stakeholder Name</strong><br/>
-        <input type="text" id="stakeholder" style="width: 100%; margin-bottom: 1rem;" />
+        <input type="text" id="stakeholder_name" style="width: 100%; padding: 8px; margin-bottom: 1rem;" />
       </label>
 
-      ${[...Array(5)].map((_, i) => `
-        <label><strong>Insight ${i + 1}</strong><br/>
-          <textarea id="insight${i + 1}" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
-        </label>
-      `).join('')}
+      <!-- Insights -->
+      <label><strong>Insight 1</strong><br/>
+        <textarea id="insight1" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Insight 2</strong><br/>
+        <textarea id="insight2" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Insight 3</strong><br/>
+        <textarea id="insight3" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Insight 4</strong><br/>
+        <textarea id="insight4" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
+      <label><strong>Insight 5</strong><br/>
+        <textarea id="insight5" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
 
+      <!-- Purposes -->
       <label><strong>Purpose: Inform</strong><br/>
-        <textarea id="purpose_inform" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
-      </label>
-
+        <textarea id="purpose_inform" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
       <label><strong>Purpose: Educate</strong><br/>
-        <textarea id="purpose_educate" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
-      </label>
-
+        <textarea id="purpose_educate" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
       <label><strong>Purpose: Inspire</strong><br/>
-        <textarea id="purpose_inspire" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
-      </label>
-
+        <textarea id="purpose_inspire" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
       <label><strong>Purpose: Advocate</strong><br/>
-        <textarea id="purpose_advocate" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
-      </label>
-
+        <textarea id="purpose_advocate" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
       <label><strong>Purpose: Motivate</strong><br/>
-        <textarea id="purpose_motivate" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea>
-      </label>
+        <textarea id="purpose_motivate" style="width: 100%; height: 60px;"></textarea>
+      </label><br/>
 
+      <!-- Buttons -->
       <div style="margin-top: 1rem;">
         <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
         <button type="button" onclick="saveData()" style="margin-right: 10px;">💾 Save</button>
@@ -72,34 +80,38 @@
         .single();
 
       if (data) {
-        document.getElementById('stakeholder').value = data.stakeholder || "";
-        for (let i = 1; i <= 5; i++) {
-          document.getElementById(`insight${i}`).value = data[`insight${i}`] || "";
-        }
-        document.getElementById('purpose_inform').value = data.purpose_inform || "";
-        document.getElementById('purpose_educate').value = data.purpose_educate || "";
-        document.getElementById('purpose_inspire').value = data.purpose_inspire || "";
-        document.getElementById('purpose_advocate').value = data.purpose_advocate || "";
-        document.getElementById('purpose_motivate').value = data.purpose_motivate || "";
+        document.getElementById("stakeholder_name").value = data.stakeholder_name || "";
+        document.getElementById("insight1").value = data.insight1 || "";
+        document.getElementById("insight2").value = data.insight2 || "";
+        document.getElementById("insight3").value = data.insight3 || "";
+        document.getElementById("insight4").value = data.insight4 || "";
+        document.getElementById("insight5").value = data.insight5 || "";
+        document.getElementById("purpose_inform").value = data.purpose_inform || "";
+        document.getElementById("purpose_educate").value = data.purpose_educate || "";
+        document.getElementById("purpose_inspire").value = data.purpose_inspire || "";
+        document.getElementById("purpose_advocate").value = data.purpose_advocate || "";
+        document.getElementById("purpose_motivate").value = data.purpose_motivate || "";
       }
 
       window.saveData = async function () {
-        const payload = {
-          user_id: user.id,
-          stakeholder: document.getElementById("stakeholder").value.trim(),
-          purpose_inform: document.getElementById("purpose_inform").value.trim(),
-          purpose_educate: document.getElementById("purpose_educate").value.trim(),
-          purpose_inspire: document.getElementById("purpose_inspire").value.trim(),
-          purpose_advocate: document.getElementById("purpose_advocate").value.trim(),
-          purpose_motivate: document.getElementById("purpose_motivate").value.trim()
-        };
-        for (let i = 1; i <= 5; i++) {
-          payload[`insight${i}`] = document.getElementById(`insight${i}`).value.trim();
-        }
+        const input = id => document.getElementById(id).value.trim();
 
-        const { error } = await supabase
-          .from("exercise7_page67")
-          .upsert([payload], { onConflict: ['user_id'] });
+        const { error } = await supabase.from("exercise7_page67").upsert([
+          {
+            user_id: user.id,
+            stakeholder_name: input("stakeholder_name"),
+            insight1: input("insight1"),
+            insight2: input("insight2"),
+            insight3: input("insight3"),
+            insight4: input("insight4"),
+            insight5: input("insight5"),
+            purpose_inform: input("purpose_inform"),
+            purpose_educate: input("purpose_educate"),
+            purpose_inspire: input("purpose_inspire"),
+            purpose_advocate: input("purpose_advocate"),
+            purpose_motivate: input("purpose_motivate")
+          }
+        ], { onConflict: ['user_id'] });
 
         const status = document.getElementById("status");
         if (error) {
@@ -109,16 +121,16 @@
           status.textContent = "✅ Saved successfully!";
           status.style.color = "green";
         }
-      };
+      }
 
       window.saveAndGoNext = async function () {
         await saveData();
         window.location.href = "/page-68.html";
-      };
+      }
 
       window.goBack = function () {
         window.location.href = "/page-66.html";
-      };
+      }
     });
   </script>
 </body>
