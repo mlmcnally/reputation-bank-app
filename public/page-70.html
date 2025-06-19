@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exercise 7 – Page 70</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+    }
+    .left-pane {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e5e7eb;
+    }
+    .right-pane {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+      background: white;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #4b5563;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover {
+      background-color: #374151;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-pane">
+      <img src="/exercise7-page70.jpg" alt="Exercise 7 Page 70" style="max-width: 100%; max-height: 100%;" />
+    </div>
+    <div class="right-pane">
+      <h2>Stakeholder Communication Insights</h2>
+      <label for="stakeholder_name">Stakeholder Name</label>
+      <input type="text" id="stakeholder_name" />
+
+      <label for="insight1">Insight 1</label>
+      <textarea id="insight1"></textarea>
+
+      <label for="insight2">Insight 2</label>
+      <textarea id="insight2"></textarea>
+
+      <label for="insight3">Insight 3</label>
+      <textarea id="insight3"></textarea>
+
+      <label for="insight4">Insight 4</label>
+      <textarea id="insight4"></textarea>
+
+      <label for="insight5">Insight 5</label>
+      <textarea id="insight5"></textarea>
+
+      <label for="purpose_inform">Purpose: Inform</label>
+      <textarea id="purpose_inform"></textarea>
+
+      <label for="purpose_educate">Purpose: Educate</label>
+      <textarea id="purpose_educate"></textarea>
+
+      <label for="purpose_inspire">Purpose: Inspire</label>
+      <textarea id="purpose_inspire"></textarea>
+
+      <label for="purpose_advocate">Purpose: Advocate</label>
+      <textarea id="purpose_advocate"></textarea>
+
+      <label for="purpose_motivate">Purpose: Motivate</label>
+      <textarea id="purpose_motivate"></textarea>
+
+      <button onclick="saveData()">Save</button>
+    </div>
+  </div>
+
+  <script>
+    const supabase = supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    async function getUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    }
+
+    async function saveData() {
+      const user = await getUser();
+      if (!user) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const updates = {
+        user_id: user.id,
+        stakeholder_name: document.getElementById('stakeholder_name').value,
+        insight1: document.getElementById('insight1').value,
+        insight2: document.getElementById('insight2').value,
+        insight3: document.getElementById('insight3').value,
+        insight4: document.getElementById('insight4').value,
+        insight5: document.getElementById('insight5').value,
+        purpose_inform: document.getElementById('purpose_inform').value,
+        purpose_educate: document.getElementById('purpose_educate').value,
+        purpose_inspire: document.getElementById('purpose_inspire').value,
+        purpose_advocate: document.getElementById('purpose_advocate').value,
+        purpose_motivate: document.getElementById('purpose_motivate').value
+      };
+
+      const { error } = await supabase
+        .from('exercise7_page70')
+        .upsert(updates, { onConflict: ['user_id'] });
+
+      if (error) {
+        console.error("Error saving data:", error.message);
+        alert("Error saving data: " + error.message);
+      } else {
+        alert("Data saved successfully!");
+      }
+    }
+
+    async function prefillData() {
+      const user = await getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('exercise7_page70')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        for (const key in data) {
+          if (document.getElementById(key)) {
+            document.getElementById(key).value = data[key] || '';
+          }
+        }
+      }
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) window.location.href = '/login.html';
+      else prefillData();
+    });
+  </script>
+</body>
+</html>
