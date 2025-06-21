@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exercise 9 – Page 74</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      padding: 2rem;
+      margin: 0;
+    }
+    .container {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .form-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      flex: 1;
+      overflow-x: auto;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+    textarea {
+      width: 100%;
+      min-height: 60px;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      resize: vertical;
+    }
+    table {
+      width: 100%;
+      margin-top: 1.5rem;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      vertical-align: top;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: bold;
+      text-align: center;
+    }
+    .button-row {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+    }
+    .button-row button {
+      background: white;
+      color: black;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .button-row button:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Exercise 9 – Page 74</h2>
+  <div class="container">
+    <div class="left-pane">
+      <img src="/page-74.jpg" alt="Exercise 9 Page 74" />
+    </div>
+
+    <div class="form-container">
+      <form id="exercise-form">
+        <label for="key_initiative_description">Key Strategic Initiative Description</label>
+        <textarea id="key_initiative_description"></textarea>
+
+        <label for="internal_comm_goals">Internal Communication Goals</label>
+        <textarea id="internal_comm_goals"></textarea>
+
+        <label for="external_comm_goals">External Communication Goals</label>
+        <textarea id="external_comm_goals"></textarea>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Leader Impacts</th>
+              <th>Planning</th>
+              <th>Approval/Endorsement</th>
+              <th>Activation/Implementation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Inspire</td>
+              <td><textarea id="inspire_planning"></textarea></td>
+              <td><textarea id="inspire_approval"></textarea></td>
+              <td><textarea id="inspire_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Empower</td>
+              <td><textarea id="empower_planning"></textarea></td>
+              <td><textarea id="empower_approval"></textarea></td>
+              <td><textarea id="empower_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Vision/Purpose</td>
+              <td><textarea id="vision_planning"></textarea></td>
+              <td><textarea id="vision_approval"></textarea></td>
+              <td><textarea id="vision_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Strategic Direction</td>
+              <td><textarea id="strategy_planning"></textarea></td>
+              <td><textarea id="strategy_approval"></textarea></td>
+              <td><textarea id="strategy_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Set Expectations</td>
+              <td><textarea id="expectations_planning"></textarea></td>
+              <td><textarea id="expectations_approval"></textarea></td>
+              <td><textarea id="expectations_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Role-Model Values</td>
+              <td><textarea id="values_planning"></textarea></td>
+              <td><textarea id="values_approval"></textarea></td>
+              <td><textarea id="values_activation"></textarea></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="button-row">
+          <button type="button" onclick="goBack()">⬅ Back One Page</button>
+          <button type="button" onclick="saveData()">💾 Save</button>
+          <button type="button" onclick="saveAndNext()">➡ Save & Go to Page 75</button>
+          <button type="button" onclick="window.print()">🖨️ Print</button>
+        </div>
+        <div id="status" style="margin-top: 1rem; color: green;"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    window.supabase = supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "/login.html";
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('exercise9_page74')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        for (const key in data) {
+          if (document.getElementById(key)) {
+            document.getElementById(key).value = data[key] || '';
+          }
+        }
+      }
+
+      window.saveData = async function () {
+        const input = id => document.getElementById(id).value.trim();
+
+        const update = {
+          user_id: user.id,
+          key_initiative_description: input('key_initiative_description'),
+          internal_comm_goals: input('internal_comm_goals'),
+          external_comm_goals: input('external_comm_goals'),
+          inspire_planning: input('inspire_planning'),
+          inspire_approval: input('inspire_approval'),
+          inspire_activation: input('inspire_activation'),
+          empower_planning: input('empower_planning'),
+          empower_approval: input('empower_approval'),
+          empower_activation: input('empower_activation'),
+          vision_planning: input('vision_planning'),
+          vision_approval: input('vision_approval'),
+          vision_activation: input('vision_activation'),
+          strategy_planning: input('strategy_planning'),
+          strategy_approval: input('strategy_approval'),
+          strategy_activation: input('strategy_activation'),
+          expectations_planning: input('expectations_planning'),
+          expectations_approval: input('expectations_approval'),
+          expectations_activation: input('expectations_activation'),
+          values_planning: input('values_planning'),
+          values_approval: input('values_approval'),
+          values_activation: input('values_activation')
+        };
+
+        const { error } = await supabase.from("exercise9_page74").upsert([update], {
+          onConflict: ['user_id']
+        });
+
+        const status = document.getElementById("status");
+        if (error) {
+          status.textContent = "❌ Error saving data: " + error.message;
+          status.style.color = "red";
+        } else {
+          status.textContent = "✅ Saved successfully!";
+          status.style.color = "green";
+        }
+      };
+
+      window.saveAndNext = async function () {
+        await saveData();
+        window.location.href = "/#page/75.html";
+      };
+
+      window.goBack = function () {
+        window.location.href = "/#page/73";
+      };
+    });
+  </script>
+</body>
+</html>
