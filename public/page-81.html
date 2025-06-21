@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exercise 10 – Page 81</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      padding: 2rem;
+      margin: 0;
+    }
+    .container {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+    .left-pane img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .form-pane {
+      flex: 1;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+    h3 {
+      margin-top: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+    input[type="number"], textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      resize: vertical;
+    }
+    .row-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .readonly {
+      background: #f0f0f0;
+    }
+    .button-row {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+    }
+    .button-row button {
+      background: white;
+      color: black;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .button-row button:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Exercise 10 – Credibility Cash Deposits</h2>
+  <div class="container">
+    <div class="left-pane">
+      <img src="/page-81.jpg" alt="Exercise 10 Page 81" />
+    </div>
+
+    <div class="form-pane">
+      <form id="exercise-form">
+        <!-- Repeatable Sections -->
+        ${[1, 2, 3].map(i => `
+        <h3>Interaction ${i}</h3>
+
+        <label for="interaction_description_${i}">Description</label>
+        <textarea id="interaction_description_${i}"></textarea>
+
+        <label>Stakeholder Scores (1–4):</label>
+        <div class="row-group">
+          ${[1,2,3,4,5,6].map(n => `
+            <div>
+              <label for="stakeholder_${n}_score_${i}">Stakeholder ${n}</label>
+              <input type="number" id="stakeholder_${n}_score_${i}" min="0" max="4" />
+            </div>
+          `).join('')}
+        </div>
+
+        <label for="multiplier_${i}">Reputation Boost Multiplier (times/month)</label>
+        <input type="number" id="multiplier_${i}" min="0" />
+
+        <label>Total Influence / Impact Score</label>
+        <input type="number" id="total_score_${i}" class="readonly" readonly />
+
+        <label>Monthly Credibility Cash Deposit</label>
+        <input type="number" id="monthly_cash_${i}" class="readonly" readonly />
+
+        <label>Annual Credibility Cash Deposit</label>
+        <input type="number" id="annual_cash_${i}" class="readonly" readonly />
+        `).join('')}
+        
+        <!-- Buttons -->
+        <div class="button-row">
+          <button type="button" onclick="goBack()">⬅ Back One Page</button>
+          <button type="button" onclick="saveData()">💾 Save</button>
+          <button type="button" onclick="saveAndNext()">➡ Save & Go to Page 82</button>
+          <button type="button" onclick="window.print()">🖨️ Print</button>
+        </div>
+        <div id="status" style="margin-top: 1rem; color: green;"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    window.supabase = supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    function calculate(i) {
+      let total = 0;
+      for (let s = 1; s <= 6; s++) {
+        const val = parseInt(document.getElementById(\`stakeholder_\${s}_score_\${i}\`).value) || 0;
+        total += val;
+      }
+      document.getElementById(\`total_score_\${i}\`).value = total;
+
+      const multiplier = parseInt(document.getElementById(\`multiplier_\${i}\`).value) || 0;
+      const monthly = total * multiplier;
+      const annual = monthly * 12;
+
+      document.getElementById(\`monthly_cash_\${i}\`).value = monthly;
+      document.getElementById(\`annual_cash_\${i}\`).value = annual;
+    }
+
+    function attachListeners() {
+      [1, 2, 3].forEach(i => {
+        for (let s = 1; s <= 6; s++) {
+          document.getElementById(\`stakeholder_\${s}_score_\${i}\`).addEventListener('input', () => calculate(i));
+        }
+        document.getElementById(\`multiplier_\${i}\`).addEventListener('input', () => calculate(i));
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "/login.html";
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('exercise10_page81')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        for (const key in data) {
+          if (document.getElementById(key)) {
+            document.getElementById(key).value = data[key];
+          }
+        }
+        [1, 2, 3].forEach(i => calculate(i));
+      }
+
+      attachListeners();
+
+      window.saveData = async function () {
+        const input = id => parseInt(document.getElementById(id).value) || 0;
+        const text = id => document.getElementById(id).value.trim();
+
+        const update = {
+          user_id: user.id
+        };
+
+        [1, 2, 3].forEach(i => {
+          update[\`interaction_description_\${i}\`] = text(\`interaction_description_\${i}\`);
+          for (let s = 1; s <= 6; s++) {
+            update[\`stakeholder_\${s}_score_\${i}\`] = input(\`stakeholder_\${s}_score_\${i}\`);
+          }
+          update[\`multiplier_\${i}\`] = input(\`multiplier_\${i}\`);
+          update[\`total_score_\${i}\`] = input(\`total_score_\${i}\`);
+          update[\`monthly_cash_\${i}\`] = input(\`monthly_cash_\${i}\`);
+          update[\`annual_cash_\${i}\`] = input(\`annual_cash_\${i}\`);
+        });
+
+        const { error } = await supabase.from("exercise10_page81").upsert([update], {
+          onConflict: ['user_id']
+        });
+
+        const status = document.getElementById("status");
+        if (error) {
+          status.textContent = "❌ Error saving data: " + error.message;
+          status.style.color = "red";
+        } else {
+          status.textContent = "✅ Saved successfully!";
+          status.style.color = "green";
+        }
+      };
+
+      window.saveAndNext = async function () {
+        await saveData();
+        window.location.href = "/#page/82";
+      };
+
+      window.goBack = function () {
+        window.location.href = "/#page/80";
+      };
+    });
+  </script>
+</body>
+</html>
