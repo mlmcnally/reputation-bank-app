@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 10 – Page 82</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       font-family: sans-serif;
       background: #f3f4f6;
-      padding: 2rem;
       margin: 0;
+      padding: 2rem;
     }
     .container {
       display: flex;
       gap: 2rem;
       align-items: flex-start;
     }
+    .left-pane {
+      flex: 0 0 40%;
+      max-width: 40%;
+    }
     .left-pane img {
-      max-width: 100%;
+      width: 100%;
+      height: auto;
       border-radius: 8px;
       border: 1px solid #ccc;
     }
@@ -57,6 +62,7 @@
     .button-row {
       margin-top: 1.5rem;
       display: flex;
+      flex-wrap: wrap;
       gap: 0.75rem;
     }
     .button-row button {
@@ -89,8 +95,9 @@
         <label for="interaction_description">Describe the Communication/Decision/Interaction That Will Impact Stakeholders</label>
         <textarea id="interaction_description"></textarea>
 
-        ${[1, 2, 3, 4, 5, 6].map(i => `
-          <label for="stakeholder_${i}_desc">Stakeholder ${i} (name/description)</label>
+        <!-- Stakeholder Sections -->
+        ${[1,2,3,4,5,6].map(i => `
+          <label for="stakeholder_${i}_desc">Stakeholder #${i} (name/description)</label>
           <input type="text" id="stakeholder_${i}_desc" />
 
           <div class="checkbox-group">
@@ -100,6 +107,9 @@
             <label><input type="checkbox" class="influence" data-stakeholder="${i}" value="1"> Opinion/Inform/Educate (1)</label>
           </div>
         `).join('')}
+
+        <!-- Calculations -->
+        <button type="button" onclick="calculateScores()">🧮 Calculate Scores</button>
 
         <label for="total_influence">Total Influence/Impact Score</label>
         <input type="number" id="total_influence" class="readonly" readonly />
@@ -114,6 +124,7 @@
         <input type="number" id="annual_cash" class="readonly" readonly />
         <div class="note">These deposits are subjective and theoretical scores, not actual currency numbers.</div>
 
+        <!-- Buttons -->
         <div class="button-row">
           <button type="button" onclick="goBack()">⬅ Back One Page</button>
           <button type="button" onclick="saveData()">💾 Save</button>
@@ -148,11 +159,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
-      document.querySelectorAll('.influence').forEach(cb =>
-        cb.addEventListener('change', calculateScores)
-      );
-      document.getElementById('multiplier').addEventListener('input', calculateScores);
-
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         window.location.href = "/login.html";
