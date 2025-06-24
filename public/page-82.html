@@ -50,6 +50,7 @@
     }
     .checkbox-group {
       margin-top: 0.5rem;
+      margin-bottom: 1rem;
     }
     .checkbox-group label {
       display: block;
@@ -96,17 +97,7 @@
         <textarea id="interaction_description"></textarea>
 
         <!-- Stakeholder Sections -->
-        ${[1,2,3,4,5,6].map(i => `
-          <label for="stakeholder_${i}_desc">Stakeholder #${i} (name/description)</label>
-          <input type="text" id="stakeholder_${i}_desc" />
-
-          <div class="checkbox-group">
-            <p>Consider how the communication, decision or interaction above may positively influence this stakeholder. Check all the boxes that apply and the corresponding influence numbers will be applied to a total influence score.</p>
-            <label><input type="checkbox" class="influence" data-stakeholder="${i}" value="4"> Action/Motivate (4)</label>
-            <label><input type="checkbox" class="influence" data-stakeholder="${i}" value="2"> Advocacy/Inspire (2)</label>
-            <label><input type="checkbox" class="influence" data-stakeholder="${i}" value="1"> Opinion/Inform/Educate (1)</label>
-          </div>
-        `).join('')}
+        <div id="stakeholder-sections"></div>
 
         <!-- Calculations -->
         <button type="button" onclick="calculateScores()">🧮 Calculate Scores</button>
@@ -143,6 +134,25 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
+    function renderStakeholders() {
+      const container = document.getElementById('stakeholder-sections');
+      for (let i = 1; i <= 6; i++) {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <label for="stakeholder_${i}_desc">Stakeholder #${i} (name/description)</label>
+          <input type="text" id="stakeholder_${i}_desc" />
+
+          <div class="checkbox-group">
+            <p>Consider how the communication, decision or interaction above may positively influence this stakeholder. Check all the boxes that apply and the corresponding influence numbers will be applied to a total influence score.</p>
+            <label><input type="checkbox" class="influence" data-stakeholder="${i}" value="4"> Action/Motivate (4)</label>
+            <label><input type="checkbox" class="influence" data-stakeholder="${i}" value="2"> Advocacy/Inspire (2)</label>
+            <label><input type="checkbox" class="influence" data-stakeholder="${i}" value="1"> Opinion/Inform/Educate (1)</label>
+          </div>
+        `;
+        container.appendChild(div);
+      }
+    }
+
     function calculateScores() {
       let total = 0;
       document.querySelectorAll('.influence:checked').forEach(cb => {
@@ -159,6 +169,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
+      renderStakeholders();
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         window.location.href = "/login.html";
