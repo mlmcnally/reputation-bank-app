@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Exercise 10 – Page 82</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -90,13 +91,18 @@
 
     <div class="footer-buttons">
       <button onclick="location.href='/#page/81'">⬅ Back One Page</button>
-      <button>💾 Save</button>
-      <button onclick="location.href='page-83.html'">➡ Save & Go to Page 83</button>
+      <button onclick="saveData()">💾 Save</button>
+      <button onclick="saveAndNext()">➡ Save & Go to Page 83</button>
       <button onclick="window.print()">🖨️ Print</button>
     </div>
   </div>
 
   <script>
+    const supabase = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
     const stakeholderLabels = [1,2,3,4,5,6];
 
     function createStakeholderSection(n) {
@@ -129,6 +135,43 @@
 
       document.getElementById("monthlyDeposit").value = monthly;
       document.getElementById("annualDeposit").value = annual;
+    }
+
+    async function saveData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const payload = {
+        user_id: user.id,
+        interaction_description: document.getElementById("interactionDescription").value,
+        impact_score: parseInt(document.getElementById("impactScore").value) || 0,
+        reputation_multiplier: parseInt(document.getElementById("reputationMultiplier").value) || 0,
+        monthly_deposit: parseInt(document.getElementById("monthlyDeposit").value) || 0,
+        annual_deposit: parseInt(document.getElementById("annualDeposit").value) || 0
+      };
+
+      stakeholderLabels.forEach(n => {
+        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value;
+        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
+          .filter(cb => cb.checked)
+          .map(cb => parseInt(cb.value));
+      });
+
+      const { error } = await supabase.from("exercise10_page82").upsert([payload], { onConflict: ['user_id'] });
+      if (error) {
+        alert("Save failed: " + error.message);
+      } else {
+        alert("Save successful!");
+      }
+    }
+
+    async function saveAndNext() {
+      await saveData();
+      location.href = 'page-83.html';
     }
   </script>
 </body>
