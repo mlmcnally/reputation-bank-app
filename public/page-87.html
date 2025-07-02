@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise 11 – Page 87</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+    }
+    .left {
+      flex: 1;
+    }
+    .left img {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      display: block;
+    }
+    .right {
+      flex: 1;
+      max-width: 700px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    textarea, input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px;
+    }
+    .stakeholder {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+    }
+    .score-box, .multiplier-box {
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+    .footer-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="left">
+    <img src="/page-87.jpg" alt="Exercise 11 Page 87">
+  </div>
+  <div class="right">
+    <h3>Communication Program/Multi-Faceted Interaction #1 (Describe what it is that will impact stakeholders)</h3>
+    <textarea id="interactionDescription" rows="3"></textarea>
+
+    <div id="stakeholders"></div>
+
+    <div class="score-box">
+      <label>Total Influence/Impact Score</label>
+      <input type="text" id="impactScore" readonly />
+    </div>
+
+    <div class="multiplier-box">
+      <label>Reputation Boost Multiplier (number of times a month you engage stakeholders)</label>
+      <input type="number" id="reputationMultiplier" />
+    </div>
+
+    <div class="score-box">
+      <label>Influence Score X Boost Multiplier</label>
+      <input type="text" id="combinedScore" readonly />
+    </div>
+
+    <div class="multiplier-box">
+      <label>Time Horizon Value Multiplier (10 for month, 50 for 6 months, 100 for 1 year+)</label>
+      <input type="number" id="timeMultiplier" />
+    </div>
+
+    <button onclick="calculateGoldDeposit()">Calculate Influence/Impact Score and Reputation Boost Multiplier</button>
+
+    <div class="score-box">
+      <label>Total Credibility Gold Deposit</label>
+      <input type="text" id="totalGoldDeposit" readonly />
+    </div>
+
+    <div class="footer-buttons">
+      <button onclick="location.href='/#page/86'">⬅ Back One Page</button>
+      <button onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+
+  <script>
+    const stakeholderLabels = [1,2,3,4,5,6];
+
+    function createStakeholderSection(n) {
+      return `
+      <div class="stakeholder">
+        <label>Stakeholder #${n} (name/description)</label>
+        <input type="text" id="stakeholder${n}" />
+        <p>Consider how the communication program/interaction may positively influence this stakeholder.</p>
+        <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
+        <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
+        <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
+      </div>`;
+    }
+
+    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+
+    function calculateGoldDeposit() {
+      let total = 0;
+      stakeholderLabels.forEach(n => {
+        document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
+          total += parseInt(cb.value);
+        });
+      });
+
+      document.getElementById("impactScore").value = total;
+      const multiplier = parseInt(document.getElementById("reputationMultiplier").value) || 0;
+      const combined = total * multiplier;
+      document.getElementById("combinedScore").value = combined;
+
+      const time = parseInt(document.getElementById("timeMultiplier").value) || 0;
+      const goldTotal = combined * time;
+      document.getElementById("totalGoldDeposit").value = goldTotal;
+    }
+  </script>
+</body>
+</html>
