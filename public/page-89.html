@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exercise 11 – Page 89</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+    }
+    .left {
+      flex: 1;
+    }
+    .left img {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      display: block;
+    }
+    .right {
+      flex: 1;
+      max-width: 700px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    textarea, input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px;
+    }
+    .stakeholder {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+    }
+    .score-box {
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+    .footer-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="left">
+    <img src="/page-89.jpg" alt="Exercise 11 Page 89">
+  </div>
+  <div class="right">
+    <h3>Communication/Decision/Interaction #3 (Describe what it is that will impact stakeholders)</h3>
+    <textarea id="interactionDescription" rows="3"></textarea>
+
+    <div id="stakeholders"></div>
+
+    <div class="score-box">
+      <label>Total Influence/Impact Score</label>
+      <button onclick="calculateImpact()">Calculate Total Influence/Impact Score</button>
+      <input type="text" id="impactScore" readonly />
+    </div>
+
+    <div class="score-box">
+      <label>Enter the Reputation Boost Multiplier (number of times a month you engage stakeholders)</label>
+      <input type="number" id="reputationMultiplier" />
+    </div>
+
+    <div class="score-box">
+      <label>Enter the Time Horizon Value Multiplier</label>
+      <input type="number" id="timeHorizonMultiplier" />
+    </div>
+
+    <div class="score-box">
+      <label>Calculate the Total Credibility Gold Deposit</label>
+      <button onclick="calculateGold()">Calculate Total Credibility Gold Deposit</button>
+      <input type="text" id="goldDeposit" readonly />
+    </div>
+
+    <div class="footer-buttons">
+      <button onclick="location.href='/#page/88'">⬅ Back One Page</button>
+      <button onclick="saveData()">💾 Save</button>
+      <button onclick="saveAndNext()">➡ Save & Go to Page 90</button>
+      <button onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    const stakeholderLabels = [1, 2, 3, 4, 5, 6];
+
+    function createStakeholderSection(n) {
+      return `
+        <div class="stakeholder">
+          <label>Stakeholder #${n} (name/description)</label>
+          <input type="text" id="stakeholder${n}" />
+          <p>Consider how the communication, decision or interaction above may positively influence this stakeholder. Check all the boxes that apply and the corresponding influence numbers will be applied to a total influence score.</p>
+          <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
+          <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
+          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
+        </div>`;
+    }
+
+    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+
+    function calculateImpact() {
+      let total = 0;
+      stakeholderLabels.forEach(n => {
+        document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
+          total += parseInt(cb.value);
+        });
+      });
+      document.getElementById("impactScore").value = total;
+    }
+
+    function calculateGold() {
+      const impact = parseInt(document.getElementById("impactScore").value) || 0;
+      const rep = parseInt(document.getElementById("reputationMultiplier").value) || 0;
+      const horizon = parseInt(document.getElementById("timeHorizonMultiplier").value) || 0;
+      const gold = impact * rep * horizon;
+      document.getElementById("goldDeposit").value = gold;
+    }
+
+    async function saveData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const payload = {
+        user_id: user.id,
+        interaction_description: document.getElementById("interactionDescription").value,
+        impact_score: parseInt(document.getElementById("impactScore").value) || 0,
+        reputation_multiplier: parseInt(document.getElementById("reputationMultiplier").value) || 0,
+        time_horizon_multiplier: parseInt(document.getElementById("timeHorizonMultiplier").value) || 0,
+        credibility_gold_deposit: parseInt(document.getElementById("goldDeposit").value) || 0
+      };
+
+      stakeholderLabels.forEach(n => {
+        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value;
+        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
+          .filter(cb => cb.checked)
+          .map(cb => parseInt(cb.value));
+      });
+
+      const { error } = await supabase.from("exercise11_page89").upsert([payload], { onConflict: ['user_id'] });
+      if (error) {
+        alert("Save failed: " + error.message);
+      } else {
+        alert("Save successful!");
+      }
+    }
+
+    async function saveAndNext() {
+      await saveData();
+      location.href = 'page-90.html';
+    }
+  </script>
+</body>
+</html>
