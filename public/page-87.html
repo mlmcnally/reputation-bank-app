@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 11 – Page 87</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -13,41 +13,31 @@
       gap: 20px;
       padding: 20px;
     }
-    .left {
-      flex: 1;
-    }
     .left img {
       width: 100%;
       max-width: 600px;
-      height: auto;
-      display: block;
     }
     .right {
       flex: 1;
-      max-width: 700px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
+    .stakeholder, .score-box {
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
     textarea, input[type="text"], input[type="number"] {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
+      margin-top: 5px;
     }
-    .stakeholder {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #fff;
-    }
-    .score-box, .multiplier-box {
-      padding: 10px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
+    .calc-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     .footer-buttons {
       display: flex;
@@ -58,7 +48,7 @@
 </head>
 <body>
   <div class="left">
-    <img src="/page-87.jpg" alt="Exercise 11 Page 87">
+    <img src="/page-87.jpg" alt="Exercise 11 Page 87" />
   </div>
   <div class="right">
     <h3>Communication Program/Multi-Faceted Interaction #1 (Describe what it is that will impact stakeholders)</h3>
@@ -68,25 +58,26 @@
 
     <div class="score-box">
       <label>Total Influence/Impact Score</label>
-      <input type="text" id="impactScore" readonly />
+      <div class="calc-row">
+        <button onclick="calculateInfluence()">Calculate Total Influence/Impact Score</button>
+        <input type="text" id="impactScore" readonly />
+      </div>
     </div>
 
-    <div class="multiplier-box">
-      <label>Reputation Boost Multiplier (number of times a month you engage stakeholders)</label>
+    <div class="score-box">
+      <label>Enter the Reputation Boost Multiplier (number of times a month you engage stakeholders)</label>
       <input type="number" id="reputationMultiplier" />
     </div>
 
     <div class="score-box">
-      <label>Influence Score X Boost Multiplier</label>
-      <input type="text" id="combinedScore" readonly />
+      <label>Enter the Time Horizon Value Multiplier (10 for month, 50 for 6 months, 100 for 1 year+)</label>
+      <input type="number" id="timeHorizonMultiplier" />
     </div>
 
-    <div class="multiplier-box">
-      <label>Time Horizon Value Multiplier (10 for month, 50 for 6 months, 100 for 1 year+)</label>
-      <input type="number" id="timeMultiplier" />
+    <div class="score-box">
+      <label>Calculate the Total Credibility Gold Deposit</label>
+      <button onclick="calculateGold()">Calculate Total Credibility Gold Deposit</button>
     </div>
-
-    <button onclick="calculateGoldDeposit()">Calculate Influence/Impact Score and Reputation Boost Multiplier</button>
 
     <div class="score-box">
       <label>Total Credibility Gold Deposit</label>
@@ -95,6 +86,8 @@
 
     <div class="footer-buttons">
       <button onclick="location.href='/#page/86'">⬅ Back One Page</button>
+      <button onclick="saveData()">💾 Save</button>
+      <button onclick="saveAndNext()">➡ Save & Go to Page 88</button>
       <button onclick="window.print()">🖨️ Print</button>
     </div>
   </div>
@@ -104,35 +97,46 @@
 
     function createStakeholderSection(n) {
       return `
-      <div class="stakeholder">
-        <label>Stakeholder #${n} (name/description)</label>
-        <input type="text" id="stakeholder${n}" />
-        <p>Consider how the communication program/interaction may positively influence this stakeholder.</p>
-        <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
-        <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
-        <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
-      </div>`;
+        <div class="stakeholder">
+          <label>Stakeholder #${n} (name/description)</label>
+          <input type="text" id="stakeholder${n}" />
+          <p>Check all that apply:</p>
+          <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br/>
+          <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br/>
+          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
+        </div>`;
     }
 
-    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(createStakeholderSection).join('');
 
-    function calculateGoldDeposit() {
+    function calculateInfluence() {
       let total = 0;
       stakeholderLabels.forEach(n => {
         document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
           total += parseInt(cb.value);
         });
       });
-
       document.getElementById("impactScore").value = total;
-      const multiplier = parseInt(document.getElementById("reputationMultiplier").value) || 0;
-      const combined = total * multiplier;
-      document.getElementById("combinedScore").value = combined;
+    }
 
-      const time = parseInt(document.getElementById("timeMultiplier").value) || 0;
-      const goldTotal = combined * time;
-      document.getElementById("totalGoldDeposit").value = goldTotal;
+    function calculateGold() {
+      const impact = parseInt(document.getElementById("impactScore").value) || 0;
+      const multiplier = parseInt(document.getElementById("reputationMultiplier").value) || 0;
+      const timeHorizon = parseInt(document.getElementById("timeHorizonMultiplier").value) || 0;
+      const gold = impact * multiplier * timeHorizon;
+      document.getElementById("totalGoldDeposit").value = gold;
+    }
+
+    async function saveData() {
+      // You can integrate Supabase saving logic here if needed.
+      alert("Save function is not yet connected for this page.");
+    }
+
+    function saveAndNext() {
+      saveData();
+      location.href = "page-88.html";
     }
   </script>
 </body>
 </html>
+
