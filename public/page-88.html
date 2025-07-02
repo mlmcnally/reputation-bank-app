@@ -27,60 +27,66 @@
       max-width: 700px;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
     }
     textarea, input[type="text"], input[type="number"] {
       width: 100%;
       padding: 10px;
     }
-    .stakeholder, .score-box, .multiplier-box {
+    .stakeholder {
       padding: 10px;
-      background: white;
       border: 1px solid #ccc;
       border-radius: 6px;
+      background: #fff;
     }
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
+    .box {
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
     .footer-buttons {
       display: flex;
       gap: 10px;
       margin-top: 20px;
     }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <div class="left">
-    <img src="/page-88.jpg" alt="Exercise 11 Page 88" />
+    <img src="/page-88.jpg" alt="Exercise 11 Page 88">
   </div>
   <div class="right">
     <h3>Communication/Decision/Interaction #2 (Describe what it is that will impact stakeholders)</h3>
     <textarea id="programDescription" rows="3"></textarea>
 
-    <div id="stakeholders"></div>
+    <div class="stakeholder" id="stakeholders"></div>
 
-    <div class="score-box">
-      <label>Total Influence/Impact Score</label><br/>
-      <button onclick="calculateImpact()">Calculate Total Influence/Impact Score</button><br/>
+    <div class="box">
+      <label>Total Influence/Impact Score</label>
+      <button onclick="calculateImpact()">Calculate Total Influence/Impact Score</button>
       <input type="text" id="impactScore" readonly />
     </div>
 
-    <div class="multiplier-box">
+    <div class="box">
       <label>Enter the Reputation Boost Multiplier (number of times a month you engage stakeholders)</label>
-      <input type="number" id="boostMultiplier" />
+      <input type="number" id="reputationMultiplier" />
     </div>
 
-    <div class="multiplier-box">
+    <div class="box">
       <label>Enter the Time Horizon Value Multiplier</label>
-      <input type="number" id="timeHorizon" />
+      <input type="number" id="timeHorizonMultiplier" />
     </div>
 
-    <div class="score-box">
-      <label>Total Credibility Gold Deposit</label><br/>
-      <button onclick="calculateGold()">Calculate Total Credibility Gold Deposit</button><br/>
-      <input type="text" id="goldDeposit" readonly />
-      <small>These deposits are subjective and theoretical scores, not actual currency numbers.</small>
+    <div class="box">
+      <label>Calculate the Total Credibility Gold Deposit</label>
+      <button onclick="calculateGoldDeposit()">Calculate</button>
+      <input type="text" id="credibilityGoldDeposit" readonly />
     </div>
 
     <div class="footer-buttons">
@@ -97,21 +103,28 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    const stakeholderLabels = [1, 2, 3, 4, 5, 6];
+    const stakeholderLabels = [1,2,3,4,5,6];
 
     function createStakeholderSection(n) {
       return `
-      <div class="stakeholder">
-        <label>Stakeholder #${n} (name/description)</label>
-        <input type="text" id="stakeholder${n}" />
-        <p>Consider how the communication, decision or interaction above may positively influence this stakeholder. Check all the boxes that apply and the corresponding influence numbers will be applied to a total influence score.</p>
-        <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
-        <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
-        <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
-      </div>`;
+        <div class="stakeholder">
+          <label>Stakeholder #${n} (name/description)</label>
+          <input type="text" id="stakeholder${n}" />
+          <p>Consider how the communication, decision or interaction above may positively influence this stakeholder. Check all the boxes that apply and the corresponding influence numbers will be applied to a total influence score.</p>
+          <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
+          <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
+          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
+        </div>
+      `;
     }
 
     document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+
+    function getCheckedScores(className) {
+      return Array.from(document.querySelectorAll(`.${className}`))
+        .filter(cb => cb.checked)
+        .map(cb => parseInt(cb.value));
+    }
 
     function calculateImpact() {
       let total = 0;
@@ -123,12 +136,12 @@
       document.getElementById("impactScore").value = total;
     }
 
-    function calculateGold() {
+    function calculateGoldDeposit() {
       const impact = parseInt(document.getElementById("impactScore").value) || 0;
-      const boost = parseInt(document.getElementById("boostMultiplier").value) || 0;
-      const horizon = parseInt(document.getElementById("timeHorizon").value) || 0;
-      const totalGold = impact * boost * horizon;
-      document.getElementById("goldDeposit").value = totalGold;
+      const multiplier = parseInt(document.getElementById("reputationMultiplier").value) || 0;
+      const horizon = parseInt(document.getElementById("timeHorizonMultiplier").value) || 0;
+      const total = impact * multiplier * horizon;
+      document.getElementById("credibilityGoldDeposit").value = total;
     }
 
     async function saveData() {
@@ -143,19 +156,20 @@
         user_id: user.id,
         program_description: document.getElementById("programDescription").value,
         impact_score: parseInt(document.getElementById("impactScore").value) || 0,
-        boost_multiplier: parseInt(document.getElementById("boostMultiplier").value) || 0,
-        time_horizon_multiplier: parseInt(document.getElementById("timeHorizon").value) || 0,
-        credibility_gold_deposit: parseInt(document.getElementById("goldDeposit").value) || 0
+        boost_multiplier: parseInt(document.getElementById("reputationMultiplier").value) || 0,
+        time_horizon_multiplier: parseInt(document.getElementById("timeHorizonMultiplier").value) || 0,
+        credibility_gold_deposit: parseInt(document.getElementById("credibilityGoldDeposit").value) || 0
       };
 
       stakeholderLabels.forEach(n => {
         payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value;
-        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
-          .filter(cb => cb.checked)
-          .map(cb => parseInt(cb.value));
+        payload[`stakeholder${n}_scores`] = getCheckedScores(`score${n}`);
       });
 
-      const { error } = await supabase.from("exercise11_page88").upsert([payload], { onConflict: ['user_id'] });
+      const { error } = await supabase
+        .from("exercise11_page88")
+        .upsert([payload], { onConflict: ['user_id'] });
+
       if (error) {
         alert("Save failed: " + error.message);
       } else {
@@ -165,7 +179,7 @@
 
     async function saveAndNext() {
       await saveData();
-      location.href = 'page-89.html';
+      window.location.href = 'page-89.html';
     }
   </script>
 </body>
