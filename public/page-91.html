@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exercise 12 – Page 91</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 2rem;
+    }
+    img {
+      width: 100%;
+      max-width: 800px;
+      display: block;
+      margin-bottom: 1rem;
+    }
+    .instructions {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 5px;
+      margin-bottom: 2rem;
+    }
+    h3 {
+      margin-top: 2rem;
+    }
+    textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      height: 60px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin-right: 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .success {
+      color: green;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <img src="/page-91.jpg" alt="Exercise 12 Page 91" />
+
+  <div class="instructions">
+    <p><strong>Now we're going to consider the credibility risks that can negatively impact your reputation bank.</strong> See below the work you did in Exercise 6 on the “Don’ts” of the Success Rules. Consider the difference between <strong>Credibility Debt</strong> (shorter-term reputation risk) and <strong>Credibility Cryptocurrency</strong> (longer-term reputation risk). Determine which of the “Don’ts” are Credibility Debt and which are Credibility Cryptocurrency and write them in the appropriate spaces below. You’ll need three of each type to move to the next exercises. They will be automatically populated into the upcoming exercises. If you don't have enough of one type, it's a good idea to go back to Exercise 6, Page 54 and re-consider your risks using this lens.</p>
+    <p><strong>Tip:</strong> You've completed the positive side of the Reputation Bank – Credibility Cash and Gold. You've seen how Credibility Gold can have exponentially more value than Credibility Cash based on the right messages/interactions repetitively over time. Now you're working on exactly the same thing, except it reflects the negative potential impacts on your reputation bank. Distinguish between Credibility Debt and Cryptocurrency based on the amount of repetitive harm that could be done to your reputation over time.</p>
+  </div>
+
+  <div class="grid">
+    <div>
+      <h3>Credibility Debt<br><small>(Hypothetical Shorter-Term Reputation Risks)</small></h3>
+      <textarea id="debt1"></textarea>
+      <textarea id="debt2"></textarea>
+      <textarea id="debt3"></textarea>
+      <textarea id="debt4"></textarea>
+      <textarea id="debt5"></textarea>
+    </div>
+    <div>
+      <h3>Credibility Cryptocurrency<br><small>(Hypothetical Longer-Term Reputation Risks)</small></h3>
+      <textarea id="crypto1"></textarea>
+      <textarea id="crypto2"></textarea>
+      <textarea id="crypto3"></textarea>
+      <textarea id="crypto4"></textarea>
+      <textarea id="crypto5"></textarea>
+    </div>
+  </div>
+
+  <div>
+    <button onclick="saveData()">💾 Save</button>
+    <button onclick="saveAndNext()">👉 Save & Go to Page 92</button>
+    <button onclick="window.location.href='page-90.html'">⬅️ Back One Page</button>
+    <button onclick="window.print()">🖨️ Print</button>
+    <div id="status" class="success"></div>
+  </div>
+
+  <script>
+    const supabase = supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+
+    let userId = null;
+
+    async function loadUserAndPrefill() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      userId = user.id;
+
+      // Prefill from Exercise 6 (Page 54)
+      const { data: page54Data } = await supabase
+        .from('exercise6_page54')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (page54Data) {
+        const inputs = [
+          'debt1', 'debt2', 'debt3', 'crypto1', 'crypto2', 'crypto3'
+        ];
+        inputs.forEach((id, i) => {
+          document.getElementById(id).value = page54Data[`dont${i+1}`] || '';
+        });
+      }
+
+      // Prefill any existing page 91 content
+      const { data } = await supabase
+        .from('exercise12_page91')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (data) {
+        for (let i = 1; i <= 5; i++) {
+          document.getElementById(`debt${i}`).value = data[`debt${i}`] || '';
+          document.getElementById(`crypto${i}`).value = data[`crypto${i}`] || '';
+        }
+      }
+    }
+
+    async function saveData() {
+      if (!userId) return;
+
+      const updates = {
+        user_id: userId
+      };
+
+      for (let i = 1; i <= 5; i++) {
+        updates[`debt${i}`] = document.getElementById(`debt${i}`).value;
+        updates[`crypto${i}`] = document.getElementById(`crypto${i}`).value;
+      }
+
+      const { error } = await supabase
+        .from('exercise12_page91')
+        .upsert(updates, { onConflict: ['user_id'] });
+
+      document.getElementById('status').textContent = error ? "Save failed: " + error.message : "Save successful!";
+    }
+
+    function saveAndNext() {
+      saveData().then(() => {
+        window.location.href = 'page-92.html';
+      });
+    }
+
+    loadUserAndPrefill();
+  </script>
+</body>
+</html>
