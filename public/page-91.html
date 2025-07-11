@@ -106,8 +106,12 @@
     );
 
     async function saveData(goNext = false) {
-      const user = await supabase.auth.getUser();
-      const user_id = user.data.user?.id;
+      const {
+        data: { session },
+        error: sessionError
+      } = await supabase.auth.getSession();
+
+      const user_id = session?.user?.id;
       if (!user_id) return alert("User not logged in");
 
       const updates = {
@@ -134,9 +138,17 @@
     }
 
     async function loadData() {
-      const user = await supabase.auth.getUser();
-      const user_id = user.data.user?.id;
-      if (!user_id) return;
+      const {
+        data: { session },
+        error: sessionError
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session || !session.user) {
+        console.error("Session error:", sessionError);
+        return;
+      }
+
+      const user_id = session.user.id;
 
       // Load saved answers from page 91
       const { data: savedData } = await supabase
@@ -155,7 +167,7 @@
       }
 
       // Load Don’ts from Exercise 6 (page 54)
-      const { data: exercise6Data } = await supabase
+      const { data: exercise6Data, error: e6error } = await supabase
         .from('exercise6_page54')
         .select('*')
         .eq('user_id', user_id)
@@ -163,6 +175,7 @@
 
       const list = document.getElementById('dontList');
       list.innerHTML = '';
+
       if (exercise6Data) {
         for (let i = 1; i <= 6; i++) {
           const value = exercise6Data[`dont${i}`];
@@ -172,6 +185,8 @@
             list.appendChild(li);
           }
         }
+      } else {
+        console.warn("No Exercise 6 data found:", e6error?.message);
       }
     }
 
