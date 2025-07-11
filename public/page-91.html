@@ -33,13 +33,19 @@
       padding: 1rem;
       border: 1px solid #ccc;
     }
+    .section {
+      margin-bottom: 1rem;
+    }
+    .reference-list {
+      background: #eef2f7;
+      padding: 0.5rem 1rem;
+      border: 1px solid #ccc;
+      margin-bottom: 1rem;
+    }
     textarea {
       width: 100%;
       min-height: 60px;
       margin-bottom: 10px;
-    }
-    .section {
-      margin-bottom: 1rem;
     }
     .button-bar {
       display: flex;
@@ -56,13 +62,18 @@
 <body>
   <div class="container">
     <div class="left">
-      <img src="/exercise12-page91.jpg" alt="Exercise 12 Page 91" style="width: 100%; border: 1px solid #ccc;" />
+      <img src="/page-91.jpg" alt="Exercise 12 Page 91" style="width: 100%; border: 1px solid #ccc;" />
     </div>
     <div class="right">
       <div class="instructions">
         <strong>Now we’re going to consider the credibility risks that can negatively impact your reputation bank.</strong>
-        <p>See below the work you did in Exercise 6 on the “Don’ts” of the Success Rules. Consider the difference between <strong>Credibility Debt</strong> (shorter-term reputation risk) and <strong>Credibility Cryptocurrency</strong> (longer-term reputation risk). Determine which of the “Don’ts” are Credibility Debt and which are Credibility Cryptocurrency and write them in the appropriate spaces below. You’ll need three of each type to move to the next exercises. They will be automatically populated into the upcoming exercises. If you don’t have enough of one type, it’s a good idea to go back to Exercise 6, Page 54 and re-consider your risks using this lens.</p>
-        <p><strong>Tip:</strong> You’ve completed the positive side of the Reputation Bank – Credibility Cash and Gold. You’ve seen how Credibility Gold can have exponentially more value than Credibility Cash based on the right messages/interactions repetitively over time. Now you’re working on exactly the same thing, except it reflects the negative potential impacts on your reputation bank. Distinguish between Credibility Debt and Cryptocurrency based on the amount of repetitive harm that could be done to your reputation over time.</p>
+        <p>See below the work you did in Exercise 6 on the “Don’ts” of the Success Rules. Consider the difference between <strong>Credibility Debt</strong> (shorter-term reputation risk) and <strong>Credibility Cryptocurrency</strong> (longer-term reputation risk). Determine which of the “Don’ts” are Credibility Debt and which are Credibility Cryptocurrency and type them in the appropriate spaces below. You’ll need three of each type to move to the next exercises. If you don’t have enough of one type, it’s a good idea to go back to Exercise 6, Page 54 and re-consider your risks using this lens.</p>
+        <p><strong>Tip:</strong> You’ve completed the positive side of the Reputation Bank – Credibility Cash and Gold. You’ve seen how Credibility Gold can have exponentially more value than Credibility Cash based on delivering the right messages/interactions repetitively over time. Now you’re working on the same thing, except it reflects the negative potential impacts on your reputation bank. Distinguish between Credibility Debt and Cryptocurrency based on the amount of repetitive harm that could be done to your reputation over time.</p>
+      </div>
+
+      <div class="reference-list" id="referenceList">
+        <strong>Your Don’ts from Exercise 6:</strong>
+        <ul id="dontList"></ul>
       </div>
 
       <div class="section">
@@ -118,7 +129,7 @@
         alert('Save failed: ' + error.message);
       } else {
         alert('Save successful!');
-        if (goNext) window.location.href = 'page-92.html';
+        if (goNext) window.location.href = '/#page/92';
       }
     }
 
@@ -127,24 +138,45 @@
       const user_id = user.data.user?.id;
       if (!user_id) return;
 
-      const { data, error } = await supabase
+      // Load saved answers from page 91
+      const { data: savedData } = await supabase
         .from('exercise12_page91')
         .select('*')
         .eq('user_id', user_id)
         .single();
 
-      if (data) {
-        document.getElementById('debt1').value = data.debt1 || '';
-        document.getElementById('debt2').value = data.debt2 || '';
-        document.getElementById('debt3').value = data.debt3 || '';
-        document.getElementById('crypto1').value = data.crypto1 || '';
-        document.getElementById('crypto2').value = data.crypto2 || '';
-        document.getElementById('crypto3').value = data.crypto3 || '';
+      if (savedData) {
+        document.getElementById('debt1').value = savedData.debt1 || '';
+        document.getElementById('debt2').value = savedData.debt2 || '';
+        document.getElementById('debt3').value = savedData.debt3 || '';
+        document.getElementById('crypto1').value = savedData.crypto1 || '';
+        document.getElementById('crypto2').value = savedData.crypto2 || '';
+        document.getElementById('crypto3').value = savedData.crypto3 || '';
+      }
+
+      // Load Don’ts from Exercise 6 (page 54)
+      const { data: exercise6Data } = await supabase
+        .from('exercise6_page54')
+        .select('*')
+        .eq('user_id', user_id)
+        .single();
+
+      const list = document.getElementById('dontList');
+      list.innerHTML = '';
+      if (exercise6Data) {
+        for (let i = 1; i <= 6; i++) {
+          const value = exercise6Data[`dont${i}`];
+          if (value) {
+            const li = document.createElement('li');
+            li.textContent = value;
+            list.appendChild(li);
+          }
+        }
       }
     }
 
     function goBack() {
-      window.location.href = 'page-90.html';
+      window.location.href = '/#page/90';
     }
 
     loadData();
