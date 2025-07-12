@@ -67,8 +67,8 @@
     <div class="right">
       <div class="instructions">
         <strong>Now we’re going to consider the credibility risks that can negatively impact your reputation bank.</strong>
-        <p>See below the work you did in Exercise 6 on the “Don’ts” of the Success Rules. Consider the difference between <strong>Credibility Debt</strong> (shorter-term reputation risk) and <strong>Credibility Cryptocurrency</strong> (longer-term reputation risk).</p>
-        <p><strong>Tip:</strong> You’ve completed the positive side of the Reputation Bank – Credibility Cash and Gold. Now you’re working on the same thing, except it reflects negative impacts. Distinguish between short- and long-term repetitive harm.</p>
+        <p>See below the work you did in Exercise 6 on the “Don’ts” of the Success Rules. Consider the difference between <strong>Credibility Debt</strong> (shorter-term reputation risk) and <strong>Credibility Cryptocurrency</strong> (longer-term reputation risk). Determine which of the “Don’ts” are Credibility Debt and which are Credibility Cryptocurrency and type them in the appropriate spaces below. You’ll need three of each type to move to the next exercises. If you don’t have enough of one type, it’s a good idea to go back to Exercise 6, Page 54 and re-consider your risks using this lens.</p>
+        <p><strong>Tip:</strong> You’ve completed the positive side of the Reputation Bank – Credibility Cash and Gold. You’ve seen how Credibility Gold can have exponentially more value than Credibility Cash based on delivering the right messages/interactions repetitively over time. Now you’re working on the same thing, except it reflects the negative potential impacts on your reputation bank. Distinguish between Credibility Debt and Cryptocurrency based on the amount of repetitive harm that could be done to your reputation over time.</p>
       </div>
 
       <div class="reference-list" id="referenceList">
@@ -138,6 +138,7 @@
       const user_id = user.data.user?.id;
       if (!user_id) return;
 
+      // Load saved data for page 91
       const { data: savedData } = await supabase
         .from('exercise12_page91')
         .select('*')
@@ -160,6 +161,10 @@
         .eq('user_id', user_id)
         .single();
 
+      console.log('User ID:', user_id);
+      console.log('Exercise 6 data:', exercise6Data);
+      if (ex6Error) console.error('Exercise 6 fetch error:', ex6Error);
+
       const list = document.getElementById('dontList');
       list.innerHTML = '';
 
@@ -173,7 +178,9 @@
           }
         }
       } else {
-        console.warn('No Don’ts found for this user on page 54.', ex6Error);
+        const li = document.createElement('li');
+        li.textContent = 'No Don’ts found. Check your login or page 54 data.';
+        list.appendChild(li);
       }
     }
 
@@ -185,3 +192,4 @@
   </script>
 </body>
 </html>
+
