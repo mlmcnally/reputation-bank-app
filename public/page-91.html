@@ -100,11 +100,12 @@
   </div>
 
   <script>
-    const supabase = supabase.createClient(
+    const { createClient } = supabase;
+    const client = createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
-    window.supabase = supabase;
+    window.supabase = client;
 
     async function saveData(goNext = false) {
       const { data: userData, error: authError } = await supabase.auth.getUser();
