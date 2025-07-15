@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise 13 – Page 94</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+    }
+    .left {
+      flex: 1;
+    }
+    .left img {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      display: block;
+    }
+    .right {
+      flex: 1;
+      max-width: 700px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    textarea, input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px;
+    }
+    .stakeholder {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+    }
+    .score-box, .multiplier-box {
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+    .footer-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="left">
+    <img src="/page-94.jpg" alt="Exercise 13 Page 94">
+  </div>
+  <div class="right">
+    <h3>Credibility Debt Withdrawal #1 (Describe the communication, decision, or interaction that will negatively impact stakeholders)</h3>
+    <textarea id="interactionDescription" rows="3"></textarea>
+
+    <div id="stakeholders"></div>
+
+    <div class="score-box">
+      <label>Total Influence/Impact Score</label>
+      <input type="text" id="impactScore" readonly />
+    </div>
+
+    <div class="multiplier-box">
+      <label>Reputation Harm Multiplier (how many times a month this occurs)</label>
+      <input type="number" id="reputationMultiplier" />
+    </div>
+
+    <button onclick="calculateScores()">Calculate Credibility Withdrawals</button>
+
+    <div class="score-box">
+      <label>Monthly Credibility Cash Withdrawal</label>
+      <input type="text" id="monthlyDeposit" readonly />
+    </div>
+
+    <div class="score-box">
+      <label>Annual Credibility Cash Withdrawal</label>
+      <input type="text" id="annualDeposit" readonly />
+      <small>These withdrawals are subjective and theoretical scores, not actual currency numbers.</small>
+    </div>
+
+    <div class="footer-buttons">
+      <button onclick="location.href='/#page/93'">⬅ Back One Page</button>
+      <button onclick="saveData()">💾 Save</button>
+      <button onclick="saveAndNext()">➡ Save & Go to Page 95</button>
+      <button onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+
+  <script>
+    const { createClient } = supabase;
+    const client = createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
+    window.supabase = client;
+
+    const stakeholderLabels = [1, 2, 3, 4, 5, 6];
+
+    function createStakeholderSection(n) {
+      return `
+        <div class="stakeholder">
+          <label>Stakeholder #${n} (name/description)</label>
+          <input type="text" id="stakeholder${n}" />
+          <p>Consider how the above decision or action might negatively influence this stakeholder. Check all the boxes that apply:</p>
+          <label><input type="checkbox" class="score${n}" value="4" /> Harm/Motivate (4)</label><br>
+          <label><input type="checkbox" class="score${n}" value="2" /> Undermine/Disappoint (2)</label><br>
+          <label><input type="checkbox" class="score${n}" value="1" /> Confuse/Annoy/Ignore (1)</label>
+        </div>`;
+    }
+
+    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+
+    function calculateScores() {
+      let total = 0;
+      stakeholderLabels.forEach(n => {
+        document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
+          total += parseInt(cb.value);
+        });
+      });
+
+      document.getElementById("impactScore").value = total;
+
+      const multiplier = parseInt(document.getElementById("reputationMultiplier").value) || 0;
+      const monthly = -1 * total * multiplier;
+      const annual = monthly * 12;
+
+      document.getElementById("monthlyDeposit").value = monthly;
+      document.getElementById("annualDeposit").value = annual;
+    }
+
+    async function saveData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const payload = {
+        user_id: user.id,
+        interaction_description: document.getElementById("interactionDescription").value,
+        impact_score: parseInt(document.getElementById("impactScore").value) || 0,
+        reputation_multiplier: parseInt(document.getElementById("reputationMultiplier").value) || 0,
+        monthly_deposit: parseInt(document.getElementById("monthlyDeposit").value) || 0,
+        annual_deposit: parseInt(document.getElementById("annualDeposit").value) || 0
+      };
+
+      stakeholderLabels.forEach(n => {
+        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value;
+        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
+          .filter(cb => cb.checked)
+          .map(cb => parseInt(cb.value));
+      });
+
+      const { error } = await supabase.from("exercise13_page94").upsert([payload], { onConflict: ['user_id'] });
+      if (error) {
+        alert("Save failed: " + error.message);
+      } else {
+        alert("Save successful!");
+      }
+    }
+
+    async function saveAndNext() {
+      await saveData();
+      location.href = 'page-95.html';
+    }
+  </script>
+</body>
+</html>
