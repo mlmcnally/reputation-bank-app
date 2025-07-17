@@ -67,9 +67,12 @@
 
     <div id="stakeholders"></div>
 
-    <div class="score-box">
-      <label>Total Influence/Impact Score</label>
-      <input type="text" id="impactScore" readonly />
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button onclick="calculateScores()">Calculate Score</button>
+      <div class="score-box" style="flex: 1;">
+        <label>Total Influence/Impact Score</label>
+        <input type="text" id="impactScore" readonly />
+      </div>
     </div>
 
     <div class="multiplier-box">
