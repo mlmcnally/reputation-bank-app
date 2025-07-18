@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercise 15 – Page 104</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #e5e7eb;
+    }
+    .footer-buttons {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Exercise 15 – Reputation Bank Statement</h2>
+  <p>Refer to Exercises 10, 11, 13 and 14 (credibility cash, gold, debt, and cryptocurrency). Credibility cash and gold should be positive numbers, while debt and cryptocurrency should be negative. Subtotals and the Reputation Bank Balance are calculated automatically.</p>
+
+  <table id="statement-table">
+    <thead>
+      <tr>
+        <th>Name/Description</th>
+        <th>Credibility Cash Deposits</th>
+        <th>Credibility Debt Withdrawals</th>
+        <th>Credibility Gold Deposits</th>
+        <th>Credibility Cryptocurrency Withdrawals</th>
+      </tr>
+    </thead>
+    <tbody id="statement-body"></tbody>
+    <tfoot>
+      <tr>
+        <th>Subtotals</th>
+        <td id="subtotal-cash"></td>
+        <td id="subtotal-debt"></td>
+        <td id="subtotal-gold"></td>
+        <td id="subtotal-crypto"></td>
+      </tr>
+      <tr>
+        <th colspan="4">Reputation Bank Balance</th>
+        <td id="total-balance"></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="footer-buttons">
+    <button onclick="location.href='/#page/103'">⭠ Back One Page</button>
+    <button onclick="window.print()">🖨️ Print</button>
+  </div>
+
+  <script>
+    const { createClient } = supabase;
+    const supabaseUrl = 'https://nidxvthbowdgdfuopmzk.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const tableMap = [
+      { table: 'exercise10_page82', column: 'annual_deposit', type: 'cash' },
+      { table: 'exercise10_page83', column: 'annual_deposit', type: 'cash' },
+      { table: 'exercise10_page84', column: 'annual_deposit', type: 'cash' },
+      { table: 'exercise11_page87', column: 'credibility_gold_deposit', type: 'gold' },
+      { table: 'exercise11_page88', column: 'credibility_gold_deposit', type: 'gold' },
+      { table: 'exercise11_page89', column: 'credibility_gold_deposit', type: 'gold' },
+      { table: 'exercise13_page94', column: 'annual_deposit', type: 'debt' },
+      { table: 'exercise13_page95', column: 'annual_deposit', type: 'debt' },
+      { table: 'exercise13_page96', column: 'annual_deposit', type: 'debt' },
+      { table: 'exercise14_page99', column: 'crypto_withdrawal', type: 'crypto' },
+      { table: 'exercise14_page100', column: 'crypto_withdrawal', type: 'crypto' },
+      { table: 'exercise14_page101', column: 'crypto_withdrawal', type: 'crypto' },
+    ];
+
+    async function loadTable() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const rows = [];
+      let subtotals = { cash: 0, debt: 0, gold: 0, crypto: 0 };
+
+      for (const entry of tableMap) {
+        const { data, error } = await supabase
+          .from(entry.table)
+          .select(`interaction_description, ${entry.column}`)
+          .eq('user_id', user.id)
+          .single();
+
+        if (data && !error) {
+          const row = { name: data.interaction_description, cash: '', debt: '', gold: '', crypto: '' };
+          row[entry.type] = data[entry.column] || 0;
+          subtotals[entry.type] += row[entry.type];
+          rows.push(row);
+        }
+      }
+
+      const tbody = document.getElementById("statement-body");
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.name}</td>
+          <td>${row.cash || ''}</td>
+          <td>${row.debt || ''}</td>
+          <td>${row.gold || ''}</td>
+          <td>${row.crypto || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("subtotal-cash").textContent = subtotals.cash;
+      document.getElementById("subtotal-debt").textContent = subtotals.debt;
+      document.getElementById("subtotal-gold").textContent = subtotals.gold;
+      document.getElementById("subtotal-crypto").textContent = subtotals.crypto;
+      document.getElementById("total-balance").textContent = subtotals.cash + subtotals.gold + subtotals.debt + subtotals.crypto;
+    }
+
+    loadTable();
+  </script>
+</body>
+</html>
