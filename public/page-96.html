@@ -33,26 +33,35 @@
       width: 100%;
       padding: 10px;
     }
-    .stakeholder {
+    .stakeholder, .score-box {
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 6px;
       background: #fff;
-    }
-    .score-box, .multiplier-box {
-      padding: 10px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
     }
     .footer-buttons {
       display: flex;
       gap: 10px;
       margin-top: 20px;
+    }
+    label.description {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .multiplier-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
     }
   </style>
 </head>
@@ -75,28 +84,31 @@
     </div>
 
     <div class="multiplier-box">
-      <label>Reputation Harm Multiplier (how many times a month this occurs)</label>
-      <input type="number" id="reputationMultiplier" />
+      <label class="description">
+        Consider how many communications/interactions it would take to get your reputation back to where it was before the risk happened. This is the Reputation Rehab Multiplier.
+      </label>
+      <input type="number" id="rehabMultiplier" inputmode="numeric" />
     </div>
 
-    <button onclick="calculateScores()">Calculate Credibility Withdrawals</button>
-
-    <div class="score-box">
-      <label>Monthly Credibility Cash Withdrawal</label>
-      <input type="text" id="monthlyDeposit" readonly />
+    <div class="multiplier-box">
+      <label class="description">
+        Often Credibility Debt Reputation Risks are repetitive. Identify how many times this kind of risk/impact could occur (within a month or a year). This is the Repetition Multiplier.
+      </label>
+      <input type="number" id="repetitionMultiplier" inputmode="numeric" />
     </div>
 
+    <button style="padding: 10px 16px; font-size: 16px;" onclick="calculateScores()">Calculate Credibility Debt Withdrawal</button>
+
     <div class="score-box">
-      <label>Annual Credibility Cash Withdrawal</label>
+      <label>Total Credibility Debt Withdrawal</label>
       <input type="text" id="annualDeposit" readonly />
       <small>These withdrawals are subjective and theoretical scores, not actual currency numbers.</small>
     </div>
 
     <div class="footer-buttons">
-      <button onclick="location.href='/#page/95'">⬅ Back One Page</button>
-      <button onclick="saveData()">💾 Save</button>
-      <button onclick="saveAndNext()">➡ Save & Go to Page 97</button>
-      <button onclick="window.print()">🖨️ Print</button>
+      <button onclick="location.href='page-95.html'">⭠ Back One Page</button>
+      <button onclick="saveData()">📄 Save</button>
+      <button onclick="window.print()">🖸️ Print</button>
     </div>
   </div>
 
@@ -131,14 +143,12 @@
           total += parseInt(cb.value);
         });
       });
-
       document.getElementById("impactScore").value = total;
 
-      const multiplier = parseInt(document.getElementById("reputationMultiplier").value) || 0;
-      const monthly = -1 * total * multiplier;
-      const annual = monthly * 12;
+      const rehab = parseInt(document.getElementById("rehabMultiplier").value) || 0;
+      const repeat = parseInt(document.getElementById("repetitionMultiplier").value) || 0;
+      const annual = total * rehab * repeat * -1;
 
-      document.getElementById("monthlyDeposit").value = monthly;
       document.getElementById("annualDeposit").value = annual;
     }
 
@@ -154,8 +164,8 @@
         user_id: user.id,
         interaction_description: document.getElementById("interactionDescription").value,
         impact_score: parseInt(document.getElementById("impactScore").value) || 0,
-        reputation_multiplier: parseInt(document.getElementById("reputationMultiplier").value) || 0,
-        monthly_deposit: parseInt(document.getElementById("monthlyDeposit").value) || 0,
+        reputation_multiplier: parseInt(document.getElementById("rehabMultiplier").value) || 0,
+        repetition_multiplier: parseInt(document.getElementById("repetitionMultiplier").value) || 0,
         annual_deposit: parseInt(document.getElementById("annualDeposit").value) || 0
       };
 
@@ -172,11 +182,6 @@
       } else {
         alert("Save successful!");
       }
-    }
-
-    async function saveAndNext() {
-      await saveData();
-      location.href = '/#page/97';
     }
   </script>
 </body>
