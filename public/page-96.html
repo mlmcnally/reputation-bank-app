@@ -85,14 +85,14 @@
 
     <div class="multiplier-box">
       <label class="description">
-        Consider how many communications/interactions it would take to get your reputation back to where it was before the risk happened. This is the Reputation Rehab Multiplier.
+        Consider how many communications/interactions it would take to get your reputation back to where it was before the risk happened. This is the Reputation Rehab Multiplier. This is a subjective opinion for illustrative purposes. Write that number in this box.
       </label>
       <input type="number" id="rehabMultiplier" inputmode="numeric" />
     </div>
 
     <div class="multiplier-box">
       <label class="description">
-        Often Credibility Debt Reputation Risks are repetitive. Identify how many times this kind of risk/impact could occur (within a month or a year). This is the Repetition Multiplier.
+        Often Credibility Debt Reputation Risks are repetitive. Identify how many times this kind of risk/impact could occur (within a month or a year). This is the Repetition Multiplier. Write that number in this box.
       </label>
       <input type="number" id="repetitionMultiplier" inputmode="numeric" />
     </div>
@@ -108,6 +108,7 @@
     <div class="footer-buttons">
       <button onclick="location.href='page-95.html'">⭠ Back One Page</button>
       <button onclick="saveData()">📄 Save</button>
+      <button onclick="saveAndNext()">➡ Save & Go to Page 97</button>
       <button onclick="window.print()">🖸️ Print</button>
     </div>
   </div>
@@ -182,6 +183,11 @@
       } else {
         alert("Save successful!");
       }
+    }
+
+    async function saveAndNext() {
+      await saveData();
+      location.href = '/#page/97';
     }
   </script>
 </body>
