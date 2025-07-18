@@ -62,7 +62,7 @@
     <img src="/page-99.jpg" alt="Exercise 14 Page 99">
   </div>
   <div class="right">
-    <h3>Exercise 14: Credibility Cryptocurrency Withdrawal (Describe the communication, decision, or interaction that will negatively impact stakeholders)</h3>
+    <h3>Credibility Cryptocurrency Withdrawal (Describe the communication, decision, or interaction that will negatively impact stakeholders)</h3>
     <textarea id="interactionDescription" rows="3"></textarea>
 
     <div id="stakeholders"></div>
@@ -77,11 +77,11 @@
 
     <div class="multiplier-box">
       <label class="description">
-        Consider the time horizon of how long the issue/risk may actively, negatively impact reputation. Choose 6 months or 1 year from the drop down menu.
+        Consider the time horizon of how long the issue/risk may actively, negatively impact reputation. This is the Reputation Damage Multiplier. Choose 6 months or 1 year from the drop down menu. Six months will be assigned a multiplier of 500 and one year will be assigned a 1000 multiplier. These scores are meant to illustrate the long-term damage that can be done to reputation.
       </label>
       <select id="damageMultiplier">
-        <option value="1">6 months</option>
-        <option value="2">1 year</option>
+        <option value="500">6 months</option>
+        <option value="1000">1 year</option>
       </select>
     </div>
 
@@ -143,9 +143,9 @@
 
       const damage = parseInt(document.getElementById("damageMultiplier").value) || 0;
       const rehab = parseInt(document.getElementById("rehabMultiplier").value) || 0;
-      const crypto = total * damage * rehab * -1;
+      const cryptoTotal = total * damage * rehab * -1;
 
-      document.getElementById("cryptoWithdrawal").value = crypto;
+      document.getElementById("cryptoWithdrawal").value = cryptoTotal;
     }
 
     async function saveData() {
