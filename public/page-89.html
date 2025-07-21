@@ -33,6 +33,14 @@
       width: 100%;
       padding: 10px;
     }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
     .stakeholder {
       padding: 10px;
       border: 1px solid #ccc;
@@ -61,7 +69,7 @@
   </div>
 
   <div class="right">
-    <h3>Communication Program/Multi-Faceted Interaction #2 (Describe the program or interaction)</h3>
+    <h3>Communication Program/Multi-Faceted Interaction #3 (Describe the program or interaction)</h3>
     <textarea id="interactionDescription" rows="3"></textarea>
 
     <div id="stakeholders"></div>
@@ -73,10 +81,10 @@
     </div>
 
     <label>Enter the Reputation Boost Multiplier (number of times a month you engage stakeholders)</label>
-    <input type="number" id="reputationMultiplier" />
+    <input type="number" id="reputationMultiplier" inputmode="numeric" />
 
     <label>Enter the Time Horizon Value Multiplier (10 for month, 50 for 6 months, 100 for 1 year+)</label>
-    <input type="number" id="timeHorizonMultiplier" />
+    <input type="number" id="timeHorizonMultiplier" inputmode="numeric" />
 
     <div class="score-box">
       <label>Total Credibility Gold Deposit</label><br>
@@ -85,9 +93,8 @@
     </div>
 
     <div class="footer-buttons">
-      <button onclick="location.href='/page-88.html'">⬅ Back One Page</button>
+      <button onclick="location.href='page-88.html'">⬅ Back One Page</button>
       <button onclick="saveData()">💾 Save</button>
-      <button onclick="saveAndNext()">➡ Save & Go to Page 90</button>
       <button onclick="window.print()">🖨️ Print</button>
     </div>
   </div>
@@ -113,6 +120,31 @@
     }
 
     document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+
+    async function loadData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data, error } = await supabase.from("exercise11_page89").select('*').eq('user_id', user.id).single();
+      if (error || !data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score || "";
+      document.getElementById("reputationMultiplier").value = data.reputation_multiplier || "";
+      document.getElementById("timeHorizonMultiplier").value = data.time_horizon_multiplier || "";
+      document.getElementById("goldDeposit").value = data.credibility_gold_deposit || "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const scores = data[`stakeholder${n}_scores`] || [];
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = scores.includes(parseInt(cb.value));
+        });
+      });
+    }
+
+    loadData();
 
     function calculateInfluence() {
       let total = 0;
@@ -156,17 +188,12 @@
           .map(cb => parseInt(cb.value));
       });
 
-      const { error } = await supabase.from("exercise11_page88").upsert([payload], { onConflict: ['user_id'] });
+      const { error } = await supabase.from("exercise11_page89").upsert([payload], { onConflict: ['user_id'] });
       if (error) {
         alert("Save failed: " + error.message);
       } else {
         alert("Save successful!");
       }
-    }
-
-    async function saveAndNext() {
-      await saveData();
-      location.href = '/#page/90';
     }
   </script>
 </body>
