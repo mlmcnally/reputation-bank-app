@@ -33,6 +33,11 @@
       width: 100%;
       padding: 10px;
     }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
     .stakeholder {
       padding: 10px;
       border: 1px solid #ccc;
@@ -93,10 +98,10 @@
     </div>
 
     <div class="footer-buttons">
-      <button onclick="location.href='/#page/82'">⬅ Back One Page</button>
+      <button onclick="location.href='page-82.html'">⬅ Back One Page</button>
       <button onclick="saveData()">💾 Save</button>
       <button onclick="saveAndNext()">➡ Save & Go to Page 84</button>
-      <button onclick="window.print()">🖸️ Print</button>
+      <button onclick="window.print()">🖨️ Print</button>
     </div>
   </div>
 
@@ -140,6 +145,29 @@
       document.getElementById("annualDeposit").value = annual;
     }
 
+    async function prefillData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data, error } = await supabase.from("exercise10_page83").select('*').eq('user_id', user.id).single();
+      if (error || !data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score || "";
+      document.getElementById("reputationMultiplier").value = data.reputation_multiplier || "";
+      document.getElementById("monthlyDeposit").value = data.monthly_deposit || "";
+      document.getElementById("annualDeposit").value = data.annual_deposit || "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const savedScores = data[`stakeholder${n}_scores`] || [];
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = savedScores.includes(parseInt(cb.value));
+        });
+      });
+    }
+
     async function saveData() {
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;
@@ -176,6 +204,8 @@
       await saveData();
       location.href = 'page-84.html';
     }
+
+    prefillData();
   </script>
 </body>
 </html>
