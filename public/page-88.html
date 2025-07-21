@@ -33,6 +33,14 @@
       width: 100%;
       padding: 10px;
     }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
     .stakeholder {
       padding: 10px;
       border: 1px solid #ccc;
@@ -75,7 +83,7 @@
     <label>Enter the Reputation Boost Multiplier (number of times a month you engage stakeholders)</label>
     <input type="number" id="reputationMultiplier" />
 
-    <label>Enter the Time Horizon Value Multiplier (10 for a month, 50 for 6 months, 100 for 1 year+)</label>
+    <label>Enter the Time Horizon Value Multiplier (10 for month, 50 for 6 months, 100 for 1 year+)</label>
     <input type="number" id="timeHorizonMultiplier" />
 
     <div class="score-box">
@@ -85,10 +93,10 @@
     </div>
 
     <div class="footer-buttons">
-      <button onclick="location.href='/page-87.html'">⬅ Back One Page</button>
-      <button onclick="saveData()">💾 Save</button>
+      <button onclick="location.href='page-87.html'">⬅ Back One Page</button>
+      <button onclick="saveData()">📂 Save</button>
       <button onclick="saveAndNext()">➡ Save & Go to Page 89</button>
-      <button onclick="window.print()">🖨️ Print</button>
+      <button onclick="window.print()">🖰 Print</button>
     </div>
   </div>
 
@@ -113,6 +121,28 @@
     }
 
     document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+
+    async function loadData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data, error } = await supabase.from("exercise11_page88").select('*').eq('user_id', user.id).single();
+      if (error || !data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score || "";
+      document.getElementById("reputationMultiplier").value = data.reputation_multiplier || "";
+      document.getElementById("timeHorizonMultiplier").value = data.time_horizon_multiplier || "";
+      document.getElementById("goldDeposit").value = data.credibility_gold_deposit || "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        (data[`stakeholder${n}_scores`] || []).forEach(score => {
+          document.querySelector(`.score${n}[value="${score}"]`).checked = true;
+        });
+      });
+    }
 
     function calculateInfluence() {
       let total = 0;
@@ -168,6 +198,8 @@
       await saveData();
       location.href = 'page-89.html';
     }
+
+    loadData();
   </script>
 </body>
 </html>
