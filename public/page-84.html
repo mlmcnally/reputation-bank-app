@@ -33,6 +33,11 @@
       width: 100%;
       padding: 10px;
     }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
     .stakeholder {
       padding: 10px;
       border: 1px solid #ccc;
@@ -93,9 +98,9 @@
     </div>
 
     <div class="footer-buttons">
-      <button onclick="location.href='/#page/83'">⬅ Back One Page</button>
+      <button onclick="location.href='page-83.html'">⬅ Back One Page</button>
       <button onclick="saveData()">💾 Save</button>
-      <button onclick="location.href='/#page/85'">➡ Save & Go to Page 85</button>
+      <button onclick="saveAndNext()">➡ Save & Go to Page 85</button>
       <button onclick="window.print()">🖰️ Print</button>
     </div>
   </div>
@@ -174,8 +179,30 @@
 
     async function saveAndNext() {
       await saveData();
-      location.href = 'page-85.html';
+      location.href = '/#page/85';
     }
+
+    // Prefill if data exists
+    (async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+      const { data, error } = await supabase.from("exercise10_page84").select('*').eq('user_id', user.id).single();
+      if (data) {
+        document.getElementById("interactionDescription").value = data.interaction_description || "";
+        document.getElementById("impactScore").value = data.impact_score || "";
+        document.getElementById("reputationMultiplier").value = data.reputation_multiplier || "";
+        document.getElementById("monthlyDeposit").value = data.monthly_deposit || "";
+        document.getElementById("annualDeposit").value = data.annual_deposit || "";
+
+        stakeholderLabels.forEach(n => {
+          document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+          (data[`stakeholder${n}_scores`] || []).forEach(score => {
+            document.querySelector(`.score${n}[value='${score}']`).checked = true;
+          });
+        });
+      }
+    })();
   </script>
 </body>
 </html>
