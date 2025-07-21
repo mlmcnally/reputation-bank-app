@@ -33,12 +33,12 @@
       width: 100%;
       padding: 10px;
     }
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
-    input[type=number] {
+    input[type="number"] {
       -moz-appearance: textfield;
     }
     .stakeholder {
@@ -70,28 +70,35 @@
   <div class="right">
     <h3>Communication Program/Multi-Faceted Interaction #1 (Describe the program or interaction)</h3>
     <textarea id="interactionDescription" rows="3"></textarea>
+
     <div id="stakeholders"></div>
+
     <div class="score-box">
       <label>Total Influence/Impact Score</label><br>
       <button onclick="calculateInfluence()">Calculate Total Influence/Impact Score</button>
       <input type="text" id="impactScore" readonly />
     </div>
+
     <label>Enter the Reputation Boost Multiplier (number of times a month you engage stakeholders)</label>
     <input type="number" id="reputationMultiplier" />
+
     <label>Enter the Time Horizon Value Multiplier (10 for month, 50 for 6 months, 100 for 1 year+)</label>
     <input type="number" id="timeHorizonMultiplier" />
+
     <div class="score-box">
       <label>Total Credibility Gold Deposit</label><br>
       <button onclick="calculateGold()">Calculate Total Credibility Gold Deposit</button>
       <input type="text" id="goldDeposit" readonly />
     </div>
+
     <div class="footer-buttons">
       <button onclick="location.href='/#page/86'">⬅ Back One Page</button>
-      <button onclick="saveData()">💾 Save</button>
+      <button onclick="saveData()">📂 Save</button>
       <button onclick="saveAndNext()">➡ Save & Go to Page 88</button>
-      <button onclick="window.print()">🖸️ Print</button>
+      <button onclick="window.print()">🖰 Print</button>
     </div>
   </div>
+
   <script>
     const supabase = window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
@@ -99,6 +106,7 @@
     );
 
     const stakeholderLabels = [1, 2, 3, 4, 5, 6];
+
     function createStakeholderSection(n) {
       return `
         <div class="stakeholder">
@@ -110,7 +118,36 @@
           <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
         </div>`;
     }
+
     document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+
+    async function loadData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("exercise11_page87")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error || !data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score || "";
+      document.getElementById("reputationMultiplier").value = data.reputation_multiplier || "";
+      document.getElementById("timeHorizonMultiplier").value = data.time_horizon_multiplier || "";
+      document.getElementById("goldDeposit").value = data.credibility_gold_deposit || "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const scores = data[`stakeholder${n}_scores`] || [];
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = scores.includes(parseInt(cb.value));
+        });
+      });
+    }
 
     function calculateInfluence() {
       let total = 0;
@@ -166,6 +203,8 @@
       await saveData();
       location.href = 'page-88.html';
     }
+
+    loadData();
   </script>
 </body>
 </html>
