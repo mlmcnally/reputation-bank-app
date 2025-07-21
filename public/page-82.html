@@ -32,6 +32,12 @@
     textarea, input[type="text"], input[type="number"] {
       width: 100%;
       padding: 10px;
+      appearance: textfield;
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
     .stakeholder {
       padding: 10px;
@@ -96,7 +102,7 @@
       <button onclick="location.href='/#page/81'">⬅ Back One Page</button>
       <button onclick="saveData()">💾 Save</button>
       <button onclick="saveAndNext()">➡ Save & Go to Page 83</button>
-      <button onclick="window.print()">🖨️ Print</button>
+      <button onclick="window.print()">🖸️ Print</button>
     </div>
   </div>
 
@@ -106,7 +112,7 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    const stakeholderLabels = [1,2,3,4,5,6];
+    const stakeholderLabels = [1, 2, 3, 4, 5, 6];
 
     function createStakeholderSection(n) {
       return `
@@ -120,7 +126,7 @@
       </div>`;
     }
 
-    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(createStakeholderSection).join('');
 
     function calculateScores() {
       let total = 0;
@@ -131,22 +137,17 @@
       });
 
       document.getElementById("impactScore").value = total;
-
       const multiplier = parseInt(document.getElementById("reputationMultiplier").value) || 0;
       const monthly = total * multiplier;
       const annual = monthly * 12;
-
       document.getElementById("monthlyDeposit").value = monthly;
       document.getElementById("annualDeposit").value = annual;
     }
 
     async function saveData() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) {
-        alert("User not authenticated");
-        return;
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) return alert("User not authenticated");
 
       const payload = {
         user_id: user.id,
@@ -172,10 +173,35 @@
       }
     }
 
+    async function prefillData() {
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) return;
+
+      const { data, error } = await supabase.from("exercise10_page82").select('*').eq('user_id', user.id).single();
+      if (error || !data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description;
+      document.getElementById("impactScore").value = data.impact_score;
+      document.getElementById("reputationMultiplier").value = data.reputation_multiplier;
+      document.getElementById("monthlyDeposit").value = data.monthly_deposit;
+      document.getElementById("annualDeposit").value = data.annual_deposit;
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const scores = data[`stakeholder${n}_scores`] || [];
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = scores.includes(parseInt(cb.value));
+        });
+      });
+    }
+
     async function saveAndNext() {
       await saveData();
       location.href = 'page-83.html';
     }
+
+    prefillData();
   </script>
 </body>
 </html>
