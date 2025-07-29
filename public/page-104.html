@@ -65,6 +65,7 @@
   <div class="left">
     <img src="/page-104.jpg" alt="Exercise 15 Page 104">
   </div>
+
   <div class="right">
     <h2>Exercise 15 – Reputation Bank Statement</h2>
     <p>Refer to Exercises 10, 11, 13 and 14 (credibility cash, gold, debt, and cryptocurrency). Credibility cash and gold should be positive numbers, while debt and cryptocurrency should be negative. Subtotals and the Reputation Bank Balance are calculated automatically.</p>
@@ -87,15 +88,18 @@
         </tr>
       </thead>
       <tbody>
-        <!-- 12 preloaded empty rows -->
-        ${[...Array(12)].map(() => `
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>`).join('')}
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
       </tbody>
       <tfoot>
         <tr class="subtotal-row">
@@ -151,17 +155,17 @@
       }
 
       const tbody = document.querySelector("#bankTable tbody");
-      let inserted = 0;
-      tbody.querySelectorAll("tr").forEach(tr => {
-        if (inserted >= rows.length) return;
-        const row = rows[inserted];
-        const cells = tr.querySelectorAll("td");
-        cells[0].textContent = row.name;
-        if (type === 'cash') cells[1].textContent = row.value;
-        if (type === 'debt') cells[2].textContent = row.value;
-        if (type === 'gold') cells[3].textContent = row.value;
-        if (type === 'crypto') cells[4].textContent = row.value;
-        inserted++;
+      let rowIndex = 0;
+      tbody.querySelectorAll("tr").forEach((row) => {
+        if (rowIndex < rows.length) {
+          const cells = row.querySelectorAll("td");
+          cells[0].textContent = rows[rowIndex].name;
+          cells[1].textContent = (type === 'cash') ? rows[rowIndex].value : '';
+          cells[2].textContent = (type === 'debt') ? rows[rowIndex].value : '';
+          cells[3].textContent = (type === 'gold') ? rows[rowIndex].value : '';
+          cells[4].textContent = (type === 'crypto') ? rows[rowIndex].value : '';
+          rowIndex++;
+        }
       });
 
       calculateSubtotals();
