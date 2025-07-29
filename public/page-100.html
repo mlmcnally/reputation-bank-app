@@ -62,7 +62,7 @@
     <img src="/page-100.jpg" alt="Exercise 14 Page 100">
   </div>
   <div class="right">
-    <h3>Credibility Cryptocurrency Withdrawal #2 (Describe the communication, decision, or interaction that will negatively impact stakeholders)</h3>
+    <h3>Credibility Cryptocurrency Withdrawal #2</h3>
     <textarea id="interactionDescription" rows="3"></textarea>
 
     <div id="stakeholders"></div>
@@ -76,9 +76,7 @@
     </div>
 
     <div class="multiplier-box">
-      <label class="description">
-        Consider the time horizon of how long the issue/risk may actively, negatively impact reputation. This is the Reputation Damage Multiplier. Choose 6 months or 1 year from the drop down menu. Six months will be assigned a multiplier of 500 and one year will be assigned a 1000 multiplier. These scores are meant to illustrate the long-term damage that can be done to reputation.
-      </label>
+      <label class="description">Reputation Damage Multiplier</label>
       <select id="damageMultiplier">
         <option value="500">6 months</option>
         <option value="1000">1 year</option>
@@ -86,9 +84,7 @@
     </div>
 
     <div class="multiplier-box">
-      <label class="description">
-        Consider how many communications/interactions it would take to get your reputation back to where it was before the risk happened. This is the Reputation Rehab Multiplier. This is a subjective opinion for illustrative purposes. Write that number in this box.
-      </label>
+      <label class="description">Reputation Rehab Multiplier</label>
       <input type="number" id="rehabMultiplier" inputmode="numeric" />
     </div>
 
@@ -97,12 +93,13 @@
     <div class="score-box">
       <label>Total Credibility Cryptocurrency Withdrawal</label>
       <input type="text" id="cryptoWithdrawal" readonly />
+      <small>These withdrawals are subjective and theoretical scores, not actual currency numbers.</small>
     </div>
 
     <div class="footer-buttons">
-      <button onclick="location.href='/#page/99'">⭠ Back One Page</button>
+      <button onclick="location.href='page-99.html'">⭠ Back One Page</button>
       <button onclick="saveData()">📄 Save</button>
-      <button onclick="saveAndNext()">➡ Save & Go to Page 101</button>
+      <button onclick="saveAndNext()">➡ Save & Finish</button>
       <button onclick="window.print()">🖸️ Print</button>
     </div>
   </div>
@@ -122,14 +119,14 @@
         <div class="stakeholder">
           <label>Stakeholder #${n} (name/description)</label>
           <input type="text" id="stakeholder${n}" />
-          <p>Consider how the above decision or action might negatively influence this stakeholder. Check all the boxes that apply:</p>
+          <p>Check all that apply:</p>
           <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
           <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
           <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform & Educate (1)</label>
         </div>`;
     }
 
-    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(createStakeholderSection).join('');
 
     function calculateScores() {
       let total = 0;
@@ -142,18 +139,13 @@
 
       const damage = parseInt(document.getElementById("damageMultiplier").value) || 0;
       const rehab = parseInt(document.getElementById("rehabMultiplier").value) || 0;
-      const crypto = total * damage * rehab * -1;
-
-      document.getElementById("cryptoWithdrawal").value = crypto;
+      document.getElementById("cryptoWithdrawal").value = total * damage * rehab * -1;
     }
 
     async function saveData() {
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;
-      if (!user) {
-        alert("User not authenticated");
-        return;
-      }
+      if (!user) return alert("User not authenticated");
 
       const payload = {
         user_id: user.id,
@@ -172,17 +164,39 @@
       });
 
       const { error } = await supabase.from("exercise14_page100").upsert([payload], { onConflict: ['user_id'] });
-      if (error) {
-        alert("Save failed: " + error.message);
-      } else {
-        alert("Save successful!");
-      }
+      if (error) alert("Save failed: " + error.message);
+      else alert("Save successful!");
+    }
+
+    async function loadData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data, error } = await supabase.from("exercise14_page100").select("*").eq("user_id", user.id).single();
+      if (error || !data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score || "";
+      document.getElementById("damageMultiplier").value = data.damage_multiplier || "500";
+      document.getElementById("rehabMultiplier").value = data.rehab_multiplier || "";
+      document.getElementById("cryptoWithdrawal").value = data.crypto_withdrawal || "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const savedScores = data[`stakeholder${n}_scores`] || [];
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = savedScores.includes(parseInt(cb.value));
+        });
+      });
     }
 
     async function saveAndNext() {
       await saveData();
-      location.href = 'page-101.html';
+      location.href = '/#page/101';
     }
+
+    loadData();
   </script>
 </body>
 </html>
