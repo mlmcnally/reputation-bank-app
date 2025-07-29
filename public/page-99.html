@@ -132,6 +132,32 @@
 
     document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
 
+    async function loadData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data, error } = await supabase.from("exercise14_page99").select('*').eq("user_id", user.id).single();
+      if (error || !data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score || "";
+      document.getElementById("damageMultiplier").value = data.damage_multiplier || "500";
+      document.getElementById("rehabMultiplier").value = data.rehab_multiplier || "";
+      document.getElementById("cryptoWithdrawal").value = data.crypto_withdrawal || "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const scores = data[`stakeholder${n}_scores`] || [];
+        scores.forEach(score => {
+          const checkbox = document.querySelector(`.score${n}[value='${score}']`);
+          if (checkbox) checkbox.checked = true;
+        });
+      });
+    }
+
+    loadData();
+
     function calculateScores() {
       let total = 0;
       stakeholderLabels.forEach(n => {
