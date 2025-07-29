@@ -107,9 +107,9 @@
 
     <div class="footer-buttons">
       <button onclick="location.href='page-94.html'">⭠ Back One Page</button>
-      <button onclick="saveData()">📄 Save</button>
+      <button onclick="saveData()">📂 Save</button>
       <button onclick="saveAndNext()">➡ Save & Go to Page 96</button>
-      <button onclick="window.print()">🖰️ Print</button>
+      <button onclick="window.print()">🖨️ Print</button>
     </div>
   </div>
 
@@ -189,6 +189,34 @@
       await saveData();
       location.href = 'page-96.html';
     }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("exercise13_page95")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error || !data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score || "";
+      document.getElementById("rehabMultiplier").value = data.reputation_multiplier || "";
+      document.getElementById("repetitionMultiplier").value = data.repetition_multiplier || "";
+      document.getElementById("annualDeposit").value = data.annual_deposit || "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const savedScores = data[`stakeholder${n}_scores`] || [];
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = savedScores.includes(parseInt(cb.value));
+        });
+      });
+    });
   </script>
 </body>
 </html>
