@@ -87,7 +87,19 @@
         </tr>
       </thead>
       <tbody>
-        ${[...Array(12)].map(() => `<tr><td></td><td></td><td></td><td></td><td></td></tr>`).join('')}
+        <!-- 12 blank rows -->
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td></tr>
       </tbody>
       <tfoot>
         <tr class="subtotal-row">
@@ -123,13 +135,6 @@
       crypto: ['exercise14_page99', 'exercise14_page100', 'exercise14_page101', 'crypto_withdrawal']
     };
 
-    const labelMap = {
-      cash: 'Credibility Cash Deposits',
-      gold: 'Credibility Gold Deposits',
-      debt: 'Credibility Debt Withdrawals',
-      crypto: 'Credibility Cryptocurrency Withdrawals'
-    };
-
     async function getUserId() {
       const { data: { session } } = await supabase.auth.getSession();
       return session?.user?.id || null;
@@ -137,49 +142,52 @@
 
     async function insertFromExercise(type) {
       const userId = await getUserId();
-      if (!userId) return alert("Not authenticated.");
+      if (!userId) return alert("Not signed in");
 
-      const [t1, t2, t3, valueCol] = tableMap[type];
+      const [t1, t2, t3, valueKey] = tableMap[type];
       const tables = [t1, t2, t3];
-      let inserts = [];
 
-      for (let table of tables) {
-        const { data } = await supabase.from(table).select('*').eq('user_id', userId).maybeSingle();
-        if (data) {
-          const label = data.interaction_description || data.description || '(No description)';
-          const value = data[valueCol] || 0;
-          inserts.push({ user_id: userId, type, label, value });
+      try {
+        for (let table of tables) {
+          const { data } = await supabase.from(table).select('*').eq('user_id', userId).maybeSingle();
+          if (data) {
+            const label = data.interaction_description || data.description || '(No description)';
+            const value = data[valueKey] || 0;
+            await supabase.from('exercise15_page104').upsert(
+              { user_id: userId, type, label, value },
+              { onConflict: ['user_id', 'type', 'label'] }
+            );
+          }
         }
+        await loadData();
+      } catch (error) {
+        console.error("Insert error:", error.message);
       }
-
-      for (const row of inserts) {
-        await supabase.from('exercise15_page104').upsert(row, { onConflict: ['user_id', 'type', 'label'] });
-      }
-
-      loadData();
     }
 
     async function loadData() {
       const userId = await getUserId();
       if (!userId) return;
 
-      const { data } = await supabase.from('exercise15_page104').select('*').eq('user_id', userId);
+      const { data, error } = await supabase.from('exercise15_page104').select('*').eq('user_id', userId);
+      if (error) return console.error("Load error:", error.message);
+
       const tbody = document.querySelector("#bankTable tbody");
-      tbody.innerHTML = [...Array(12)].map(() => `<tr><td></td><td></td><td></td><td></td><td></td></tr>`).join('');
+      const rows = tbody.querySelectorAll("tr");
+
+      rows.forEach(row => row.querySelectorAll("td").forEach(cell => cell.textContent = ""));
 
       let subtotals = { cash: 0, debt: 0, gold: 0, crypto: 0 };
 
-      data.forEach((row, index) => {
-        const tr = tbody.children[index];
-        if (!tr) return;
-
-        tr.cells[0].textContent = row.label;
-        if (row.type === 'cash') tr.cells[1].textContent = row.value;
-        if (row.type === 'debt') tr.cells[2].textContent = row.value;
-        if (row.type === 'gold') tr.cells[3].textContent = row.value;
-        if (row.type === 'crypto') tr.cells[4].textContent = row.value;
-
-        subtotals[row.type] += parseFloat(row.value) || 0;
+      data.forEach((entry, i) => {
+        const row = rows[i];
+        if (!row) return;
+        row.cells[0].textContent = entry.label;
+        if (entry.type === 'cash') row.cells[1].textContent = entry.value;
+        if (entry.type === 'debt') row.cells[2].textContent = entry.value;
+        if (entry.type === 'gold') row.cells[3].textContent = entry.value;
+        if (entry.type === 'crypto') row.cells[4].textContent = entry.value;
+        subtotals[entry.type] += parseFloat(entry.value) || 0;
       });
 
       document.getElementById("subtotalCash").textContent = subtotals.cash;
@@ -187,7 +195,7 @@
       document.getElementById("subtotalGold").textContent = subtotals.gold;
       document.getElementById("subtotalCrypto").textContent = subtotals.crypto;
 
-      const total = subtotals.cash + subtotals.debt + subtotals.gold + subtotals.crypto;
+      const total = subtotals.cash + subtotals.gold + subtotals.debt + subtotals.crypto;
       document.getElementById("bankBalance").textContent = total;
     }
 
