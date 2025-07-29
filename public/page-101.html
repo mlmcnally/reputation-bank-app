@@ -29,14 +29,31 @@
       flex-direction: column;
       gap: 10px;
     }
-    textarea, input[type="text"] {
+    textarea, input[type="text"], input[type="number"], select {
       width: 100%;
       padding: 10px;
+    }
+    .stakeholder, .score-box {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
     }
     .footer-buttons {
       display: flex;
       gap: 10px;
       margin-top: 20px;
+    }
+    label.description {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .multiplier-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
   </style>
 </head>
@@ -45,8 +62,39 @@
     <img src="/page-101.jpg" alt="Exercise 14 Page 101">
   </div>
   <div class="right">
-    <h3>Describe the actions and communications you could begin immediately to reduce the negative impact and start restoring credibility.</h3>
-    <textarea id="restorationPlan" rows="10"></textarea>
+    <h3>Credibility Cryptocurrency Withdrawal #2</h3>
+    <textarea id="interactionDescription" rows="3"></textarea>
+
+    <div id="stakeholders"></div>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button onclick="calculateScores()">Calculate Score</button>
+      <div class="score-box" style="flex: 1;">
+        <label>Total Influence/Impact Score</label>
+        <input type="text" id="impactScore" readonly />
+      </div>
+    </div>
+
+    <div class="multiplier-box">
+      <label class="description">Reputation Damage Multiplier</label>
+      <select id="damageMultiplier">
+        <option value="500">6 months</option>
+        <option value="1000">1 year</option>
+      </select>
+    </div>
+
+    <div class="multiplier-box">
+      <label class="description">Reputation Rehab Multiplier</label>
+      <input type="number" id="rehabMultiplier" inputmode="numeric" />
+    </div>
+
+    <button style="padding: 10px 16px; font-size: 16px;" onclick="calculateScores()">Calculate Total Credibility Cryptocurrency Withdrawal</button>
+
+    <div class="score-box">
+      <label>Total Credibility Cryptocurrency Withdrawal</label>
+      <input type="text" id="cryptoWithdrawal" readonly />
+      <small>These withdrawals are subjective and theoretical scores, not actual currency numbers.</small>
+    </div>
 
     <div class="footer-buttons">
       <button onclick="location.href='page-100.html'">⭠ Back One Page</button>
@@ -64,44 +112,83 @@
     );
     window.supabase = client;
 
-    async function loadData() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) return;
+    const stakeholderLabels = [1, 2, 3, 4, 5, 6];
 
-      const { data, error } = await supabase
-        .from("exercise14_page101")
-        .select("restoration_plan")
-        .eq("user_id", user.id)
-        .single();
+    function createStakeholderSection(n) {
+      return `
+        <div class="stakeholder">
+          <label>Stakeholder #${n} (name/description)</label>
+          <input type="text" id="stakeholder${n}" />
+          <p>Check all that apply:</p>
+          <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
+          <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
+          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform & Educate (1)</label>
+        </div>`;
+    }
 
-      if (data) {
-        document.getElementById("restorationPlan").value = data.restoration_plan || "";
-      }
+    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(createStakeholderSection).join('');
+
+    function calculateScores() {
+      let total = 0;
+      stakeholderLabels.forEach(n => {
+        document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
+          total += parseInt(cb.value);
+        });
+      });
+      document.getElementById("impactScore").value = total;
+
+      const damage = parseInt(document.getElementById("damageMultiplier").value) || 0;
+      const rehab = parseInt(document.getElementById("rehabMultiplier").value) || 0;
+      document.getElementById("cryptoWithdrawal").value = total * damage * rehab * -1;
     }
 
     async function saveData() {
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;
-      if (!user) {
-        alert("User not authenticated");
-        return;
-      }
+      if (!user) return alert("User not authenticated");
 
       const payload = {
         user_id: user.id,
-        restoration_plan: document.getElementById("restorationPlan").value
+        interaction_description: document.getElementById("interactionDescription").value,
+        impact_score: parseInt(document.getElementById("impactScore").value) || 0,
+        damage_multiplier: parseInt(document.getElementById("damageMultiplier").value) || 0,
+        rehab_multiplier: parseInt(document.getElementById("rehabMultiplier").value) || 0,
+        crypto_withdrawal: parseInt(document.getElementById("cryptoWithdrawal").value) || 0
       };
 
-      const { error } = await supabase
-        .from("exercise14_page101")
-        .upsert([payload], { onConflict: ['user_id'] });
+      stakeholderLabels.forEach(n => {
+        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value;
+        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
+          .filter(cb => cb.checked)
+          .map(cb => parseInt(cb.value));
+      });
 
-      if (error) {
-        alert("Save failed: " + error.message);
-      } else {
-        alert("Save successful!");
-      }
+      const { error } = await supabase.from("exercise14_page101").upsert([payload], { onConflict: ['user_id'] });
+      if (error) alert("Save failed: " + error.message);
+      else alert("Save successful!");
+    }
+
+    async function loadData() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data, error } = await supabase.from("exercise14_page101").select("*").eq("user_id", user.id).single();
+      if (error || !data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score || "";
+      document.getElementById("damageMultiplier").value = data.damage_multiplier || "500";
+      document.getElementById("rehabMultiplier").value = data.rehab_multiplier || "";
+      document.getElementById("cryptoWithdrawal").value = data.crypto_withdrawal || "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const savedScores = data[`stakeholder${n}_scores`] || [];
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = savedScores.includes(parseInt(cb.value));
+        });
+      });
     }
 
     async function saveAndNext() {
