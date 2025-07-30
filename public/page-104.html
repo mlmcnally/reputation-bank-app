@@ -84,7 +84,21 @@
             <th>Credibility Cryptocurrency Withdrawals</th>
           </tr>
         </thead>
-        <tbody id="bankTableBody"></tbody>
+        <tbody id="bankTableBody">
+          <!-- Pre-render 12 editable rows -->
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+        </tbody>
         <tfoot>
           <tr>
             <td>Subtotals</td>
@@ -98,7 +112,6 @@
           </tr>
         </tfoot>
       </table>
-
       <div class="footer-buttons">
         <button onclick="window.location.href='/#page/103'">⬅ Back One Page</button>
         <button onclick="window.print()">🖨️ Print</button>
@@ -113,59 +126,64 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    const tableMap = {
-      cash: ['exercise10_page82', 'exercise10_page83', 'exercise10_page84', 'annual_deposit'],
-      gold: ['exercise11_page87', 'exercise11_page88', 'exercise11_page89', 'credibility_gold_deposit'],
-      debt: ['exercise13_page94', 'exercise13_page95', 'exercise13_page96', 'annual_deposit'],
-      crypto: ['exercise14_page99', 'exercise14_page100', 'exercise14_page101', 'crypto_withdrawal']
+    const exerciseMappings = {
+      cash: [
+        { table: 'exercise10_page82', row: 0, column: 1 },
+        { table: 'exercise10_page83', row: 1, column: 1 },
+        { table: 'exercise10_page84', row: 2, column: 1 }
+      ],
+      gold: [
+        { table: 'exercise11_page87', row: 3, column: 3 },
+        { table: 'exercise11_page88', row: 4, column: 3 },
+        { table: 'exercise11_page89', row: 5, column: 3 }
+      ],
+      debt: [
+        { table: 'exercise13_page94', row: 6, column: 2 },
+        { table: 'exercise13_page95', row: 7, column: 2 },
+        { table: 'exercise13_page96', row: 8, column: 2 }
+      ],
+      crypto: [
+        { table: 'exercise14_page99', row: 9, column: 4 },
+        { table: 'exercise14_page100', row: 10, column: 4 },
+        { table: 'exercise14_page101', row: 11, column: 4 }
+      ]
     };
 
-    // Ensure 12 editable rows exist
-    document.addEventListener("DOMContentLoaded", () => {
-      const tbody = document.getElementById('bankTableBody');
-      for (let i = 0; i < 12; i++) {
-        const row = document.createElement('tr');
-        for (let j = 0; j < 5; j++) {
-          const td = document.createElement('td');
-          td.contentEditable = true;
-          row.appendChild(td);
-        }
-        tbody.appendChild(row);
-      }
-    });
+    const columnNameMap = {
+      cash: 'annual_deposit',
+      gold: 'credibility_gold_deposit',
+      debt: 'annual_deposit',
+      crypto: 'crypto_withdrawal'
+    };
 
     async function insertFromExercise(type) {
       const { data: userData, error: authError } = await supabaseClient.auth.getUser();
       const user_id = userData?.user?.id;
       if (!user_id) return alert("User not logged in");
 
-      const [table1, table2, table3, column] = tableMap[type];
-      const tables = [table1, table2, table3];
-      let results = [];
-
-      for (let t of tables) {
-        const { data, error } = await supabaseClient
-          .from(t)
-          .select(`interaction_description, ${column}`)
-          .eq('user_id', user_id);
-        if (!error && data) results = results.concat(data);
-      }
-
       const tbody = document.getElementById('bankTableBody');
       const rows = tbody.querySelectorAll('tr');
-      const valueIndex = { cash: 1, debt: 2, gold: 3, crypto: 4 }[type];
 
-      let inserted = 0;
-      for (let i = 0; i < rows.length && inserted < results.length; i++) {
-        const row = rows[i];
-        const valueCell = row.children[valueIndex];
+      for (let mapping of exerciseMappings[type]) {
+        const { table, row, column } = mapping;
+        const columnName = columnNameMap[type];
 
-        if (!valueCell.textContent.trim()) {
-          // Overwrite interaction description for this deposit type
-          row.children[0].textContent = results[inserted].interaction_description || '';
-          valueCell.textContent = results[inserted][column] || '';
-          inserted++;
+        const { data, error } = await supabaseClient
+          .from(table)
+          .select(`interaction_description, ${columnName}`)
+          .eq('user_id', user_id)
+          .single();
+
+        if (error || !data) continue;
+
+        // Write interaction_description to column 0 (if empty) and value to mapped column
+        const descCell = rows[row].children[0];
+        const valueCell = rows[row].children[column];
+
+        if (!descCell.textContent.trim()) {
+          descCell.textContent = data.interaction_description || '';
         }
+        valueCell.textContent = data[columnName] || '';
       }
 
       calculateSubtotals();
