@@ -8,201 +8,171 @@
   <style>
     body {
       font-family: sans-serif;
-      background: #f4f4f4;
-      display: flex;
-      margin: 0;
+      background: #f3f4f6;
+      padding: 2rem;
     }
-    .left {
-      width: 50%;
-      padding: 20px;
+    h1 {
+      margin-bottom: 1rem;
     }
-    .right {
-      width: 50%;
-      padding: 20px;
+    .button-group {
+      margin-bottom: 1rem;
     }
-    img {
-      width: 100%;
-      height: auto;
-      border: 1px solid #ccc;
+    .button-group button {
+      margin-right: 1rem;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       background: white;
-      margin-top: 20px;
+      margin-top: 1rem;
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 8px;
+      padding: 0.5rem;
       text-align: left;
     }
     th {
-      background: #f0f0f0;
+      background: #eef2f7;
     }
     tfoot td {
-      background: #e0f2ff;
       font-weight: bold;
+      background: #e0f2fe;
     }
     .footer-buttons {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
+      margin-top: 2rem;
     }
-    button {
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
+    .footer-buttons button {
+      margin-right: 1rem;
+      padding: 0.5rem 1rem;
     }
   </style>
 </head>
 <body>
-  <div class="left">
-    <img src="/page-104.jpg" alt="Exercise 15 - Page 104" />
-  </div>
-  <div class="right">
-    <h2>Exercise 15 – Reputation Bank Statement</h2>
-    <p>Refer to Exercises 10, 11, 13 and 14 (credibility cash, gold, debt, and cryptocurrency). Credibility cash and gold should be positive numbers, while debt and cryptocurrency should be negative. Subtotals and the Reputation Bank Balance are calculated automatically.</p>
-    
-    <div class="footer-buttons">
-      <button onclick="insertFromExercise('cash')">Insert Credibility Cash Deposits</button>
-      <button onclick="insertFromExercise('gold')">Insert Credibility Gold Deposits</button>
-    </div>
-    <div class="footer-buttons">
-      <button onclick="insertFromExercise('debt')">Insert Credibility Debt Withdrawals</button>
-      <button onclick="insertFromExercise('crypto')">Insert Credibility Cryptocurrency Withdrawals</button>
-    </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Name/Description</th>
-          <th>Credibility Cash Deposits</th>
-          <th>Credibility Debt Withdrawals</th>
-          <th>Credibility Gold Deposits</th>
-          <th>Credibility Cryptocurrency Withdrawals</th>
-        </tr>
-      </thead>
-      <tbody id="bankTableBody">
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-      </tbody>
-      <tfoot>
-        <tr>
-          <td><strong>Subtotals</strong></td>
-          <td id="cashSubtotal"></td>
-          <td id="debtSubtotal"></td>
-          <td id="goldSubtotal"></td>
-          <td id="cryptoSubtotal"></td>
-        </tr>
-        <tr>
-          <td colspan="5" style="text-align:center; background:#d9f0ff;">
-            <strong>Reputation Bank Balance:</strong>
-            <span id="bankBalance"></span>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
+<h1>Exercise 15 – Reputation Bank Statement</h1>
 
-    <div class="footer-buttons">
-      <button onclick="location.href='/#page/103'">← Back One Page</button>
-      <button onclick="window.print()">🖨️ Print</button>
-    </div>
-  </div>
+<p>Refer to Exercises 10, 11, 13 and 14 (credibility cash, gold, debt, and cryptocurrency). Credibility cash and gold should be positive numbers, while debt and cryptocurrency should be negative. Subtotals and the Reputation Bank Balance are calculated automatically.</p>
 
-  <script>
-    const { createClient } = supabase;
-    const supabaseUrl = 'https://nidxvthbowdgdfuopmzk.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+<div class="button-group">
+  <button onclick="insertFromExercise('cash')">Insert Credibility Cash Deposits</button>
+  <button onclick="insertFromExercise('gold')">Insert Credibility Gold Deposits</button>
+  <button onclick="insertFromExercise('debt')">Insert Credibility Debt Withdrawals</button>
+  <button onclick="insertFromExercise('crypto')">Insert Credibility Cryptocurrency Withdrawals</button>
+</div>
 
-    const tableMap = {
-      cash: ['exercise10_page82', 'exercise10_page83', 'exercise10_page84', 'Credibility Cash Deposits'],
-      gold: ['exercise11_page87', 'exercise11_page88', 'exercise11_page89', 'Credibility Gold Deposits'],
-      debt: ['exercise13_page94', 'exercise13_page95', 'exercise13_page96', 'Credibility Debt Withdrawals'],
-      crypto: ['exercise14_page99', 'exercise14_page100', 'exercise14_page101', 'Credibility Cryptocurrency Withdrawals']
-    };
+<table id="statementTable">
+  <thead>
+    <tr>
+      <th>Name/Description</th>
+      <th>Credibility Cash Deposits</th>
+      <th>Credibility Debt Withdrawals</th>
+      <th>Credibility Gold Deposits</th>
+      <th>Credibility Cryptocurrency Withdrawals</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody">
+    <!-- JavaScript will populate 12 rows -->
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>Subtotals</td>
+      <td id="subtotalCash"></td>
+      <td id="subtotalDebt"></td>
+      <td id="subtotalGold"></td>
+      <td id="subtotalCrypto"></td>
+    </tr>
+    <tr>
+      <td colspan="5">Reputation Bank Balance: <span id="bankBalance"></span></td>
+    </tr>
+  </tfoot>
+</table>
 
-    async function insertFromExercise(type) {
-      const user = await supabase.auth.getUser();
-      const userId = user?.data?.user?.id;
-      if (!userId) {
-        alert('User not authenticated.');
-        return;
+<div class="footer-buttons">
+  <button onclick="window.location.href='/#page/103'">← Back One Page</button>
+  <button onclick="window.print()">🖨 Print</button>
+</div>
+
+<script>
+  const { createClient } = supabase;
+  const supabaseUrl = 'https://nidxvthbowdgdfuopmzk.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4';
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  const tableMap = {
+    cash: ['exercise10_page82', 'exercise10_page83', 'exercise10_page84', 'annual_deposit'],
+    gold: ['exercise11_page87', 'exercise11_page88', 'exercise11_page89', 'credibility_gold_deposit'],
+    debt: ['exercise13_page94', 'exercise13_page95', 'exercise13_page96', 'annual_deposit'],
+    crypto: ['exercise14_page99', 'exercise14_page100', 'exercise14_page101', 'crypto_withdrawal']
+  };
+
+  // Create 12 rows dynamically
+  const tbody = document.getElementById('tableBody');
+  for (let i = 0; i < 12; i++) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="text" id="desc${i}" /></td>
+      <td><input type="number" id="cash${i}" oninput="calculateTotals()" /></td>
+      <td><input type="number" id="debt${i}" oninput="calculateTotals()" /></td>
+      <td><input type="number" id="gold${i}" oninput="calculateTotals()" /></td>
+      <td><input type="number" id="crypto${i}" oninput="calculateTotals()" /></td>
+    `;
+    tbody.appendChild(row);
+  }
+
+  async function insertFromExercise(type) {
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    const user_id = userData?.user?.id;
+    if (!user_id) return alert("User not logged in");
+
+    const [table1, table2, table3, col] = tableMap[type];
+    const responses = [];
+
+    for (const table of [table1, table2, table3]) {
+      const { data, error } = await supabase
+        .from(table)
+        .select('interaction_description, ' + col)
+        .eq('user_id', user_id);
+
+      if (error) {
+        console.error(`Error fetching from ${table}:`, error);
+        continue;
       }
 
-      const [table1, table2, table3, label] = tableMap[type];
-      const allRows = [];
-
-      for (const table of [table1, table2, table3]) {
-        const { data, error } = await supabase
-          .from(table)
-          .select('*')
-          .eq('user_id', userId);
-
-        if (error) {
-          console.error(`Error fetching from ${table}:`, error.message);
-        } else if (data) {
-          allRows.push(...data);
-        }
-      }
-
-      const columnMap = {
-        cash: 'annual_deposit',
-        gold: 'credibility_gold_deposit',
-        debt: 'annual_deposit',
-        crypto: 'crypto_withdrawal'
-      };
-
-      const column = columnMap[type];
-      const tbody = document.getElementById('bankTableBody');
-      const rows = Array.from(tbody.querySelectorAll('tr'));
-
-      let insertIndex = 0;
-      for (const row of allRows) {
-        if (insertIndex >= rows.length) break;
-
-        const cells = rows[insertIndex].children;
-        if (cells.length !== 5) continue;
-
-        cells[0].textContent = row.interaction_description;
-        const value = parseFloat(row[column]) || 0;
-
-        if (type === 'cash') cells[1].textContent = value.toFixed(2);
-        else if (type === 'debt') cells[2].textContent = value.toFixed(2);
-        else if (type === 'gold') cells[3].textContent = value.toFixed(2);
-        else if (type === 'crypto') cells[4].textContent = value.toFixed(2);
-
-        insertIndex++;
-      }
-
-      // Update subtotals
-      let cashTotal = 0, debtTotal = 0, goldTotal = 0, cryptoTotal = 0;
-      for (const row of rows) {
-        const cells = row.children;
-        cashTotal += parseFloat(cells[1].textContent) || 0;
-        debtTotal += parseFloat(cells[2].textContent) || 0;
-        goldTotal += parseFloat(cells[3].textContent) || 0;
-        cryptoTotal += parseFloat(cells[4].textContent) || 0;
-      }
-
-      document.getElementById('cashSubtotal').textContent = cashTotal.toFixed(2);
-      document.getElementById('debtSubtotal').textContent = debtTotal.toFixed(2);
-      document.getElementById('goldSubtotal').textContent = goldTotal.toFixed(2);
-      document.getElementById('cryptoSubtotal').textContent = cryptoTotal.toFixed(2);
-
-      const balance = cashTotal + goldTotal - Math.abs(debtTotal) - Math.abs(cryptoTotal);
-      document.getElementById('bankBalance').textContent = balance.toFixed(2);
+      responses.push(...data);
     }
-  </script>
+
+    for (let i = 0; i < responses.length && i < 12; i++) {
+      const row = responses[i];
+      document.getElementById(`desc${i}`).value = row.interaction_description || '';
+      document.getElementById(`${type}${i}`).value = row[col] || '';
+    }
+
+    calculateTotals();
+  }
+
+  function calculateTotals() {
+    let totalCash = 0, totalDebt = 0, totalGold = 0, totalCrypto = 0;
+
+    for (let i = 0; i < 12; i++) {
+      totalCash += parseFloat(document.getElementById(`cash${i}`).value) || 0;
+      totalDebt += parseFloat(document.getElementById(`debt${i}`).value) || 0;
+      totalGold += parseFloat(document.getElementById(`gold${i}`).value) || 0;
+      totalCrypto += parseFloat(document.getElementById(`crypto${i}`).value) || 0;
+    }
+
+    document.getElementById('subtotalCash').textContent = totalCash;
+    document.getElementById('subtotalDebt').textContent = totalDebt;
+    document.getElementById('subtotalGold').textContent = totalGold;
+    document.getElementById('subtotalCrypto').textContent = totalCrypto;
+
+    const balance = totalCash + totalDebt + totalGold + totalCrypto;
+    document.getElementById('bankBalance').textContent = balance;
+  }
+</script>
+
 </body>
 </html>
