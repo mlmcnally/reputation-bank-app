@@ -84,18 +84,7 @@
             <th>Credibility Cryptocurrency Withdrawals</th>
           </tr>
         </thead>
-        <tbody id="bankTableBody">
-          <!-- 12 empty editable rows -->
-          ${Array.from({ length: 12 }).map(() => `
-            <tr>
-              <td contenteditable="true"></td>
-              <td contenteditable="true"></td>
-              <td contenteditable="true"></td>
-              <td contenteditable="true"></td>
-              <td contenteditable="true"></td>
-            </tr>
-          `).join('')}
-        </tbody>
+        <tbody id="bankTableBody"></tbody>
         <tfoot>
           <tr>
             <td>Subtotals</td>
@@ -131,6 +120,20 @@
       crypto: ['exercise14_page99', 'exercise14_page100', 'exercise14_page101', 'crypto_withdrawal']
     };
 
+    // Ensure 12 editable rows exist
+    document.addEventListener("DOMContentLoaded", () => {
+      const tbody = document.getElementById('bankTableBody');
+      for (let i = 0; i < 12; i++) {
+        const row = document.createElement('tr');
+        for (let j = 0; j < 5; j++) {
+          const td = document.createElement('td');
+          td.contentEditable = true;
+          row.appendChild(td);
+        }
+        tbody.appendChild(row);
+      }
+    });
+
     async function insertFromExercise(type) {
       const { data: userData, error: authError } = await supabaseClient.auth.getUser();
       const user_id = userData?.user?.id;
@@ -149,22 +152,22 @@
       }
 
       const tbody = document.getElementById('bankTableBody');
-      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const rows = tbody.querySelectorAll('tr');
+      const valueIndex = { cash: 1, debt: 2, gold: 3, crypto: 4 }[type];
 
-      let rowIndex = 0;
-      for (let entry of results) {
-        // Find the next available row that doesn't have this type of value yet
-        while (rowIndex < rows.length) {
-          const row = rows[rowIndex];
-          const colIndex = type === 'cash' ? 1 : type === 'debt' ? 2 : type === 'gold' ? 3 : 4;
-          if (!row.children[colIndex].textContent.trim()) {
-            if (!row.children[0].textContent.trim()) {
-              row.children[0].textContent = entry.interaction_description || '';
-            }
-            row.children[colIndex].textContent = entry[column] || '';
-            break;
+      let inserted = 0;
+      for (let i = 0; i < rows.length && inserted < results.length; i++) {
+        const row = rows[i];
+        const valueCell = row.children[valueIndex];
+        const descCell = row.children[0];
+
+        // Only insert if the target column is empty
+        if (!valueCell.textContent.trim()) {
+          if (!descCell.textContent.trim()) {
+            descCell.textContent = results[inserted].interaction_description || '';
           }
-          rowIndex++;
+          valueCell.textContent = results[inserted][column] || '';
+          inserted++;
         }
       }
 
