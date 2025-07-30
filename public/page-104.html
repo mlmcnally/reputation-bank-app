@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Exercise 15 – Page 104</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -36,7 +36,7 @@
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 6px;
+      padding: 8px;
       text-align: center;
     }
     th {
@@ -56,8 +56,8 @@
       font-size: 1.1em;
     }
     button {
-      padding: 8px 12px;
-      font-size: 14px;
+      padding: 10px 16px;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -87,19 +87,8 @@
         </tr>
       </thead>
       <tbody>
-        <!-- 12 blank rows -->
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        <!-- 12 empty rows -->
+        ${Array.from({ length: 12 }).map(() => `<tr><td></td><td></td><td></td><td></td><td></td></tr>`).join('')}
       </tbody>
       <tfoot>
         <tr class="subtotal-row">
@@ -121,85 +110,88 @@
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  <script>
+    const { createClient } = supabase;
     const supabase = createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
     const tableMap = {
-      cash: ['exercise10_page82', 'exercise10_page83', 'exercise10_page84', 'cash_deposit'],
-      gold: ['exercise11_page87', 'exercise11_page88', 'exercise11_page89', 'gold_deposit'],
-      debt: ['exercise13_page94', 'exercise13_page95', 'exercise13_page96', 'debt_withdrawal'],
-      crypto: ['exercise14_page99', 'exercise14_page100', 'exercise14_page101', 'crypto_withdrawal']
+      cash: [
+        ['exercise10_page82', 'annual_deposit'],
+        ['exercise10_page83', 'annual_deposit'],
+        ['exercise10_page84', 'annual_deposit']
+      ],
+      gold: [
+        ['exercise11_page87', 'credibility_gold_deposit'],
+        ['exercise11_page88', 'credibility_gold_deposit'],
+        ['exercise11_page89', 'credibility_gold_deposit']
+      ],
+      debt: [
+        ['exercise13_page94', 'annual_deposit'],
+        ['exercise13_page95', 'annual_deposit'],
+        ['exercise13_page96', 'annual_deposit']
+      ],
+      crypto: [
+        ['exercise14_page99', 'crypto_withdrawal'],
+        ['exercise14_page100', 'crypto_withdrawal'],
+        ['exercise14_page101', 'crypto_withdrawal']
+      ]
     };
 
-    async function getUserId() {
-      const { data: { session } } = await supabase.auth.getSession();
-      return session?.user?.id || null;
-    }
-
     async function insertFromExercise(type) {
-      const userId = await getUserId();
-      if (!userId) return alert("Not signed in");
+      const session = await supabase.auth.getSession();
+      const user = session?.data?.session?.user;
+      if (!user) return alert("Not authenticated");
 
-      const [t1, t2, t3, valueKey] = tableMap[type];
-      const tables = [t1, t2, t3];
-
-      try {
-        for (let table of tables) {
-          const { data } = await supabase.from(table).select('*').eq('user_id', userId).maybeSingle();
-          if (data) {
-            const label = data.interaction_description || data.description || '(No description)';
-            const value = data[valueKey] || 0;
-            await supabase.from('exercise15_page104').upsert(
-              { user_id: userId, type, label, value },
-              { onConflict: ['user_id', 'type', 'label'] }
-            );
-          }
-        }
-        await loadData();
-      } catch (error) {
-        console.error("Insert error:", error.message);
-      }
-    }
-
-    async function loadData() {
-      const userId = await getUserId();
-      if (!userId) return;
-
-      const { data, error } = await supabase.from('exercise15_page104').select('*').eq('user_id', userId);
-      if (error) return console.error("Load error:", error.message);
-
+      const config = tableMap[type];
       const tbody = document.querySelector("#bankTable tbody");
       const rows = tbody.querySelectorAll("tr");
 
-      rows.forEach(row => row.querySelectorAll("td").forEach(cell => cell.textContent = ""));
+      for (let i = 0; i < config.length; i++) {
+        const [table, valueColumn] = config[i];
+        const { data } = await supabase.from(table).select('*').eq('user_id', user.id).maybeSingle();
+        if (data) {
+          const name = data.interaction_description || '(No description)';
+          const value = data[valueColumn] || 0;
 
-      let subtotals = { cash: 0, debt: 0, gold: 0, crypto: 0 };
+          const tr = rows[i];
+          if (tr) {
+            tr.cells[0].textContent = name;
+            if (type === 'cash') tr.cells[1].textContent = value;
+            if (type === 'debt') tr.cells[2].textContent = value;
+            if (type === 'gold') tr.cells[3].textContent = value;
+            if (type === 'crypto') tr.cells[4].textContent = value;
+          }
+        }
+      }
 
-      data.forEach((entry, i) => {
-        const row = rows[i];
-        if (!row) return;
-        row.cells[0].textContent = entry.label;
-        if (entry.type === 'cash') row.cells[1].textContent = entry.value;
-        if (entry.type === 'debt') row.cells[2].textContent = entry.value;
-        if (entry.type === 'gold') row.cells[3].textContent = entry.value;
-        if (entry.type === 'crypto') row.cells[4].textContent = entry.value;
-        subtotals[entry.type] += parseFloat(entry.value) || 0;
-      });
-
-      document.getElementById("subtotalCash").textContent = subtotals.cash;
-      document.getElementById("subtotalDebt").textContent = subtotals.debt;
-      document.getElementById("subtotalGold").textContent = subtotals.gold;
-      document.getElementById("subtotalCrypto").textContent = subtotals.crypto;
-
-      const total = subtotals.cash + subtotals.gold + subtotals.debt + subtotals.crypto;
-      document.getElementById("bankBalance").textContent = total;
+      calculateSubtotals();
     }
 
-    loadData();
+    function calculateSubtotals() {
+      let subtotalCash = 0,
+          subtotalDebt = 0,
+          subtotalGold = 0,
+          subtotalCrypto = 0;
+
+      document.querySelectorAll("#bankTable tbody tr").forEach(row => {
+        const cells = row.querySelectorAll("td");
+        subtotalCash += parseFloat(cells[1].textContent) || 0;
+        subtotalDebt += parseFloat(cells[2].textContent) || 0;
+        subtotalGold += parseFloat(cells[3].textContent) || 0;
+        subtotalCrypto += parseFloat(cells[4].textContent) || 0;
+      });
+
+      document.getElementById("subtotalCash").textContent = subtotalCash;
+      document.getElementById("subtotalDebt").textContent = subtotalDebt;
+      document.getElementById("subtotalGold").textContent = subtotalGold;
+      document.getElementById("subtotalCrypto").textContent = subtotalCrypto;
+
+      const total = subtotalCash + subtotalDebt + subtotalGold + subtotalCrypto;
+      document.getElementById("bankBalance").textContent = total;
+    }
   </script>
 </body>
 </html>
