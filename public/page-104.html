@@ -85,7 +85,7 @@
           </tr>
         </thead>
         <tbody id="bankTableBody">
-          <!-- 12 pre-rendered rows -->
+          <!-- 12 empty editable rows -->
           ${Array.from({ length: 12 }).map(() => `
             <tr>
               <td contenteditable="true"></td>
@@ -149,19 +149,22 @@
       }
 
       const tbody = document.getElementById('bankTableBody');
-      const rows = tbody.querySelectorAll('tr');
-      let filled = 0;
+      const rows = Array.from(tbody.querySelectorAll('tr'));
 
-      for (let i = 0; i < rows.length && filled < results.length; i++) {
-        const row = rows[i];
-        const cellDesc = row.children[0];
-        const valueCellIndex = { cash: 1, debt: 2, gold: 3, crypto: 4 }[type];
-
-        // Only overwrite empty cells
-        if (!row.children[valueCellIndex].textContent.trim()) {
-          cellDesc.textContent = results[filled].interaction_description || '';
-          row.children[valueCellIndex].textContent = results[filled][column] || '';
-          filled++;
+      let rowIndex = 0;
+      for (let entry of results) {
+        // Find the next available row that doesn't have this type of value yet
+        while (rowIndex < rows.length) {
+          const row = rows[rowIndex];
+          const colIndex = type === 'cash' ? 1 : type === 'debt' ? 2 : type === 'gold' ? 3 : 4;
+          if (!row.children[colIndex].textContent.trim()) {
+            if (!row.children[0].textContent.trim()) {
+              row.children[0].textContent = entry.interaction_description || '';
+            }
+            row.children[colIndex].textContent = entry[column] || '';
+            break;
+          }
+          rowIndex++;
         }
       }
 
@@ -183,22 +186,6 @@
       document.getElementById('subtotalCrypto').textContent = crypto.toFixed(2);
       document.getElementById('bankBalance').textContent = (cash + gold + debt + crypto).toFixed(2);
     }
-
-    // Add 12 blank rows on page load (ensures it works even if innerHTML fails)
-    document.addEventListener("DOMContentLoaded", () => {
-      const tbody = document.getElementById('bankTableBody');
-      if (tbody.children.length < 12) {
-        for (let i = tbody.children.length; i < 12; i++) {
-          const row = document.createElement('tr');
-          for (let j = 0; j < 5; j++) {
-            const td = document.createElement('td');
-            td.contentEditable = true;
-            row.appendChild(td);
-          }
-          tbody.appendChild(row);
-        }
-      }
-    });
   </script>
 </body>
 </html>
