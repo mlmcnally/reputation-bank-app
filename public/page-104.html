@@ -159,13 +159,10 @@
       for (let i = 0; i < rows.length && inserted < results.length; i++) {
         const row = rows[i];
         const valueCell = row.children[valueIndex];
-        const descCell = row.children[0];
 
-        // Only insert if the target column is empty
         if (!valueCell.textContent.trim()) {
-          if (!descCell.textContent.trim()) {
-            descCell.textContent = results[inserted].interaction_description || '';
-          }
+          // Overwrite interaction description for this deposit type
+          row.children[0].textContent = results[inserted].interaction_description || '';
           valueCell.textContent = results[inserted][column] || '';
           inserted++;
         }
