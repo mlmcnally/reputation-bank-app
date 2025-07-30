@@ -87,8 +87,7 @@
         </tr>
       </thead>
       <tbody>
-        <!-- 12 empty rows -->
-        ${Array.from({ length: 12 }).map(() => `<tr><td></td><td></td><td></td><td></td><td></td></tr>`).join('')}
+        <!-- JavaScript inserts 12 blank rows here -->
       </tbody>
       <tfoot>
         <tr class="subtotal-row">
@@ -111,70 +110,47 @@
   </div>
 
   <script>
-    const { createClient } = supabase;
-    const supabase = createClient(
+    const supabase = window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
     const tableMap = {
-      cash: [
-        ['exercise10_page82', 'annual_deposit'],
-        ['exercise10_page83', 'annual_deposit'],
-        ['exercise10_page84', 'annual_deposit']
-      ],
-      gold: [
-        ['exercise11_page87', 'credibility_gold_deposit'],
-        ['exercise11_page88', 'credibility_gold_deposit'],
-        ['exercise11_page89', 'credibility_gold_deposit']
-      ],
-      debt: [
-        ['exercise13_page94', 'annual_deposit'],
-        ['exercise13_page95', 'annual_deposit'],
-        ['exercise13_page96', 'annual_deposit']
-      ],
-      crypto: [
-        ['exercise14_page99', 'crypto_withdrawal'],
-        ['exercise14_page100', 'crypto_withdrawal'],
-        ['exercise14_page101', 'crypto_withdrawal']
-      ]
+      cash: ['exercise10_page82', 'exercise10_page83', 'exercise10_page84', 'annual_deposit'],
+      gold: ['exercise11_page87', 'exercise11_page88', 'exercise11_page89', 'credibility_gold_deposit'],
+      debt: ['exercise13_page94', 'exercise13_page95', 'exercise13_page96', 'annual_deposit'],
+      crypto: ['exercise14_page99', 'exercise14_page100', 'exercise14_page101', 'crypto_withdrawal']
     };
 
     async function insertFromExercise(type) {
-      const session = await supabase.auth.getSession();
-      const user = session?.data?.session?.user;
+      const { data: { session }, error } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return alert("Not authenticated");
 
-      const config = tableMap[type];
-      const tbody = document.querySelector("#bankTable tbody");
-      const rows = tbody.querySelectorAll("tr");
+      const [table1, table2, table3, columnName] = tableMap[type];
+      const tables = [table1, table2, table3];
 
-      for (let i = 0; i < config.length; i++) {
-        const [table, valueColumn] = config[i];
-        const { data } = await supabase.from(table).select('*').eq('user_id', user.id).maybeSingle();
-        if (data) {
-          const name = data.interaction_description || '(No description)';
-          const value = data[valueColumn] || 0;
-
-          const tr = rows[i];
-          if (tr) {
-            tr.cells[0].textContent = name;
-            if (type === 'cash') tr.cells[1].textContent = value;
-            if (type === 'debt') tr.cells[2].textContent = value;
-            if (type === 'gold') tr.cells[3].textContent = value;
-            if (type === 'crypto') tr.cells[4].textContent = value;
-          }
+      for (let table of tables) {
+        const { data, error } = await supabase.from(table).select('*').eq('user_id', user.id);
+        if (data && data.length > 0) {
+          data.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${row.interaction_description || row.description || '(No description)'}</td>
+              <td>${type === 'cash' ? row[columnName] : ''}</td>
+              <td>${type === 'debt' ? row[columnName] : ''}</td>
+              <td>${type === 'gold' ? row[columnName] : ''}</td>
+              <td>${type === 'crypto' ? row[columnName] : ''}</td>
+            `;
+            document.querySelector("#bankTable tbody").appendChild(tr);
+          });
         }
       }
-
       calculateSubtotals();
     }
 
     function calculateSubtotals() {
-      let subtotalCash = 0,
-          subtotalDebt = 0,
-          subtotalGold = 0,
-          subtotalCrypto = 0;
+      let subtotalCash = 0, subtotalDebt = 0, subtotalGold = 0, subtotalCrypto = 0;
 
       document.querySelectorAll("#bankTable tbody tr").forEach(row => {
         const cells = row.querySelectorAll("td");
@@ -192,6 +168,16 @@
       const total = subtotalCash + subtotalDebt + subtotalGold + subtotalCrypto;
       document.getElementById("bankBalance").textContent = total;
     }
+
+    // Insert 12 blank rows initially
+    document.addEventListener("DOMContentLoaded", () => {
+      const tbody = document.querySelector("#bankTable tbody");
+      for (let i = 0; i < 12; i++) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td></td><td></td><td></td><td></td><td></td>`;
+        tbody.appendChild(row);
+      }
+    });
   </script>
 </body>
 </html>
