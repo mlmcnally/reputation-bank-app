@@ -85,7 +85,8 @@
           </tr>
         </thead>
         <tbody id="bankTableBody">
-          ${[...Array(12)].map(() => `
+          <!-- 12 pre-rendered rows -->
+          ${Array.from({ length: 12 }).map(() => `
             <tr>
               <td contenteditable="true"></td>
               <td contenteditable="true"></td>
@@ -149,13 +150,19 @@
 
       const tbody = document.getElementById('bankTableBody');
       const rows = tbody.querySelectorAll('tr');
-      for (let i = 0; i < results.length && i < rows.length; i++) {
+      let filled = 0;
+
+      for (let i = 0; i < rows.length && filled < results.length; i++) {
         const row = rows[i];
-        row.children[0].textContent = results[i].interaction_description || '';
-        if (type === 'cash') row.children[1].textContent = results[i][column] || '';
-        if (type === 'debt') row.children[2].textContent = results[i][column] || '';
-        if (type === 'gold') row.children[3].textContent = results[i][column] || '';
-        if (type === 'crypto') row.children[4].textContent = results[i][column] || '';
+        const cellDesc = row.children[0];
+        const valueCellIndex = { cash: 1, debt: 2, gold: 3, crypto: 4 }[type];
+
+        // Only overwrite empty cells
+        if (!row.children[valueCellIndex].textContent.trim()) {
+          cellDesc.textContent = results[filled].interaction_description || '';
+          row.children[valueCellIndex].textContent = results[filled][column] || '';
+          filled++;
+        }
       }
 
       calculateSubtotals();
@@ -176,6 +183,22 @@
       document.getElementById('subtotalCrypto').textContent = crypto.toFixed(2);
       document.getElementById('bankBalance').textContent = (cash + gold + debt + crypto).toFixed(2);
     }
+
+    // Add 12 blank rows on page load (ensures it works even if innerHTML fails)
+    document.addEventListener("DOMContentLoaded", () => {
+      const tbody = document.getElementById('bankTableBody');
+      if (tbody.children.length < 12) {
+        for (let i = tbody.children.length; i < 12; i++) {
+          const row = document.createElement('tr');
+          for (let j = 0; j < 5; j++) {
+            const td = document.createElement('td');
+            td.contentEditable = true;
+            row.appendChild(td);
+          }
+          tbody.appendChild(row);
+        }
+      }
+    });
   </script>
 </body>
 </html>
