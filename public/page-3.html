@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Table of Contents – Page 3</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      max-width: 1400px;
+      margin: auto;
+      padding: 2rem;
+    }
+    .left {
+      flex: 1;
+      padding-right: 2rem;
+    }
+    .right {
+      flex: 2;
+    }
+    .toc-section h3 {
+      margin-top: 1.5rem;
+    }
+    a {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .next-button {
+      display: inline-block;
+      margin-bottom: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #1a73e8;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+    }
+    .thumbnail-gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 3rem;
+    }
+    .thumbnail-gallery a img {
+      width: 100px;
+      height: auto;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left">
+      <img src="/page-3.jpg" alt="Contents Page" style="width: 100%; border: 1px solid #ccc;" />
+    </div>
+
+    <div class="right">
+      <a href="/#page/4" class="next-button">Next Page ➡</a>
+
+      <div class="toc-section">
+        <h2>Contents</h2>
+
+        <h3>Overview <a href="/#page/4">(pages 4–8)</a></h3>
+
+        <h3>Section 1: Stakeholder Relationships <a href="/#page/9">(pages 9–41)</a></h3>
+        <ul>
+          <li><a href="/#page/11">Engagement</a></li>
+          <li><a href="/#page/12">Transactional/Transformational Relationships</a></li>
+          <li><a href="/#page/15">Exercise 1: Identifying Stakeholders</a></li>
+          <li><a href="/#page/25">Exercise 2: Stakeholder Identity, Ambition, Role</a></li>
+          <li><a href="/#page/33">Exercise 3: Your Identity, Ambition, Role</a></li>
+          <li><a href="/#page/35">Exercise 4: Where Your Worlds Intersect</a></li>
+        </ul>
+
+        <h3>Section 2: Real Relationships Require Permission <a href="/#page/42">(pages 42–54)</a></h3>
+        <ul>
+          <li><a href="/#page/44">Admission Tickets</a></li>
+          <li><a href="/#page/47">Exercise 5: Stakeholder Engagement Admission Tickets</a></li>
+          <li><a href="/#page/49">Success Rules</a></li>
+          <li><a href="/#page/52">Exercise 6: How the Success Rules Can Affect Your Business</a></li>
+        </ul>
+
+        <h3>Section 3: Reputation-Building Communications <a href="/#page/55">(pages 55–74)</a></h3>
+        <ul>
+          <li><a href="/#page/56">Powering Communications to Build Reputation</a></li>
+          <li><a href="/#page/58">How Trust Is Managed During Change</a></li>
+          <li><a href="/#page/61">Attention All Leaders: Reputation and Decision-Making</a></li>
+          <li><a href="/#page/64">Exercise 7: Communications with Insight and Purpose</a></li>
+          <li><a href="/#page/71">Exercise 8: Managing Reputation Through Change</a></li>
+          <li><a href="/#page/73">Exercise 9: Leader Communications and Initiatives</a></li>
+        </ul>
+
+        <h3>Section 4: The Reputation Bank <a href="/#page/75">(pages 75–106)</a></h3>
+        <ul>
+          <li><a href="/#page/76">Reputation Should Be Managed Like a Valuable Asset</a></li>
+          <li><a href="/#page/78">Each Type of Credibility Currency</a></li>
+          <li><a href="/#page/81">Exercise 10: Credibility Cash</a></li>
+          <li><a href="/#page/85">Exercise 11: Credibility Gold</a></li>
+          <li><a href="/#page/90">Exercise 12: Categorizing Reputational Risks</a></li>
+          <li><a href="/#page/93">Exercise 13: Credibility Debt</a></li>
+          <li><a href="/#page/98">Exercise 14: Credibility Cryptocurrency</a></li>
+          <li><a href="/#page/103">Exercise 15: The Reputation Bank Statement</a></li>
+          <li><a href="/#page/106">Reputation Planning: Putting It All Together</a></li>
+        </ul>
+      </div>
+
+      <div class="thumbnail-gallery">
+        <!-- JavaScript will dynamically fill this in below -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const gallery = document.querySelector('.thumbnail-gallery');
+
+    for (let i = 4; i <= 106; i++) {
+      const page = i;
+      const img = document.createElement('img');
+      img.src = `/page-${page}.jpg`;
+      img.alt = `Page ${page}`;
+
+      const link = document.createElement('a');
+
+      // Define interactive pages
+      const interactive = new Set([
+        16,17,18,19,20,21,26,27,28,29,30,31,34,
+        36,37,38,39,40,41,48,53,54,65,66,67,68,69,70,72,
+        82,83,84,87,88,89,91,94,95,96,99,100,101,104
+      ]);
+
+      link.href = interactive.has(page) ? `/page-${page}.html` : `/#page/${page}`;
+      link.appendChild(img);
+      gallery.appendChild(link);
+    }
+  </script>
+</body>
+</html>
