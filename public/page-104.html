@@ -14,20 +14,29 @@
     }
     .container {
       display: flex;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 2rem;
     }
     .left {
       flex: 1;
-      padding-right: 2rem;
+      margin-right: 2rem;
+    }
+    .left img {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #ccc;
     }
     .right {
       flex: 2;
     }
+    .instructions {
+      margin-bottom: 1rem;
+    }
     .button-bar {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 10px;
       margin-bottom: 1rem;
     }
@@ -55,25 +64,27 @@
     }
     .footer-buttons {
       margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="left">
-      <img src="/page-104.jpg" alt="Exercise 15 Page 104" style="width: 100%; border: 1px solid #ccc;" />
-    </div>
-    <div class="right">
-      <h2>Exercise 15 – Reputation Bank Statement</h2>
-      <p>Refer to Exercises 10, 11, 13 and 14 (credibility cash, gold, debt, and cryptocurrency). Credibility cash and gold should be positive numbers, while debt and cryptocurrency should be negative. Subtotals and the Reputation Bank Balance are calculated automatically.</p>
-
+      <img src="/page-104.jpg" alt="Exercise 15 Page 104" />
       <div class="button-bar">
         <button onclick="insertFromExercise('cash')">Insert Credibility Cash Deposits</button>
         <button onclick="insertFromExercise('gold')">Insert Credibility Gold Deposits</button>
         <button onclick="insertFromExercise('debt')">Insert Credibility Debt Withdrawals</button>
         <button onclick="insertFromExercise('crypto')">Insert Credibility Cryptocurrency Withdrawals</button>
       </div>
-
+    </div>
+    <div class="right">
+      <h2>Exercise 15 – Reputation Bank Statement</h2>
+      <p class="instructions">
+        This exercise is your opportunity to see the whole picture of your reputation bank – both the deposits and withdrawals. Use the buttons below to add your deposits and then your withdrawals. Take this opportunity to consider if there is more you can do to keep your reputation in the black and sustainably healthy. Return to Exercises 10–14 to reconsider ways to increase the quantity of credibility cash deposits, expand the scope of credibility gold deposits and mitigate the impacts of withdrawals or eliminate the risks entirely. Then come back to this balance sheet to see the effects on your reputation's bottom line.
+      </p>
       <table>
         <thead>
           <tr>
@@ -84,21 +95,7 @@
             <th>Credibility Cryptocurrency Withdrawals</th>
           </tr>
         </thead>
-        <tbody id="bankTableBody">
-          <!-- Pre-render 12 editable rows -->
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-          <tr><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-        </tbody>
+        <tbody id="bankTableBody"></tbody>
         <tfoot>
           <tr>
             <td>Subtotals</td>
@@ -112,7 +109,10 @@
           </tr>
         </tfoot>
       </table>
+
       <div class="footer-buttons">
+        <button onclick="saveData()">💾 Save</button>
+        <button onclick="saveAndNext()">➡ Save & Next Page</button>
         <button onclick="window.location.href='/#page/103'">⬅ Back One Page</button>
         <button onclick="window.print()">🖨️ Print</button>
       </div>
@@ -126,64 +126,70 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    const exerciseMappings = {
+    // Create 12 editable rows
+    document.addEventListener("DOMContentLoaded", () => {
+      const tbody = document.getElementById('bankTableBody');
+      for (let i = 0; i < 12; i++) {
+        const row = document.createElement('tr');
+        for (let j = 0; j < 5; j++) {
+          const td = document.createElement('td');
+          td.contentEditable = true;
+          row.appendChild(td);
+        }
+        tbody.appendChild(row);
+      }
+    });
+
+    const rowMap = {
       cash: [
-        { table: 'exercise10_page82', row: 0, column: 1 },
-        { table: 'exercise10_page83', row: 1, column: 1 },
-        { table: 'exercise10_page84', row: 2, column: 1 }
+        { row: 0, table: 'exercise10_page82' },
+        { row: 1, table: 'exercise10_page83' },
+        { row: 2, table: 'exercise10_page84' }
       ],
       gold: [
-        { table: 'exercise11_page87', row: 3, column: 3 },
-        { table: 'exercise11_page88', row: 4, column: 3 },
-        { table: 'exercise11_page89', row: 5, column: 3 }
+        { row: 3, table: 'exercise11_page87' },
+        { row: 4, table: 'exercise11_page88' },
+        { row: 5, table: 'exercise11_page89' }
       ],
       debt: [
-        { table: 'exercise13_page94', row: 6, column: 2 },
-        { table: 'exercise13_page95', row: 7, column: 2 },
-        { table: 'exercise13_page96', row: 8, column: 2 }
+        { row: 6, table: 'exercise13_page94' },
+        { row: 7, table: 'exercise13_page95' },
+        { row: 8, table: 'exercise13_page96' }
       ],
       crypto: [
-        { table: 'exercise14_page99', row: 9, column: 4 },
-        { table: 'exercise14_page100', row: 10, column: 4 },
-        { table: 'exercise14_page101', row: 11, column: 4 }
+        { row: 9, table: 'exercise14_page99' },
+        { row: 10, table: 'exercise14_page100' },
+        { row: 11, table: 'exercise14_page101' }
       ]
     };
 
-    const columnNameMap = {
+    const columnMap = {
       cash: 'annual_deposit',
       gold: 'credibility_gold_deposit',
       debt: 'annual_deposit',
       crypto: 'crypto_withdrawal'
     };
-
     async function insertFromExercise(type) {
       const { data: userData, error: authError } = await supabaseClient.auth.getUser();
       const user_id = userData?.user?.id;
       if (!user_id) return alert("User not logged in");
 
-      const tbody = document.getElementById('bankTableBody');
-      const rows = tbody.querySelectorAll('tr');
+      const rows = document.querySelectorAll('#bankTableBody tr');
+      const targets = rowMap[type];
+      const column = columnMap[type];
 
-      for (let mapping of exerciseMappings[type]) {
-        const { table, row, column } = mapping;
-        const columnName = columnNameMap[type];
-
+      for (const target of targets) {
         const { data, error } = await supabaseClient
-          .from(table)
-          .select(`interaction_description, ${columnName}`)
+          .from(target.table)
+          .select(`interaction_description, ${column}`)
           .eq('user_id', user_id)
-          .single();
+          .maybeSingle();
 
-        if (error || !data) continue;
-
-        // Write interaction_description to column 0 (if empty) and value to mapped column
-        const descCell = rows[row].children[0];
-        const valueCell = rows[row].children[column];
-
-        if (!descCell.textContent.trim()) {
-          descCell.textContent = data.interaction_description || '';
+        if (!error && data) {
+          rows[target.row].children[0].textContent = data.interaction_description || '';
+          const colIndex = { cash: 1, debt: 2, gold: 3, crypto: 4 }[type];
+          rows[target.row].children[colIndex].textContent = data[column] ?? '';
         }
-        valueCell.textContent = data[columnName] || '';
       }
 
       calculateSubtotals();
@@ -203,6 +209,41 @@
       document.getElementById('subtotalGold').textContent = gold.toFixed(2);
       document.getElementById('subtotalCrypto').textContent = crypto.toFixed(2);
       document.getElementById('bankBalance').textContent = (cash + gold + debt + crypto).toFixed(2);
+    }
+
+    async function saveData() {
+      const { data: userData } = await supabaseClient.auth.getUser();
+      const user_id = userData?.user?.id;
+      if (!user_id) return alert("User not logged in");
+
+      const updates = [];
+      const rows = document.querySelectorAll('#bankTableBody tr');
+
+      rows.forEach((row, i) => {
+        const cells = row.children;
+        updates.push({
+          user_id,
+          row_number: i + 1,
+          interaction_description: cells[0].textContent.trim(),
+          credibility_cash_deposit: parseFloat(cells[1].textContent) || 0,
+          credibility_debt_withdrawal: parseFloat(cells[2].textContent) || 0,
+          credibility_gold_deposit: parseFloat(cells[3].textContent) || 0,
+          credibility_crypto_withdrawal: parseFloat(cells[4].textContent) || 0
+        });
+      });
+
+      for (const row of updates) {
+        await supabaseClient
+          .from('exercise15_page104')
+          .upsert(row, { onConflict: ['user_id', 'row_number'] });
+      }
+
+      alert("Save successful!");
+    }
+
+    async function saveAndNext() {
+      await saveData();
+      window.location.href = "/#page/105";
     }
   </script>
 </body>
