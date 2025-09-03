@@ -6,13 +6,14 @@ export default function Flipbook() {
   const router = useRouter();
 
   const interactivePages = new Set([
-    16, 17, 18, 19, 20, 21,      // Exercise 1
-    26, 27, 28, 29, 30, 31,      // Exercise 2
+    3,                          // ✅ NEW: make Table of Contents interactive
+    16, 17, 18, 19, 20, 21,     // Exercise 1
+    26, 27, 28, 29, 30, 31,     // Exercise 2
     34,                         // Exercise 3
-    36, 37, 38, 39, 40, 41,      // Exercise 4
+    36, 37, 38, 39, 40, 41,     // Exercise 4
     48,                         // Exercise 5
     53, 54,                     // Exercise 6
-    65, 66, 67, 68, 69, 70,      // Exercise 7
+    65, 66, 67, 68, 69, 70,     // Exercise 7
     72,                         // Exercise 8
     74,                         // Exercise 9
     82, 83, 84,                 // Exercise 10
