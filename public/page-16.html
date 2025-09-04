@@ -4,44 +4,137 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 1 – Page 16</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: "Avenir", "Nunito Sans", sans-serif;
+      background: #f3f4f6;
+      padding: 2rem;
+      margin: 0;
+      color: #000;
+    }
+
+    .header {
+      text-align: center;
+      color: #084a58;
+    }
+
+    .header h2 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 16px;
+      color: #084a58;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .layout {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      margin-top: 2rem;
+    }
+
+    .form-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      flex: 1;
+    }
+
+    .form-container label {
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .form-container strong {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+
+    .button-bar {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .nav-button {
+      background-color: #084a58;
+      color: white;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .nav-button:hover {
+      background-color: #0a5c6a;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+  </style>
 </head>
-<body style="font-family: sans-serif; background: #f3f4f6; padding: 2rem;">
+<body>
 
-  <h2>Exercise 1 – Page 16</h2>
+  <div class="header">
+    <h2>Exercise 1 – Page 16</h2>
+    <p>Write in the boxes below the stakeholder name/description and the ways that this stakeholder's opinions, advocacy, and actions can positively and/or negatively impact your business and reputation.</p>
+  </div>
 
-  <div style="display: flex; gap: 2rem; align-items: flex-start;">
+  <div class="layout">
     <img src="/page-16.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <form id="exercise-form" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1;">
+    <form id="exercise-form" class="form-container">
       <label>
-        <strong>Stakeholder Name</strong><br/>
-        <input type="text" id="stakeholder" required style="width: 100%; margin-bottom: 1rem; padding: 8px;" />
+        <strong>Stakeholder Name</strong>
+        <input type="text" id="stakeholder" required />
       </label>
 
       <label>
-        <strong>Opinion</strong><br/>
-        <textarea id="opinion" style="width: 100%; height: 80px; margin-bottom: 1rem; padding: 8px;"></textarea>
+        <strong>Opinion</strong>
+        <textarea id="opinion" rows="4"></textarea>
       </label>
 
       <label>
-        <strong>Advocacy</strong><br/>
-        <textarea id="advocacy" style="width: 100%; height: 80px; margin-bottom: 1rem; padding: 8px;"></textarea>
+        <strong>Advocacy</strong>
+        <textarea id="advocacy" rows="4"></textarea>
       </label>
 
       <label>
-        <strong>Action</strong><br/>
-        <textarea id="action" style="width: 100%; height: 80px; margin-bottom: 1rem; padding: 8px;"></textarea>
+        <strong>Action</strong>
+        <textarea id="action" rows="4"></textarea>
       </label>
 
-      <div style="margin-top: 1rem;">
-        <button type="button" onclick="goBack()" style="margin-right: 10px;">⬅ Back One Page</button>
-        <button type="button" onclick="saveData()" style="margin-right: 10px;">💾 Save</button>
-        <button type="button" onclick="saveAndGoNext()" style="margin-right: 10px;">➡ Save & Next</button>
-        <button type="button" onclick="window.print()">🖨️ Print</button>
+      <div class="button-bar">
+        <button type="button" class="nav-button" onclick="goBack()">⬅ Back One Page</button>
+        <button type="button" class="nav-button" onclick="saveData()">💾 Save</button>
+        <button type="button" class="nav-button" onclick="saveAndGoNext()">➡ Save & Next</button>
+        <button type="button" class="nav-button" onclick="window.print()">🖨️ Print</button>
+        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">Go to the Table of Contents</button>
       </div>
 
-      <div id="status" style="margin-top: 1rem; color: green;"></div>
+      <div id="status"></div>
     </form>
   </div>
 
@@ -55,7 +148,7 @@
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('exercise1_page16')
         .select('*')
         .eq('user_id', user.id)
