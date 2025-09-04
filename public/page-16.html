@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Exercise 1 – Page 17</title>
+  <title>Exercise 1 – Page 16</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -99,16 +99,16 @@
 <body>
 
   <div class="header">
-    <h2>Exercise 1 – Page 17</h2>
+    <h2>Exercise 1 – Page 16</h2>
     <p>Write in the boxes below the stakeholder name/description and the ways that this stakeholder's opinions, advocacy, and actions can positively and/or negatively impact your business and reputation.</p>
   </div>
 
   <div class="layout">
-    <img src="/page-17.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
+    <img src="/page-16.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
     <form id="exercise-form" class="form-container">
       <label>
-        <strong>Stakeholder #2 (name and/or description)</strong>
+        <strong>Stakeholder #1 (name and/or description)</strong>
         <input type="text" id="stakeholder" required />
       </label>
 
@@ -153,7 +153,7 @@
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('exercise1_page17')
+        .from('exercise1_page16')
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -172,7 +172,7 @@
       const advocacy = document.getElementById("advocacy").value.trim();
       const action = document.getElementById("action").value.trim();
 
-      const { error } = await supabase.from("exercise1_page17").upsert([
+      const { error } = await supabase.from("exercise1_page16").upsert([
         { user_id: user.id, stakeholder, opinion, advocacy, action }
       ], { onConflict: ['user_id'] });
 
@@ -188,11 +188,11 @@
 
     async function saveAndGoNext() {
       await saveData();
-      window.location.href = "/page-18.html";
+      window.location.href = "/page-17.html";
     }
 
     function goBack() {
-      window.location.href = "/page-16.html";
+      window.location.href = "/#page/15";
     }
   </script>
 
