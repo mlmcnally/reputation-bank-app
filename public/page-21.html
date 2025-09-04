@@ -93,6 +93,23 @@
       margin-top: 1rem;
       font-weight: 600;
     }
+
+    .toc-button {
+      float: right;
+      background-color: #d1d3d4;
+      color: #084a58;
+      font-weight: 600;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
+
+    .toc-button:hover {
+      background-color: #c2c4c6;
+    }
   </style>
 </head>
 <body>
@@ -106,6 +123,8 @@
     <img src="/page-21.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
     <form id="exercise-form" class="form-container">
+      <button type="button" class="toc-button" onclick="goToTOC()">📘 Go to the Table of Contents</button>
+
       <label>
         <strong>Stakeholder #6 (name and/or description)</strong>
         <input type="text" id="stakeholder" required />
@@ -191,6 +210,10 @@
 
     window.goBack = function () {
       window.location.href = "/page-20.html";
+    };
+
+    window.goToTOC = function () {
+      window.location.href = "/page-3.html";
     };
   </script>
 
