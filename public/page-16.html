@@ -92,6 +92,7 @@
     #status {
       margin-top: 1rem;
       font-weight: 600;
+      color: #084a58;
     }
   </style>
 </head>
@@ -139,19 +140,19 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-    );
+    const { createClient } = supabase;
+    const supabaseUrl = 'https://nidxvthbowdgdfuopmzk.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4';
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     let user = null;
 
-    window.addEventListener('DOMContentLoaded', async function () {
-      const response = await supabase.auth.getUser();
-      user = response.data.user;
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      user = userData.user;
       if (!user) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('exercise1_page16')
         .select('*')
         .eq('user_id', user.id)
@@ -165,7 +166,7 @@
       }
     });
 
-    window.saveData = async function () {
+    async function saveData() {
       const stakeholder = document.getElementById("stakeholder").value.trim();
       const opinion = document.getElementById("opinion").value.trim();
       const advocacy = document.getElementById("advocacy").value.trim();
@@ -181,18 +182,18 @@
         statusMsg.style.color = "red";
       } else {
         statusMsg.textContent = "✅ Saved successfully!";
-        statusMsg.style.color = #084a58;
+        statusMsg.style.color = "#084a58";
       }
-    };
+    }
 
-    window.saveAndGoNext = async function () {
+    async function saveAndGoNext() {
       await saveData();
       window.location.href = "/page-17.html";
-    };
+    }
 
-    window.goBack = function () {
+    function goBack() {
       window.location.href = "/#page/15";
-    };
+    }
   </script>
 
 </body>
