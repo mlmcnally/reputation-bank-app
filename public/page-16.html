@@ -140,16 +140,16 @@
   </div>
 
   <script>
-    const { createClient } = supabase;
-    const supabaseUrl = 'https://nidxvthbowdgdfuopmzk.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = window.supabase.createClient(
+      'https://nidxvthbowdgdfuopmzk.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    );
 
     let user = null;
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      user = userData.user;
+    window.addEventListener('DOMContentLoaded', async function () {
+      const response = await supabase.auth.getUser();
+      user = response.data.user;
       if (!user) return;
 
       const { data, error } = await supabase
