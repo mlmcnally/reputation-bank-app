@@ -124,7 +124,7 @@ export default function Flipbook() {
             boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)'
           }}
         >
-          Go Back to the Table of Contents
+          Go to the Table of Contents
         </a>
       </div>
     </div>
