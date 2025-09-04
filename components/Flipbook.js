@@ -24,7 +24,6 @@ export default function Flipbook() {
     104                         // Exercise 15
   ]);
 
-  // 🆕 Read from URL hash like #page/15
   const getInitialPage = () => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash;
@@ -41,7 +40,6 @@ export default function Flipbook() {
 
   const [page, setPage] = useState(getInitialPage);
 
-  // 🚨 Redirect to interactive page if needed
   useEffect(() => {
     if (interactivePages.has(page)) {
       router.push(`/page-${page}.html`);
@@ -72,14 +70,62 @@ export default function Flipbook() {
           border: '1px solid #ccc'
         }}
       />
-      <div style={{ marginTop: '1rem' }}>
-        <button onClick={goBack} disabled={page === 1}>
-          ⬅ Back
-        </button>
-        <span style={{ margin: '0 1rem' }}>Page {page} of {totalPages}</span>
-        <button onClick={goNext} disabled={page === totalPages}>
-          Next ➡
-        </button>
+
+      <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+        <div>
+          <button
+            onClick={goBack}
+            disabled={page === 1}
+            style={{
+              padding: '0.6rem 1.2rem',
+              backgroundColor: '#084a58',
+              color: 'white',
+              fontSize: '1rem',
+              border: 'none',
+              boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
+              marginRight: '0.5rem',
+              cursor: 'pointer'
+            }}
+          >
+            ⬅ Back
+          </button>
+
+          <span style={{ margin: '0 1rem' }}>Page {page} of {totalPages}</span>
+
+          <button
+            onClick={goNext}
+            disabled={page === totalPages}
+            style={{
+              padding: '0.6rem 1.2rem',
+              backgroundColor: '#084a58',
+              color: 'white',
+              fontSize: '1rem',
+              border: 'none',
+              boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
+              marginLeft: '0.5rem',
+              cursor: 'pointer'
+            }}
+          >
+            Next ➡
+          </button>
+        </div>
+
+        <a
+          href="/page-3.html"
+          style={{
+            marginTop: '1rem',
+            display: 'inline-block',
+            padding: '0.6rem 1.2rem',
+            backgroundColor: '#084a58',
+            color: 'white',
+            fontSize: '1rem',
+            border: 'none',
+            textDecoration: 'none',
+            boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          Go Back to the Table of Contents
+        </a>
       </div>
     </div>
   );
