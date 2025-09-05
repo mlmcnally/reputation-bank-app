@@ -117,7 +117,7 @@
     <form id="exercise-form" class="form-container">
 
       <div class="section-block">
-        <strong>Stakeholder 1 (Exercise 2 – Page 26)</strong>
+        <strong>Stakeholder 4 (Exercise 2 – Page 29)</strong>
         <p><em>Identity:</em> <span id="stakeholder-identity"></span></p>
         <p><em>Ambition:</em> <span id="stakeholder-ambition"></span></p>
         <p><em>Role:</em> <span id="stakeholder-role"></span></p>
@@ -168,7 +168,7 @@
       if (!user) return;
 
       const { data: stakeholder } = await supabase
-        .from("exercise2_page26")
+        .from("exercise2_page29")
         .select("identity, ambition, role")
         .eq("user_id", user.id)
         .single();
