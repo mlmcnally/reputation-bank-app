@@ -92,6 +92,7 @@
     #status {
       margin-top: 1rem;
       font-weight: 600;
+      color: #084a58;
     }
   </style>
 </head>
@@ -151,7 +152,7 @@
       user = response.data.user;
       if (!user) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('exercise1_page18')
         .select('*')
         .eq('user_id', user.id)
@@ -165,7 +166,7 @@
       }
     });
 
-    window.saveData = async function () {
+    async function saveData() {
       const stakeholder = document.getElementById("stakeholder").value.trim();
       const opinion = document.getElementById("opinion").value.trim();
       const advocacy = document.getElementById("advocacy").value.trim();
@@ -180,19 +181,19 @@
         statusMsg.textContent = "❌ Error saving data: " + error.message;
         statusMsg.style.color = "red";
       } else {
-        statusMsg.textContent = "✅ Saved successfully!";
-        statusMsg.style.color = #084a58;
+        statusMsg.textContent = "Saved successfully!";
+        statusMsg.style.color = "#084a58";
       }
-    };
+    }
 
-    window.saveAndGoNext = async function () {
+    async function saveAndGoNext() {
       await saveData();
       window.location.href = "/page-19.html";
-    };
+    }
 
-    window.goBack = function () {
+    function goBack() {
       window.location.href = "/page-17.html";
-    };
+    }
   </script>
 
 </body>
