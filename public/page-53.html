@@ -10,55 +10,84 @@
       font-family: 'Avenir', 'Nunito Sans', sans-serif;
       background: #f3f4f6;
       padding: 2rem;
+      color: #000;
     }
-    .btn {
+
+    h2 {
+      text-align: center;
+      color: #084a58;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      flex: 1;
+    }
+
+    textarea {
+      width: 100%;
+      height: 60px;
+      margin-bottom: 1rem;
+    }
+
+    button {
       background-color: #084a58;
       color: white;
-      padding: 10px 16px;
       border: none;
+      padding: 10px 16px;
       border-radius: 4px;
-      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
       cursor: pointer;
-      margin-right: 10px;
+      margin: 5px 5px 0 0;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
-    .btn:hover {
-      background-color: #063a45;
+
+    #toc-button {
+      background-color: #2ea1a8;
+    }
+
+    #status {
+      margin-top: 1rem;
+      color: black;
+      font-weight: bold;
+    }
+
+    .form-note {
+      color: #084a58;
+      text-align: center;
+      margin-bottom: 1rem;
     }
   </style>
 </head>
 <body>
-  <h2 style="color: #084a58;">Exercise 6 – Page 53</h2>
-  <p style="margin-top: -1rem; margin-bottom: 2rem; color: #084a58;">Please provide at least 5 examples. You may enter up to 10.</p>
+  <h2>Exercise 6 – Page 53</h2>
+  <div class="form-note">Please provide at least 5 examples. You may enter up to 10.</div>
 
   <div style="display: flex; gap: 2rem; align-items: flex-start;">
-    <!-- Left Side Image -->
     <img src="/page-53.jpg" alt="Exercise Page 53" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <!-- Right Side Form -->
-    <form id="exercise-form" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1;">
-      <div id="textareas">
-        <label><strong>Example 1</strong><br/><textarea id="success_dos_1" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
-        <label><strong>Example 2</strong><br/><textarea id="success_dos_2" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
-        <label><strong>Example 3</strong><br/><textarea id="success_dos_3" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
-        <label><strong>Example 4</strong><br/><textarea id="success_dos_4" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
-        <label><strong>Example 5</strong><br/><textarea id="success_dos_5" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
-        <label><strong>Example 6 (Optional)</strong><br/><textarea id="success_dos_6" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
-        <label><strong>Example 7 (Optional)</strong><br/><textarea id="success_dos_7" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
-        <label><strong>Example 8 (Optional)</strong><br/><textarea id="success_dos_8" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
-        <label><strong>Example 9 (Optional)</strong><br/><textarea id="success_dos_9" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
-        <label><strong>Example 10 (Optional)</strong><br/><textarea id="success_dos_10" style="width: 100%; height: 60px; margin-bottom: 1rem;"></textarea></label>
+    <form id="exercise-form">
+      <label><strong>Example 1</strong><br/><textarea id="success_dos_1" required></textarea></label>
+      <label><strong>Example 2</strong><br/><textarea id="success_dos_2" required></textarea></label>
+      <label><strong>Example 3</strong><br/><textarea id="success_dos_3" required></textarea></label>
+      <label><strong>Example 4</strong><br/><textarea id="success_dos_4" required></textarea></label>
+      <label><strong>Example 5</strong><br/><textarea id="success_dos_5" required></textarea></label>
+      <label><strong>Example 6 (Optional)</strong><br/><textarea id="success_dos_6"></textarea></label>
+      <label><strong>Example 7 (Optional)</strong><br/><textarea id="success_dos_7"></textarea></label>
+      <label><strong>Example 8 (Optional)</strong><br/><textarea id="success_dos_8"></textarea></label>
+      <label><strong>Example 9 (Optional)</strong><br/><textarea id="success_dos_9"></textarea></label>
+      <label><strong>Example 10 (Optional)</strong><br/><textarea id="success_dos_10"></textarea></label>
+
+      <div>
+        <button type="button" onclick="goBack()">⬅ Back One Page</button>
+        <button type="button" onclick="saveData()">💾 Save</button>
+        <button type="button" onclick="saveAndGoNext()">➡ Save & Next</button>
+        <button type="button" onclick="window.print()">🖨️ Print</button>
+        <button type="button" onclick="goToTOC()" id="toc-button">Go to the Table of Contents</button>
       </div>
 
-      <div style="margin-top: 1rem;">
-        <button type="button" class="btn" onclick="goBack()">⬅ Back One Page</button>
-        <button type="button" class="btn" onclick="saveData()">💾 Save</button>
-        <button type="button" class="btn" onclick="saveAndGoNext()">➡ Save & Next</button>
-        <button type="button" class="btn" onclick="window.print()">🖨️ Print</button>
-      </div>
-
-      <button type="button" onclick="goToTOC()" style="margin-top: 1rem; background-color: #2ea1a8;" class="btn">Go to the Table of Contents</button>
-
-      <div id="status" style="margin-top: 1rem; color: green;"></div>
+      <div id="status"></div>
     </form>
   </div>
 
@@ -68,7 +97,7 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    window.addEventListener('DOMContentLoaded', async function () {
+    async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -111,8 +140,8 @@
           statusMsg.textContent = "❌ Error saving data: " + error.message;
           statusMsg.style.color = "red";
         } else {
-          statusMsg.textContent = "✅ Saved successfully!";
-          statusMsg.style.color = "green";
+          statusMsg.textContent = "Saved successfully!";
+          statusMsg.style.color = "black";
         }
       };
 
@@ -128,7 +157,9 @@
       window.goToTOC = function () {
         window.location.href = "/page-3.html";
       };
-    });
+    }
+
+    window.addEventListener("DOMContentLoaded", loadData);
   </script>
 </body>
 </html>
