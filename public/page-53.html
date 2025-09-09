@@ -32,25 +32,43 @@
       margin-bottom: 1rem;
     }
 
-    button {
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 1rem;
+    }
+
+    .button-group button {
+      flex: 1;
+      min-width: 160px;
       background-color: #084a58;
-      color: white;
+      color: #fff;
       border: none;
       padding: 10px 16px;
       border-radius: 4px;
       cursor: pointer;
-      margin: 5px 5px 0 0;
       box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
-    #toc-button {
+    .button-group button:hover {
+      opacity: 0.9;
+    }
+
+    .button-group #toc-button {
       background-color: #2ea1a8;
     }
 
     #status {
       margin-top: 1rem;
-      color: black;
+      text-align: center;
       font-weight: bold;
+      color: #084a58; /* consistent dark teal */
     }
 
     .form-note {
@@ -79,7 +97,7 @@
       <label><strong>Example 9 (Optional)</strong><br/><textarea id="success_dos_9"></textarea></label>
       <label><strong>Example 10 (Optional)</strong><br/><textarea id="success_dos_10"></textarea></label>
 
-      <div>
+      <div class="button-group">
         <button type="button" onclick="goBack()">⬅ Back One Page</button>
         <button type="button" onclick="saveData()">💾 Save</button>
         <button type="button" onclick="saveAndGoNext()">➡ Save & Next</button>
@@ -141,7 +159,7 @@
           statusMsg.style.color = "red";
         } else {
           statusMsg.textContent = "Saved successfully!";
-          statusMsg.style.color = "black";
+          statusMsg.style.color = "#084a58"; // dark teal
         }
       };
 
