@@ -126,7 +126,7 @@
 
       if (data) {
         for (let i = 1; i <= 10; i++) {
-          const field = document.getElementById(`success_dos_${i}`);
+          const field = document.getElementById(`success_dont_${i}`);
           if (field) field.value = data[`success_dos_${i}`] || "";
         }
       }
@@ -136,8 +136,8 @@
         let filledCount = 0;
 
         for (let i = 1; i <= 10; i++) {
-          const value = document.getElementById(`success_dos_${i}`).value.trim();
-          updates[`success_dos_${i}`] = value;
+          const value = document.getElementById(`success_dont_${i}`).value.trim();
+          updates[`success_dont_${i}`] = value;
           if (value) filledCount++;
         }
 
