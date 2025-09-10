@@ -76,29 +76,32 @@
 </head>
 <body>
   <h2>Exercise 6 – Page 54</h2>
-  <div class="form-note">In this exercise, consider how decisions made at different levels in your organization can serve to break the Success Rules (don'ts versus do's). Identify examples that represent strategic or long-term impact decisions as well as day-to-day operational decisions. Please provide at least 5 examples in the boxes below. You may enter up to 10.</div>
+  <div class="form-note">
+    In this exercise, consider how decisions made at different levels in your organization can break the Success Rules (the “don’ts”). Identify examples that represent strategic or long-term impact decisions as well as day-to-day operational decisions. 
+    Please provide at least 5 examples in the boxes below. You may enter up to 10.
+  </div>
 
   <div style="display: flex; gap: 2rem; align-items: flex-start;">
     <img src="/page-54.jpg" alt="Exercise Page 54" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
     <form id="exercise-form">
-      <label><strong>Example 1</strong><br/><textarea id="success_donts_1" required></textarea></label>
-      <label><strong>Example 2</strong><br/><textarea id="success_donts_2" required></textarea></label>
-      <label><strong>Example 3</strong><br/><textarea id="success_donts_3" required></textarea></label>
-      <label><strong>Example 4</strong><br/><textarea id="success_donts_4" required></textarea></label>
-      <label><strong>Example 5</strong><br/><textarea id="success_donts_5" required></textarea></label>
-      <label><strong>Example 6 (Optional)</strong><br/><textarea id="success_donts_6"></textarea></label>
-      <label><strong>Example 7 (Optional)</strong><br/><textarea id="success_donts_7"></textarea></label>
-      <label><strong>Example 8 (Optional)</strong><br/><textarea id="success_donts_8"></textarea></label>
-      <label><strong>Example 9 (Optional)</strong><br/><textarea id="success_donts_9"></textarea></label>
-      <label><strong>Example 10 (Optional)</strong><br/><textarea id="success_donts_10"></textarea></label>
+      <label><strong>Example 1</strong><br/><textarea id="success_dos_1" required></textarea></label>
+      <label><strong>Example 2</strong><br/><textarea id="success_dos_2" required></textarea></label>
+      <label><strong>Example 3</strong><br/><textarea id="success_dos_3" required></textarea></label>
+      <label><strong>Example 4</strong><br/><textarea id="success_dos_4" required></textarea></label>
+      <label><strong>Example 5</strong><br/><textarea id="success_dos_5" required></textarea></label>
+      <label><strong>Example 6 (Optional)</strong><br/><textarea id="success_dos_6"></textarea></label>
+      <label><strong>Example 7 (Optional)</strong><br/><textarea id="success_dos_7"></textarea></label>
+      <label><strong>Example 8 (Optional)</strong><br/><textarea id="success_dos_8"></textarea></label>
+      <label><strong>Example 9 (Optional)</strong><br/><textarea id="success_dos_9"></textarea></label>
+      <label><strong>Example 10 (Optional)</strong><br/><textarea id="success_dos_10"></textarea></label>
 
       <div class="button-group">
         <button type="button" onclick="goBack()">⬅ Back One Page</button>
         <button type="button" onclick="saveData()">💾 Save</button>
         <button type="button" onclick="saveAndGoNext()">➡ Save & Next</button>
         <button type="button" onclick="window.print()">🖨️ Print</button>
-        <button type="button" onclick="goToTOC()">Go to the Table of Contents</button>
+        <button type="button" onclick="goToTOC()" id="toc-button">Go to the Table of Contents</button>
       </div>
 
       <div id="status"></div>
@@ -123,8 +126,8 @@
 
       if (data) {
         for (let i = 1; i <= 10; i++) {
-          const field = document.getElementById(`success_donts_${i}`);
-          if (field) field.value = data[`success_donts_${i}`] || "";
+          const field = document.getElementById(`success_dos_${i}`);
+          if (field) field.value = data[`success_dos_${i}`] || "";
         }
       }
 
@@ -133,8 +136,8 @@
         let filledCount = 0;
 
         for (let i = 1; i <= 10; i++) {
-          const value = document.getElementById(`success_donts_${i}`).value.trim();
-          updates[`success_donts_${i}`] = value;
+          const value = document.getElementById(`success_dos_${i}`).value.trim();
+          updates[`success_dos_${i}`] = value;
           if (value) filledCount++;
         }
 
