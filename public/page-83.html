@@ -2,106 +2,191 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 10 – Page 83</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Avenir', 'Nunito Sans', sans-serif;
       background: #f3f4f6;
+      padding: 2rem;
+      margin: 0;
+      color: #000;
+    }
+
+    h2 { text-align: center; color: #084a58; }
+
+    .form-note {
+      color: #084a58;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    /* Layout proportions */
+    .container {
       display: flex;
-      gap: 20px;
-      padding: 20px;
+      gap: 1rem;
+      align-items: flex-start;
     }
-    .left {
-      flex: 1;
+    .left-pane {
+      flex: 0 0 45%;
+      max-width: 45%;
     }
-    .left img {
+    .left-pane img {
       width: 100%;
-      max-width: 600px;
       height: auto;
+      border-radius: 8px;
+      border: 1px solid #ccc;
       display: block;
     }
-    .right {
-      flex: 1;
-      max-width: 700px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .right-pane {
+      flex: 1 1 55%;
+      max-width: 55%;
     }
+
+    /* Card */
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      color: #084a58;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
     textarea, input[type="text"], input[type="number"] {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.8rem;
+      box-sizing: border-box;
     }
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
+    textarea { min-height: 60px; resize: vertical; }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
     .stakeholder {
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #ccc;
       border-radius: 6px;
       background: #fff;
+      margin-bottom: 10px;
     }
+    .stakeholder label { font-weight: 600; }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
     .score-box, .multiplier-box {
       padding: 10px;
       background: #fff;
       border: 1px solid #ccc;
       border-radius: 6px;
+      flex: 1;
+      min-width: 220px;
     }
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
-    }
-    .footer-buttons {
+    .score-box label, .multiplier-box label { font-weight: 600; display: block; margin-bottom: 6px; }
+
+    /* Button group (dark teal) */
+    .button-group {
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
-      margin-top: 20px;
+      margin-top: 1rem;
+    }
+    .button-group button {
+      flex: 1;
+      min-width: 160px;
+      background-color: #084a58;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .button-group button:hover { opacity: 0.9; }
+
+    #status {
+      margin-top: 1rem;
+      text-align: center;
+      font-weight: bold;
+      color: #084a58; /* dark teal */
     }
   </style>
 </head>
 <body>
-  <div class="left">
-    <img src="/page-83.jpg" alt="Exercise 10 Page 83">
+  <h2>Exercise 10 – Page 83</h2>
+  <div class="form-note">
+    Describe a high-impact communication/decision/interaction, assess influence across stakeholders, and calculate monthly/annual credibility deposits.
   </div>
-  <div class="right">
-    <h3>Communication/Decision/Interaction #2 (Describe what it is that will impact stakeholders)</h3>
-    <textarea id="interactionDescription" rows="3"></textarea>
 
-    <div id="stakeholders"></div>
+  <div class="container">
+    <div class="left-pane">
+      <img src="/page-83.jpg" alt="Exercise 10 Page 83">
+    </div>
 
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <button onclick="calculateScores()">Calculate Score</button>
-      <div class="score-box" style="flex: 1;">
-        <label>Total Influence/Impact Score</label>
-        <input type="text" id="impactScore" readonly />
+    <div class="right-pane">
+      <div class="card">
+        <h3>Communication/Decision/Interaction #2 (Describe what it is that will impact stakeholders)</h3>
+        <textarea id="interactionDescription" rows="3"></textarea>
+
+        <div id="stakeholders"></div>
+
+        <div class="row">
+          <button type="button" onclick="calculateScores()" style="flex:0 0 auto;">Calculate Score</button>
+          <div class="score-box">
+            <label>Total Influence/Impact Score</label>
+            <input type="text" id="impactScore" readonly />
+          </div>
+        </div>
+
+        <div class="multiplier-box" style="margin-top:10px;">
+          <label>Reputation Boost Multiplier (times per month you do this)</label>
+          <input type="number" id="reputationMultiplier" />
+        </div>
+
+        <button type="button" onclick="calculateScores()" style="margin-top:10px;">Calculate Credibility Deposits</button>
+
+        <div class="score-box" style="margin-top:10px;">
+          <label>Monthly Credibility Cash Deposit</label>
+          <input type="text" id="monthlyDeposit" readonly />
+        </div>
+
+        <div class="score-box" style="margin-top:10px;">
+          <label>Annual Credibility Cash Deposit</label>
+          <input type="text" id="annualDeposit" readonly />
+          <small>These deposits are subjective and theoretical scores, not actual currency numbers.</small>
+        </div>
+
+        <div class="button-group">
+          <button type="button" onclick="goBack()">⬅ Back One Page</button>
+          <button type="button" onclick="saveData()">💾 Save</button>
+          <button type="button" onclick="saveAndNext()">➡ Save & Next</button>
+          <button type="button" onclick="window.print()">🖨️ Print</button>
+          <button type="button" onclick="goToTOC()">Go to the Table of Contents</button>
+        </div>
+
+        <div id="status"></div>
       </div>
-    </div>
-
-    <div class="multiplier-box">
-      <label>Reputation Boost Multiplier (type here the number of times a month you communicate this, make this decision or have this interaction)</label>
-      <input type="number" id="reputationMultiplier" />
-    </div>
-
-    <button onclick="calculateScores()">Calculate Credibility Deposits</button>
-
-    <div class="score-box">
-      <label>Monthly Credibility Cash Deposit</label>
-      <input type="text" id="monthlyDeposit" readonly />
-    </div>
-
-    <div class="score-box">
-      <label>Annual Credibility Cash Deposit</label>
-      <input type="text" id="annualDeposit" readonly />
-      <small>These deposits are subjective and theoretical scores, not actual currency numbers.</small>
-    </div>
-
-    <div class="footer-buttons">
-      <button onclick="location.href='page-82.html'">⬅ Back One Page</button>
-      <button onclick="saveData()">💾 Save</button>
-      <button onclick="saveAndNext()">➡ Save & Go to Page 84</button>
-      <button onclick="window.print()">🖨️ Print</button>
     </div>
   </div>
 
@@ -111,101 +196,113 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    const stakeholderLabels = [1,2,3,4,5,6];
+    const stakeholderLabels = [1, 2, 3, 4, 5, 6];
 
     function createStakeholderSection(n) {
       return `
-      <div class="stakeholder">
-        <label>Stakeholder #${n} (name/description)</label>
-        <input type="text" id="stakeholder${n}" />
-        <p>Consider how the communication, decision or interaction above may positively influence this stakeholder. Check all the boxes that apply and the corresponding influence numbers will be applied to a total influence score.</p>
-        <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
-        <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
-        <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
-      </div>`;
+        <div class="stakeholder">
+          <label>Stakeholder #${n} (name/description)</label>
+          <input type="text" id="stakeholder${n}" />
+          <p style="margin:6px 0 8px;">
+            Consider how the communication, decision or interaction above may positively influence this stakeholder.
+            Check all the boxes that apply and the corresponding influence numbers will be applied to a total influence score.
+          </p>
+          <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
+          <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
+          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
+        </div>
+      `;
     }
 
-    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Render stakeholder sections
+      document.getElementById("stakeholders").innerHTML =
+        stakeholderLabels.map(createStakeholderSection).join('');
+
+      // Load user + data
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("exercise10_page83")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (data) {
+        document.getElementById("interactionDescription").value = data.interaction_description || "";
+        document.getElementById("impactScore").value = data.impact_score ?? "";
+        document.getElementById("reputationMultiplier").value = data.reputation_multiplier ?? "";
+        document.getElementById("monthlyDeposit").value = data.monthly_deposit ?? "";
+        document.getElementById("annualDeposit").value = data.annual_deposit ?? "";
+
+        stakeholderLabels.forEach(n => {
+          document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+          const scores = (data[`stakeholder${n}_scores`] || []);
+          document.querySelectorAll(`.score${n}`).forEach(cb => {
+            cb.checked = scores.includes(parseInt(cb.value));
+          });
+        });
+      }
+    });
 
     function calculateScores() {
       let total = 0;
       stakeholderLabels.forEach(n => {
         document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
-          total += parseInt(cb.value);
+          total += parseInt(cb.value, 10);
         });
       });
 
       document.getElementById("impactScore").value = total;
-
-      const multiplier = parseInt(document.getElementById("reputationMultiplier").value) || 0;
+      const multiplier = parseInt(document.getElementById("reputationMultiplier").value, 10) || 0;
       const monthly = total * multiplier;
       const annual = monthly * 12;
-
       document.getElementById("monthlyDeposit").value = monthly;
       document.getElementById("annualDeposit").value = annual;
     }
 
-    async function prefillData() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) return;
-
-      const { data, error } = await supabase.from("exercise10_page83").select('*').eq('user_id', user.id).single();
-      if (error || !data) return;
-
-      document.getElementById("interactionDescription").value = data.interaction_description || "";
-      document.getElementById("impactScore").value = data.impact_score || "";
-      document.getElementById("reputationMultiplier").value = data.reputation_multiplier || "";
-      document.getElementById("monthlyDeposit").value = data.monthly_deposit || "";
-      document.getElementById("annualDeposit").value = data.annual_deposit || "";
-
-      stakeholderLabels.forEach(n => {
-        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
-        const savedScores = data[`stakeholder${n}_scores`] || [];
-        document.querySelectorAll(`.score${n}`).forEach(cb => {
-          cb.checked = savedScores.includes(parseInt(cb.value));
-        });
-      });
-    }
-
     async function saveData() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) {
-        alert("User not authenticated");
-        return;
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
       const payload = {
         user_id: user.id,
-        interaction_description: document.getElementById("interactionDescription").value,
-        impact_score: parseInt(document.getElementById("impactScore").value) || 0,
-        reputation_multiplier: parseInt(document.getElementById("reputationMultiplier").value) || 0,
-        monthly_deposit: parseInt(document.getElementById("monthlyDeposit").value) || 0,
-        annual_deposit: parseInt(document.getElementById("annualDeposit").value) || 0
+        interaction_description: document.getElementById("interactionDescription").value.trim(),
+        impact_score: parseInt(document.getElementById("impactScore").value, 10) || 0,
+        reputation_multiplier: parseInt(document.getElementById("reputationMultiplier").value, 10) || 0,
+        monthly_deposit: parseInt(document.getElementById("monthlyDeposit").value, 10) || 0,
+        annual_deposit: parseInt(document.getElementById("annualDeposit").value, 10) || 0
       };
 
       stakeholderLabels.forEach(n => {
-        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value;
+        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value.trim();
         payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
           .filter(cb => cb.checked)
-          .map(cb => parseInt(cb.value));
+          .map(cb => parseInt(cb.value, 10));
       });
 
-      const { error } = await supabase.from("exercise10_page83").upsert([payload], { onConflict: ['user_id'] });
+      const { error } = await supabase
+        .from("exercise10_page83")
+        .upsert([payload], { onConflict: ['user_id'] });
+
+      const status = document.getElementById("status");
       if (error) {
-        alert("Save failed: " + error.message);
+        status.textContent = "❌ Error saving data: " + error.message;
+        status.style.color = "red";
       } else {
-        alert("Save successful!");
+        status.textContent = "Saved successfully!";
+        status.style.color = "#084a58";
       }
     }
 
     async function saveAndNext() {
       await saveData();
-      location.href = 'page-84.html';
+      window.location.href = "/page-84.html";
     }
 
-    prefillData();
+    function goBack() { window.location.href = "/page-82.html"; }
+    function goToTOC() { window.location.href = "/page-3.html"; }
   </script>
 </body>
 </html>
