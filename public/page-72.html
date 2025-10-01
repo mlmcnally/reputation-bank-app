@@ -27,11 +27,10 @@
 
     .container {
       display: flex;
-      gap: 2rem;
+      gap: 1rem; /* reduced gap to tighten spacing */
       align-items: flex-start;
     }
 
-    /* Fix proportions to match page-70 */
     .left-pane img {
       max-width: 45%;
       border-radius: 8px;
@@ -40,7 +39,7 @@
     }
 
     .right-pane {
-      flex: 1;
+      flex: 1; /* ensures right pane takes the rest of the space */
     }
 
     form {
