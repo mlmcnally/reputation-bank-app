@@ -62,9 +62,7 @@
       gap: 6px;
     }
 
-    .button-group button:hover {
-      opacity: 0.9;
-    }
+    .button-group button:hover { opacity: 0.9; }
 
     #status {
       margin-top: 1rem;
@@ -128,6 +126,7 @@
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Load existing row
       const { data, error } = await supabase
         .from('exercise7_page68')
         .select('*')
@@ -144,6 +143,7 @@
         });
       }
 
+      // Save (upsert)
       window.saveData = async function () {
         const payload = {
           user_id: user.id,
@@ -168,20 +168,20 @@
           statusMsg.textContent = "Saved successfully!";
           statusMsg.style.color = "#084a58"; // dark teal
         }
-      }
+      };
 
       window.saveAndGoNext = async function () {
         await saveData();
         window.location.href = "/page-69.html";
-      }
+      };
 
       window.goBack = function () {
         window.location.href = "/page-67.html";
-      }
+      };
 
       window.goToTOC = function () {
         window.location.href = "/page-3.html";
-      }
+      };
     });
   </script>
 </body>
