@@ -14,10 +14,7 @@
       color: #000;
     }
 
-    h2 {
-      text-align: center;
-      color: #084a58;
-    }
+    h2 { text-align: center; color: #084a58; }
 
     .form-note {
       color: #084a58;
@@ -25,23 +22,32 @@
       margin-bottom: 1rem;
     }
 
+    /* Layout */
     .container {
       display: flex;
-      gap: 1rem; /* reduced gap to tighten spacing */
+      gap: 1rem;               /* small, consistent gap */
       align-items: flex-start;
     }
 
-    .left-pane img {
+    /* ✅ Make the LEFT pane itself 45% like page-70, and let the image fill it */
+    .left-pane {
+      flex: 0 0 45%;
       max-width: 45%;
+    }
+    .left-pane img {
+      width: 100%;
+      height: auto;
       border-radius: 8px;
       border: 1px solid #ccc;
       display: block;
     }
 
     .right-pane {
-      flex: 1; /* ensures right pane takes the rest of the space */
+      flex: 1 1 55%;           /* take the remaining space */
+      max-width: 55%;
     }
 
+    /* Card */
     form {
       background: white;
       padding: 20px;
@@ -72,7 +78,6 @@
       gap: 10px;
       margin-top: 1rem;
     }
-
     .button-group button {
       flex: 1;
       min-width: 160px;
@@ -89,7 +94,6 @@
       justify-content: center;
       gap: 6px;
     }
-
     .button-group button:hover { opacity: 0.9; }
 
     #status {
