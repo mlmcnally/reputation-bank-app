@@ -19,24 +19,39 @@
       color: #084a58;
     }
 
+    .form-note {
+      color: #084a58;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    /* ---- Proportions to match page-70 ---- */
     .container {
       display: flex;
       gap: 2rem;
       align-items: flex-start;
     }
-
+    .left-pane {
+      flex: 0 0 45%;
+      max-width: 45%;
+    }
     .left-pane img {
-      max-width: 100%;
+      width: 100%;
+      height: auto;
       border-radius: 8px;
       border: 1px solid #ccc;
+      display: block;
+    }
+    .right-pane {
+      flex: 1 1 55%;
     }
 
+    /* Card styling like earlier pages */
     form {
       background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      flex: 1;
     }
 
     label {
@@ -62,7 +77,6 @@
       gap: 10px;
       margin-top: 1rem;
     }
-
     .button-group button {
       flex: 1;
       min-width: 160px;
@@ -79,22 +93,13 @@
       justify-content: center;
       gap: 6px;
     }
-
-    .button-group button:hover {
-      opacity: 0.9;
-    }
+    .button-group button:hover { opacity: 0.9; }
 
     #status {
       margin-top: 1rem;
       text-align: center;
       font-weight: bold;
       color: #084a58; /* dark teal */
-    }
-
-    .form-note {
-      color: #084a58;
-      text-align: center;
-      margin-bottom: 1rem;
     }
   </style>
 </head>
@@ -109,32 +114,34 @@
       <img src="/page-72.jpg" alt="Exercise 8 Page 72" />
     </div>
 
-    <form id="exercise-form">
-      <label for="change_description">Description of the Change Initiative</label>
-      <textarea id="change_description"></textarea>
+    <div class="right-pane">
+      <form id="exercise-form">
+        <label for="change_description">Description of the Change Initiative</label>
+        <textarea id="change_description"></textarea>
 
-      <label for="stakeholders_affected">Stakeholders Affected by the Change</label>
-      <textarea id="stakeholders_affected"></textarea>
+        <label for="stakeholders_affected">Stakeholders Affected by the Change</label>
+        <textarea id="stakeholders_affected"></textarea>
 
-      <label for="pros_cons_command">Pros/Cons of Command &amp; Control Approach</label>
-      <textarea id="pros_cons_command"></textarea>
+        <label for="pros_cons_command">Pros/Cons of Command &amp; Control Approach</label>
+        <textarea id="pros_cons_command"></textarea>
 
-      <label for="pros_cons_hearts">Pros/Cons of Hearts &amp; Minds Approach</label>
-      <textarea id="pros_cons_hearts"></textarea>
+        <label for="pros_cons_hearts">Pros/Cons of Hearts &amp; Minds Approach</label>
+        <textarea id="pros_cons_hearts"></textarea>
 
-      <label for="best_approach">Best Change Communications Approach for Your Organization</label>
-      <textarea id="best_approach"></textarea>
+        <label for="best_approach">Best Change Communications Approach for Your Organization</label>
+        <textarea id="best_approach"></textarea>
 
-      <div class="button-group">
-        <button type="button" onclick="goBack()">⬅ Back One Page</button>
-        <button type="button" onclick="saveData()">💾 Save</button>
-        <button type="button" onclick="saveAndNext()">➡ Save & Next</button>
-        <button type="button" onclick="window.print()">🖨️ Print</button>
-        <button type="button" onclick="goToTOC()">Go to the Table of Contents</button>
-      </div>
+        <div class="button-group">
+          <button type="button" onclick="goBack()">⬅ Back One Page</button>
+          <button type="button" onclick="saveData()">💾 Save</button>
+          <button type="button" onclick="saveAndNext()">➡ Save & Next</button>
+          <button type="button" onclick="window.print()">🖨️ Print</button>
+          <button type="button" onclick="goToTOC()">Go to the Table of Contents</button>
+        </div>
 
-      <div id="status"></div>
-    </form>
+        <div id="status"></div>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -165,7 +172,6 @@
       // Save (upsert)
       window.saveData = async function () {
         const v = id => document.getElementById(id).value.trim();
-
         const { error } = await supabase
           .from('exercise8_page72')
           .upsert([{
