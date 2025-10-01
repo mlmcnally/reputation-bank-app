@@ -25,28 +25,24 @@
       margin-bottom: 1rem;
     }
 
-    /* ---- Proportions to match page-70 ---- */
     .container {
       display: flex;
       gap: 2rem;
       align-items: flex-start;
     }
-    .left-pane {
-      flex: 0 0 45%;
-      max-width: 45%;
-    }
+
+    /* Fix proportions to match page-70 */
     .left-pane img {
-      width: 100%;
-      height: auto;
+      max-width: 45%;
       border-radius: 8px;
       border: 1px solid #ccc;
       display: block;
     }
+
     .right-pane {
-      flex: 1 1 55%;
+      flex: 1;
     }
 
-    /* Card styling like earlier pages */
     form {
       background: white;
       padding: 20px;
@@ -77,6 +73,7 @@
       gap: 10px;
       margin-top: 1rem;
     }
+
     .button-group button {
       flex: 1;
       min-width: 160px;
@@ -93,6 +90,7 @@
       justify-content: center;
       gap: 6px;
     }
+
     .button-group button:hover { opacity: 0.9; }
 
     #status {
@@ -154,7 +152,6 @@
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Load existing data
       const { data } = await supabase
         .from('exercise8_page72')
         .select('*')
@@ -169,7 +166,6 @@
         document.getElementById('best_approach').value = data.best_approach || '';
       }
 
-      // Save (upsert)
       window.saveData = async function () {
         const v = id => document.getElementById(id).value.trim();
         const { error } = await supabase
