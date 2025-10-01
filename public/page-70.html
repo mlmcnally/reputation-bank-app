@@ -13,10 +13,7 @@
       color: #000;
     }
 
-    h2 {
-      text-align: center;
-      color: #084a58;
-    }
+    h2 { text-align: center; color: #084a58; }
 
     form {
       background: white;
@@ -34,9 +31,7 @@
       border: 1px solid #ccc;
     }
 
-    textarea {
-      height: 60px;
-    }
+    textarea { height: 60px; }
 
     .button-group {
       display: flex;
@@ -62,9 +57,7 @@
       gap: 6px;
     }
 
-    .button-group button:hover {
-      opacity: 0.9;
-    }
+    .button-group button:hover { opacity: 0.9; }
 
     #status {
       margin-top: 1rem;
@@ -100,11 +93,12 @@
       <label><strong>Insight 4</strong><br/><textarea id="insight_4"></textarea></label>
       <label><strong>Insight 5</strong><br/><textarea id="insight_5"></textarea></label>
 
-      <label><strong>Purpose: Inform</strong><br/><textarea id="purpose_inform"></textarea></label>
-      <label><strong>Purpose: Educate</strong><br/><textarea id="purpose_educate"></textarea></label>
-      <label><strong>Purpose: Inspire</strong><br/><textarea id="purpose_inspire"></textarea></label>
-      <label><strong>Purpose: Advocate</strong><br/><textarea id="purpose_advocate"></textarea></label>
-      <label><strong>Purpose: Motivate</strong><br/><textarea id="purpose_motivate"></textarea></label>
+      <!-- Notice: no 'purpose_' prefix in IDs to match table columns -->
+      <label><strong>Purpose: Inform</strong><br/><textarea id="inform"></textarea></label>
+      <label><strong>Purpose: Educate</strong><br/><textarea id="educate"></textarea></label>
+      <label><strong>Purpose: Inspire</strong><br/><textarea id="inspire"></textarea></label>
+      <label><strong>Purpose: Advocate</strong><br/><textarea id="advocate"></textarea></label>
+      <label><strong>Purpose: Motivate</strong><br/><textarea id="motivate"></textarea></label>
 
       <div class="button-group">
         <button type="button" onclick="goBack()">⬅ Back One Page</button>
@@ -128,7 +122,7 @@
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('exercise7_page70')
         .select('*')
         .eq('user_id', user.id)
@@ -139,8 +133,10 @@
         for (let i = 1; i <= 5; i++) {
           document.getElementById(`insight_${i}`).value = data[`insight_${i}`] || "";
         }
-        ["inform", "educate", "inspire", "advocate", "motivate"].forEach(purpose => {
-          document.getElementById(`purpose_${purpose}`).value = data[`purpose_${purpose}`] || "";
+        // No-prefix column names:
+        ["inform","educate","inspire","advocate","motivate"].forEach(key => {
+          const el = document.getElementById(key);
+          if (el) el.value = data[key] || "";
         });
       }
 
@@ -149,11 +145,14 @@
           user_id: user.id,
           stakeholder: document.getElementById("stakeholder").value.trim(),
         };
+
         for (let i = 1; i <= 5; i++) {
           payload[`insight_${i}`] = document.getElementById(`insight_${i}`).value.trim();
         }
-        ["inform", "educate", "inspire", "advocate", "motivate"].forEach(purpose => {
-          payload[`purpose_${purpose}`] = document.getElementById(`purpose_${purpose}`).value.trim();
+
+        // No-prefix column names:
+        ["inform","educate","inspire","advocate","motivate"].forEach(key => {
+          payload[key] = document.getElementById(key).value.trim();
         });
 
         const { error } = await supabase
@@ -166,22 +165,22 @@
           statusMsg.style.color = "red";
         } else {
           statusMsg.textContent = "Saved successfully!";
-          statusMsg.style.color = "#084a58"; // dark teal
+          statusMsg.style.color = "#084a58";
         }
-      }
+      };
 
       window.saveAndGoNext = async function () {
         await saveData();
         window.location.href = "/#page/71";
-      }
+      };
 
       window.goBack = function () {
         window.location.href = "/page-69.html";
-      }
+      };
 
       window.goToTOC = function () {
         window.location.href = "/page-3.html";
-      }
+      };
     });
   </script>
 </body>
