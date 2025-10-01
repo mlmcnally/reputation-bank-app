@@ -7,44 +7,72 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Avenir', 'Nunito Sans', sans-serif;
       background: #f3f4f6;
       padding: 2rem;
       margin: 0;
+      color: #000;
     }
+
+    h2 {
+      text-align: center;
+      color: #084a58;
+    }
+
+    .form-note {
+      color: #084a58;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    /* Layout proportions to match page-72/page-70 */
     .container {
       display: flex;
-      gap: 2rem;
+      gap: 1rem;                 /* tighter gap */
       align-items: flex-start;
     }
-    img {
-      max-width: 100%;
+    .left-pane {
+      flex: 0 0 45%;
+      max-width: 45%;
+    }
+    .left-pane img {
+      width: 100%;
+      height: auto;
       border-radius: 8px;
       border: 1px solid #ccc;
+      display: block;
     }
-    .form-container {
+    .right-pane {
+      flex: 1 1 55%;
+      max-width: 55%;
+    }
+
+    /* Card */
+    form {
       background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      flex: 1;
       overflow-x: auto;
     }
+
     label {
       font-weight: bold;
       display: block;
       margin-top: 1rem;
     }
+
     textarea {
       width: 100%;
       min-height: 60px;
-      padding: 0.5rem;
+      padding: 8px;
       margin-top: 0.25rem;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 1rem;
       resize: vertical;
     }
+
     table {
       width: 100%;
       margin-top: 1.5rem;
@@ -60,33 +88,52 @@
       font-weight: bold;
       text-align: center;
     }
-    .button-row {
-      margin-top: 1.5rem;
+
+    /* Button group (dark teal) */
+    .button-group {
       display: flex;
-      gap: 0.75rem;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 1rem;
     }
-    .button-row button {
-      background: white;
-      color: black;
-      border: 1px solid #ccc;
+    .button-group button {
+      flex: 1;
+      min-width: 160px;
+      background-color: #084a58;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
       border-radius: 4px;
-      padding: 0.5rem 1rem;
-      font-size: 0.95rem;
       cursor: pointer;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
-    .button-row button:hover {
-      background-color: #f0f0f0;
+    .button-group button:hover { opacity: 0.9; }
+
+    #status {
+      margin-top: 1rem;
+      text-align: center;
+      font-weight: bold;
+      color: #084a58; /* dark teal */
     }
   </style>
 </head>
 <body>
   <h2>Exercise 9 – Page 74</h2>
+  <div class="form-note">
+    Define the initiative and your communication goals, then map leader impacts across planning, approval, and activation.
+  </div>
+
   <div class="container">
     <div class="left-pane">
       <img src="/page-74.jpg" alt="Exercise 9 Page 74" />
     </div>
 
-    <div class="form-container">
+    <div class="right-pane">
       <form id="exercise-form">
         <label for="key_initiative_description">Key Strategic Initiative Description</label>
         <textarea id="key_initiative_description"></textarea>
@@ -146,31 +193,31 @@
           </tbody>
         </table>
 
-        <div class="button-row">
+        <div class="button-group">
           <button type="button" onclick="goBack()">⬅ Back One Page</button>
           <button type="button" onclick="saveData()">💾 Save</button>
-          <button type="button" onclick="saveAndNext()">➡ Save & Go to Page 75</button>
+          <button type="button" onclick="saveAndNext()">➡ Save & Next</button>
           <button type="button" onclick="window.print()">🖨️ Print</button>
+          <button type="button" onclick="goToTOC()">Go to the Table of Contents</button>
         </div>
-        <div id="status" style="margin-top: 1rem; color: green;"></div>
+
+        <div id="status"></div>
       </form>
     </div>
   </div>
 
   <script>
-    window.supabase = supabase.createClient(
+    const supabase = window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
     window.addEventListener('DOMContentLoaded', async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = "/login.html";
-        return;
-      }
+      if (!user) return;
 
-      const { data, error } = await supabase
+      // Load
+      const { data } = await supabase
         .from('exercise9_page74')
         .select('*')
         .eq('user_id', user.id)
@@ -178,61 +225,65 @@
 
       if (data) {
         for (const key in data) {
-          if (document.getElementById(key)) {
-            document.getElementById(key).value = data[key] || '';
-          }
+          const el = document.getElementById(key);
+          if (el) el.value = data[key] || '';
         }
       }
 
+      // Save
       window.saveData = async function () {
-        const input = id => document.getElementById(id).value.trim();
+        const v = id => document.getElementById(id).value.trim();
 
         const update = {
           user_id: user.id,
-          key_initiative_description: input('key_initiative_description'),
-          internal_comm_goals: input('internal_comm_goals'),
-          external_comm_goals: input('external_comm_goals'),
-          inspire_planning: input('inspire_planning'),
-          inspire_approval: input('inspire_approval'),
-          inspire_activation: input('inspire_activation'),
-          empower_planning: input('empower_planning'),
-          empower_approval: input('empower_approval'),
-          empower_activation: input('empower_activation'),
-          vision_planning: input('vision_planning'),
-          vision_approval: input('vision_approval'),
-          vision_activation: input('vision_activation'),
-          strategy_planning: input('strategy_planning'),
-          strategy_approval: input('strategy_approval'),
-          strategy_activation: input('strategy_activation'),
-          expectations_planning: input('expectations_planning'),
-          expectations_approval: input('expectations_approval'),
-          expectations_activation: input('expectations_activation'),
-          values_planning: input('values_planning'),
-          values_approval: input('values_approval'),
-          values_activation: input('values_activation')
+          key_initiative_description: v('key_initiative_description'),
+          internal_comm_goals: v('internal_comm_goals'),
+          external_comm_goals: v('external_comm_goals'),
+          inspire_planning: v('inspire_planning'),
+          inspire_approval: v('inspire_approval'),
+          inspire_activation: v('inspire_activation'),
+          empower_planning: v('empower_planning'),
+          empower_approval: v('empower_approval'),
+          empower_activation: v('empower_activation'),
+          vision_planning: v('vision_planning'),
+          vision_approval: v('vision_approval'),
+          vision_activation: v('vision_activation'),
+          strategy_planning: v('strategy_planning'),
+          strategy_approval: v('strategy_approval'),
+          strategy_activation: v('strategy_activation'),
+          expectations_planning: v('expectations_planning'),
+          expectations_approval: v('expectations_approval'),
+          expectations_activation: v('expectations_activation'),
+          values_planning: v('values_planning'),
+          values_approval: v('values_approval'),
+          values_activation: v('values_activation')
         };
 
-        const { error } = await supabase.from("exercise9_page74").upsert([update], {
-          onConflict: ['user_id']
-        });
+        const { error } = await supabase
+          .from('exercise9_page74')
+          .upsert([update], { onConflict: ['user_id'] });
 
-        const status = document.getElementById("status");
+        const status = document.getElementById('status');
         if (error) {
-          status.textContent = "❌ Error saving data: " + error.message;
-          status.style.color = "red";
+          status.textContent = '❌ Error saving data: ' + error.message;
+          status.style.color = 'red';
         } else {
-          status.textContent = "✅ Saved successfully!";
-          status.style.color = "green";
+          status.textContent = 'Saved successfully!';
+          status.style.color = '#084a58';
         }
       };
 
       window.saveAndNext = async function () {
         await saveData();
-        window.location.href = "/#page/75.html";
+        window.location.href = '/#page/75';
       };
 
       window.goBack = function () {
-        window.location.href = "/#page/73";
+        window.location.href = '/#page/73';
+      };
+
+      window.goToTOC = function () {
+        window.location.href = '/page-3.html';
       };
     });
   </script>
