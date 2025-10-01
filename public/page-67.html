@@ -157,7 +157,7 @@
         });
 
         const { error } = await supabase
-          .from('exercise7_page65')
+          .from('exercise7_page67')
           .upsert([payload], { onConflict: ['user_id'] });
 
         const statusMsg = document.getElementById("status");
