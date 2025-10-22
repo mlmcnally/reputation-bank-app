@@ -2,124 +2,202 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 13 – Page 95</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Avenir', 'Nunito Sans', sans-serif;
       background: #f3f4f6;
+      padding: 2rem;
+      margin: 0;
+      color: #000;
+    }
+
+    h2 { text-align: center; color: #084a58; }
+
+    .form-note {
+      color: #084a58;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    /* Layout proportions */
+    .container {
       display: flex;
-      gap: 20px;
-      padding: 20px;
+      gap: 1rem;            /* tight, consistent gap */
+      align-items: flex-start;
     }
-    .left {
-      flex: 1;
+    .left-pane {
+      flex: 0 0 45%;
+      max-width: 45%;
     }
-    .left img {
+    .left-pane img {
       width: 100%;
-      max-width: 600px;
       height: auto;
+      border-radius: 8px;
+      border: 1px solid #ccc;
       display: block;
     }
-    .right {
-      flex: 1;
-      max-width: 700px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .right-pane {
+      flex: 1 1 55%;
+      max-width: 55%;
     }
+
+    /* Card */
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      color: #084a58;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
     textarea, input[type="text"], input[type="number"] {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.8rem;
+      box-sizing: border-box;
     }
-    .stakeholder, .score-box {
-      padding: 10px;
+    textarea { min-height: 60px; resize: vertical; }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    .stakeholder {
+      padding: 12px;
       border: 1px solid #ccc;
       border-radius: 6px;
       background: #fff;
+      margin-bottom: 10px;
     }
-    .footer-buttons {
+    .stakeholder label { font-weight: 600; }
+
+    .score-box, .multiplier-box {
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+    .score-box label, .multiplier-box label { font-weight: 600; display: block; margin-bottom: 6px; color: #084a58; }
+
+    /* Button group (dark teal) */
+    .button-group {
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
-      margin-top: 20px;
+      margin-top: 1rem;
     }
-    label.description {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    .multiplier-box {
+    .button-group button {
+      flex: 1;
+      min-width: 160px;
+      background-color: #084a58;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 0.95rem;
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
-    input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type="number"] {
-      -moz-appearance: textfield;
+    .button-group button:hover { opacity: 0.9; }
+
+    #status {
+      margin-top: 1rem;
+      text-align: center;
+      font-weight: bold;
+      color: #084a58; /* dark teal */
     }
   </style>
 </head>
 <body>
-  <div class="left">
-    <img src="/page-95.jpg" alt="Exercise 13 Page 95">
+  <h2>Exercise 13 – Page 95</h2>
+  <div class="form-note">
+    Identify a negative communication/decision/interaction, assess its stakeholder impact, and estimate the Credibility Debt Withdrawal.
   </div>
-  <div class="right">
-    <h3>Credibility Debt Withdrawal #2 (Describe the communication, decision, or interaction that will negatively impact stakeholders)</h3>
-    <textarea id="interactionDescription" rows="3"></textarea>
 
-    <div id="stakeholders"></div>
+  <div class="container">
+    <div class="left-pane">
+      <img src="/page-95.jpg" alt="Exercise 13 Page 95">
+    </div>
 
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <button onclick="calculateScores()">Calculate Score</button>
-      <div class="score-box" style="flex: 1;">
-        <label>Total Influence/Impact Score</label>
-        <input type="text" id="impactScore" readonly />
+    <div class="right-pane">
+      <div class="card">
+        <h3>Credibility Debt Withdrawal #2 (Describe the communication, decision, or interaction that will negatively impact stakeholders)</h3>
+        <textarea id="interactionDescription" rows="3"></textarea>
+
+        <div id="stakeholders"></div>
+
+        <div class="score-box">
+          <label>Total Influence/Impact Score</label>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button type="button" onclick="calculateScores()" style="flex:0 0 auto;">Calculate Score</button>
+            <input type="text" id="impactScore" readonly style="flex:1; min-width:220px;" />
+          </div>
+        </div>
+
+        <div class="multiplier-box">
+          <label>
+            Reputation Rehab Multiplier
+            <span style="font-weight:400; color:#333; display:block; margin-top:4px;">
+              Estimate how many positive communications/interactions it would take to restore reputation to pre-risk levels.
+            </span>
+          </label>
+          <input type="number" id="rehabMultiplier" inputmode="numeric" />
+        </div>
+
+        <div class="multiplier-box">
+          <label>
+            Repetition Multiplier
+            <span style="font-weight:400; color:#333; display:block; margin-top:4px;">
+              Estimate how many times this kind of risk could occur in a month or a year.
+            </span>
+          </label>
+          <input type="number" id="repetitionMultiplier" inputmode="numeric" />
+        </div>
+
+        <button type="button" onclick="calculateScores()" style="margin-top:10px;">Calculate Credibility Debt Withdrawal</button>
+
+        <div class="score-box">
+          <label>Total Credibility Debt Withdrawal</label>
+          <input type="text" id="annualDeposit" readonly />
+          <small>These withdrawals are subjective and theoretical scores, not actual currency numbers.</small>
+        </div>
+
+        <div class="button-group">
+          <button type="button" onclick="goBack()">⬅ Back One Page</button>
+          <button type="button" onclick="saveData()">💾 Save</button>
+          <button type="button" onclick="saveAndNext()">➡ Save & Next</button>
+          <button type="button" onclick="window.print()">🖨️ Print</button>
+          <button type="button" onclick="goToTOC()">Go to the Table of Contents</button>
+        </div>
+
+        <div id="status"></div>
       </div>
-    </div>
-
-    <div class="multiplier-box">
-      <label class="description">
-        Consider how many communications/interactions it would take to get your reputation back to where it was before the risk happened. This is the Reputation Rehab Multiplier. This is a subjective opinion for illustrative purposes. Write that number in this box.
-      </label>
-      <input type="number" id="rehabMultiplier" inputmode="numeric" />
-    </div>
-
-    <div class="multiplier-box">
-      <label class="description">
-        Often Credibility Debt Reputation Risks are repetitive. Identify how many times this kind of risk/impact could occur (within a month or a year). This is the Repetition Multiplier. Write that number in this box.
-      </label>
-      <input type="number" id="repetitionMultiplier" inputmode="numeric" />
-    </div>
-
-    <button style="padding: 10px 16px; font-size: 16px;" onclick="calculateScores()">Calculate Credibility Debt Withdrawal</button>
-
-    <div class="score-box">
-      <label>Total Credibility Debt Withdrawal</label>
-      <input type="text" id="annualDeposit" readonly />
-      <small>These withdrawals are subjective and theoretical scores, not actual currency numbers.</small>
-    </div>
-
-    <div class="footer-buttons">
-      <button onclick="location.href='page-94.html'">⭠ Back One Page</button>
-      <button onclick="saveData()">📂 Save</button>
-      <button onclick="saveAndNext()">➡ Save & Go to Page 96</button>
-      <button onclick="window.print()">🖨️ Print</button>
     </div>
   </div>
 
   <script>
-    const { createClient } = supabase;
-    const client = createClient(
+    const supabase = window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
-    window.supabase = client;
 
     const stakeholderLabels = [1, 2, 3, 4, 5, 6];
 
@@ -128,95 +206,110 @@
         <div class="stakeholder">
           <label>Stakeholder #${n} (name/description)</label>
           <input type="text" id="stakeholder${n}" />
-          <p>Consider how the above decision or action might negatively influence this stakeholder. Check all the boxes that apply:</p>
+          <p style="margin:6px 0 8px;">
+            Consider how the above decision or action might negatively influence this stakeholder. Check all that apply:
+          </p>
           <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
           <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
-          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform & Educate (1)</label>
+          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
         </div>`;
     }
 
-    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(n => createStakeholderSection(n)).join('');
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Render stakeholder sections
+      document.getElementById("stakeholders").innerHTML =
+        stakeholderLabels.map(createStakeholderSection).join('');
 
-    function calculateScores() {
-      let total = 0;
-      stakeholderLabels.forEach(n => {
-        document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
-          total += parseInt(cb.value);
-        });
-      });
-      document.getElementById("impactScore").value = total;
-
-      const rehab = parseInt(document.getElementById("rehabMultiplier").value) || 0;
-      const repeat = parseInt(document.getElementById("repetitionMultiplier").value) || 0;
-      const annual = total * rehab * repeat * -1;
-
-      document.getElementById("annualDeposit").value = annual;
-    }
-
-    async function saveData() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) {
-        alert("User not authenticated");
-        return;
-      }
-
-      const payload = {
-        user_id: user.id,
-        interaction_description: document.getElementById("interactionDescription").value,
-        impact_score: parseInt(document.getElementById("impactScore").value) || 0,
-        reputation_multiplier: parseInt(document.getElementById("rehabMultiplier").value) || 0,
-        repetition_multiplier: parseInt(document.getElementById("repetitionMultiplier").value) || 0,
-        annual_deposit: parseInt(document.getElementById("annualDeposit").value) || 0
-      };
-
-      stakeholderLabels.forEach(n => {
-        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value;
-        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
-          .filter(cb => cb.checked)
-          .map(cb => parseInt(cb.value));
-      });
-
-      const { error } = await supabase.from("exercise13_page95").upsert([payload], { onConflict: ['user_id'] });
-      if (error) {
-        alert("Save failed: " + error.message);
-      } else {
-        alert("Save successful!");
-      }
-    }
-
-    async function saveAndNext() {
-      await saveData();
-      location.href = 'page-96.html';
-    }
-
-    window.addEventListener("DOMContentLoaded", async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
+      // Load any existing data
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("exercise13_page95")
         .select("*")
         .eq("user_id", user.id)
         .single();
 
-      if (error || !data) return;
+      if (data) {
+        document.getElementById("interactionDescription").value = data.interaction_description || "";
+        document.getElementById("impactScore").value = data.impact_score ?? 0;
+        document.getElementById("rehabMultiplier").value = data.reputation_multiplier ?? 0;
+        document.getElementById("repetitionMultiplier").value = data.repetition_multiplier ?? 0;
+        document.getElementById("annualDeposit").value = data.annual_deposit ?? 0;
 
-      document.getElementById("interactionDescription").value = data.interaction_description || "";
-      document.getElementById("impactScore").value = data.impact_score || "";
-      document.getElementById("rehabMultiplier").value = data.reputation_multiplier || "";
-      document.getElementById("repetitionMultiplier").value = data.repetition_multiplier || "";
-      document.getElementById("annualDeposit").value = data.annual_deposit || "";
+        stakeholderLabels.forEach(n => {
+          document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+          const scores = (data[`stakeholder${n}_scores`] || []);
+          document.querySelectorAll(`.score${n}`).forEach(cb => {
+            cb.checked = scores.includes(parseInt(cb.value, 10));
+          });
+        });
+      }
+    });
 
+    function calculateScores() {
+      let total = 0;
       stakeholderLabels.forEach(n => {
-        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
-        const savedScores = data[`stakeholder${n}_scores`] || [];
-        document.querySelectorAll(`.score${n}`).forEach(cb => {
-          cb.checked = savedScores.includes(parseInt(cb.value));
+        document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
+          total += parseInt(cb.value, 10);
         });
       });
-    });
+      document.getElementById("impactScore").value = total;
+
+      const rehab = parseInt(document.getElementById("rehabMultiplier").value, 10) || 0;
+      const repeat = parseInt(document.getElementById("repetitionMultiplier").value, 10) || 0;
+      const annual = total * rehab * repeat * -1; // negative withdrawal
+      document.getElementById("annualDeposit").value = annual;
+    }
+
+    async function saveData() {
+      const status = document.getElementById("status");
+      status.textContent = "";
+      status.style.color = "#084a58";
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        status.textContent = "❌ User not authenticated.";
+        status.style.color = "red";
+        return;
+      }
+
+      const payload = {
+        user_id: user.id,
+        interaction_description: document.getElementById("interactionDescription").value.trim(),
+        impact_score: parseInt(document.getElementById("impactScore").value, 10) || 0,
+        reputation_multiplier: parseInt(document.getElementById("rehabMultiplier").value, 10) || 0,
+        repetition_multiplier: parseInt(document.getElementById("repetitionMultiplier").value, 10) || 0,
+        annual_deposit: parseInt(document.getElementById("annualDeposit").value, 10) || 0
+      };
+
+      stakeholderLabels.forEach(n => {
+        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value.trim();
+        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
+          .filter(cb => cb.checked)
+          .map(cb => parseInt(cb.value, 10));
+      });
+
+      const { error } = await supabase
+        .from("exercise13_page95")
+        .upsert([payload], { onConflict: ['user_id'] });
+
+      if (error) {
+        status.textContent = "❌ Error saving data: " + error.message;
+        status.style.color = "red";
+      } else {
+        status.textContent = "Saved successfully!";
+        status.style.color = "#084a58";
+      }
+    }
+
+    async function saveAndNext() {
+      await saveData();
+      window.location.href = "/page-96.html";
+    }
+
+    function goBack() { window.location.href = "/page-94.html"; }
+    function goToTOC() { window.location.href = "/page-3.html"; }
   </script>
 </body>
 </html>
