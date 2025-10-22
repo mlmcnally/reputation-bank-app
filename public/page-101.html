@@ -2,201 +2,115 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 14 – Page 101</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Avenir', 'Nunito Sans', sans-serif;
       background: #f3f4f6;
+      padding: 2rem;
+      margin: 0;
+      color: #000;
+    }
+
+    h2 { text-align: center; color: #084a58; }
+
+    .form-note {
+      color: #084a58;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    /* Layout proportions */
+    .container {
       display: flex;
-      gap: 20px;
-      padding: 20px;
+      gap: 1rem;            /* tight, consistent gap */
+      align-items: flex-start;
     }
-    .left {
-      flex: 1;
+    .left-pane {
+      flex: 0 0 45%;
+      max-width: 45%;
     }
-    .left img {
+    .left-pane img {
       width: 100%;
-      max-width: 600px;
       height: auto;
-      display: block;
-    }
-    .right {
-      flex: 1;
-      max-width: 700px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    textarea, input[type="text"], input[type="number"], select {
-      width: 100%;
-      padding: 10px;
-    }
-    .stakeholder, .score-box {
-      padding: 10px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #fff;
-    }
-    .footer-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    label.description {
       display: block;
-      font-size: 14px;
-      margin-bottom: 5px;
-      font-weight: bold;
     }
-    .multiplier-box {
+    .right-pane {
+      flex: 1 1 55%;
+      max-width: 55%;
+    }
+
+    /* Card */
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    p { line-height: 1.5; }
+
+    /* Button group (dark teal) */
+    .button-group {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 1rem;
     }
+    .button-group button {
+      flex: 1;
+      min-width: 160px;
+      background-color: #084a58;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .button-group button:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
-  <div class="left">
-    <img src="/page-101.jpg" alt="Exercise 14 Page 101">
+  <h2>Exercise 14 – Page 101</h2>
+  <div class="form-note">
+    Reference page. Review the content on the left and use the buttons below to navigate.
   </div>
-  <div class="right">
-    <h3>Credibility Cryptocurrency Withdrawal #2</h3>
-    <textarea id="interactionDescription" rows="3"></textarea>
 
-    <div id="stakeholders"></div>
+  <div class="container">
+    <div class="left-pane">
+      <img src="/page-101.jpg" alt="Exercise 14 Page 101">
+    </div>
 
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <button onclick="calculateScores()">Calculate Score</button>
-      <div class="score-box" style="flex: 1;">
-        <label>Total Influence/Impact Score</label>
-        <input type="text" id="impactScore" readonly />
+    <div class="right-pane">
+      <div class="card">
+        <p>
+          This page is informational and does not collect inputs. Use the navigation buttons to go
+          back, continue, print, or jump to the table of contents.
+        </p>
+
+        <div class="button-group">
+          <button type="button" onclick="goBack()">⬅ Back One Page</button>
+          <button type="button" onclick="window.print()">🖨️ Print</button>
+          <button type="button" onclick="goToTOC()">Go to the Table of Contents</button>
+          <button type="button" onclick="goNext()">➡ Next</button>
+        </div>
       </div>
-    </div>
-
-    <div class="multiplier-box">
-      <label class="description">Reputation Damage Multiplier</label>
-      <select id="damageMultiplier">
-        <option value="500">6 months</option>
-        <option value="1000">1 year</option>
-      </select>
-    </div>
-
-    <div class="multiplier-box">
-      <label class="description">Reputation Rehab Multiplier</label>
-      <input type="number" id="rehabMultiplier" inputmode="numeric" />
-    </div>
-
-    <button style="padding: 10px 16px; font-size: 16px;" onclick="calculateScores()">Calculate Total Credibility Cryptocurrency Withdrawal</button>
-
-    <div class="score-box">
-      <label>Total Credibility Cryptocurrency Withdrawal</label>
-      <input type="text" id="cryptoWithdrawal" readonly />
-      <small>These withdrawals are subjective and theoretical scores, not actual currency numbers.</small>
-    </div>
-
-    <div class="footer-buttons">
-      <button onclick="location.href='page-100.html'">⭠ Back One Page</button>
-      <button onclick="saveData()">📄 Save</button>
-      <button onclick="saveAndNext()">➡ Save & Go to Page 102</button>
-      <button onclick="window.print()">🖸️ Print</button>
     </div>
   </div>
 
   <script>
-    const { createClient } = supabase;
-    const client = createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-    );
-    window.supabase = client;
-
-    const stakeholderLabels = [1, 2, 3, 4, 5, 6];
-
-    function createStakeholderSection(n) {
-      return `
-        <div class="stakeholder">
-          <label>Stakeholder #${n} (name/description)</label>
-          <input type="text" id="stakeholder${n}" />
-          <p>Check all that apply:</p>
-          <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
-          <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
-          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform & Educate (1)</label>
-        </div>`;
-    }
-
-    document.getElementById("stakeholders").innerHTML = stakeholderLabels.map(createStakeholderSection).join('');
-
-    function calculateScores() {
-      let total = 0;
-      stakeholderLabels.forEach(n => {
-        document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
-          total += parseInt(cb.value);
-        });
-      });
-      document.getElementById("impactScore").value = total;
-
-      const damage = parseInt(document.getElementById("damageMultiplier").value) || 0;
-      const rehab = parseInt(document.getElementById("rehabMultiplier").value) || 0;
-      document.getElementById("cryptoWithdrawal").value = total * damage * rehab * -1;
-    }
-
-    async function saveData() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) return alert("User not authenticated");
-
-      const payload = {
-        user_id: user.id,
-        interaction_description: document.getElementById("interactionDescription").value,
-        impact_score: parseInt(document.getElementById("impactScore").value) || 0,
-        damage_multiplier: parseInt(document.getElementById("damageMultiplier").value) || 0,
-        rehab_multiplier: parseInt(document.getElementById("rehabMultiplier").value) || 0,
-        crypto_withdrawal: parseInt(document.getElementById("cryptoWithdrawal").value) || 0
-      };
-
-      stakeholderLabels.forEach(n => {
-        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value;
-        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
-          .filter(cb => cb.checked)
-          .map(cb => parseInt(cb.value));
-      });
-
-      const { error } = await supabase.from("exercise14_page101").upsert([payload], { onConflict: ['user_id'] });
-      if (error) alert("Save failed: " + error.message);
-      else alert("Save successful!");
-    }
-
-    async function loadData() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) return;
-
-      const { data, error } = await supabase.from("exercise14_page101").select("*").eq("user_id", user.id).single();
-      if (error || !data) return;
-
-      document.getElementById("interactionDescription").value = data.interaction_description || "";
-      document.getElementById("impactScore").value = data.impact_score || "";
-      document.getElementById("damageMultiplier").value = data.damage_multiplier || "500";
-      document.getElementById("rehabMultiplier").value = data.rehab_multiplier || "";
-      document.getElementById("cryptoWithdrawal").value = data.crypto_withdrawal || "";
-
-      stakeholderLabels.forEach(n => {
-        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
-        const savedScores = data[`stakeholder${n}_scores`] || [];
-        document.querySelectorAll(`.score${n}`).forEach(cb => {
-          cb.checked = savedScores.includes(parseInt(cb.value));
-        });
-      });
-    }
-
-    async function saveAndNext() {
-      await saveData();
-      location.href = '/#page/102';
-    }
-
-    loadData();
+    function goBack() { window.location.href = "/page-100.html"; }
+    function goToTOC() { window.location.href = "/page-3.html"; }
+    function goNext() { window.location.href = "/#page/102"; } // non-interactive next step
   </script>
 </body>
 </html>
