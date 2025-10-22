@@ -197,10 +197,19 @@
   </div>
 
   <script>
+    // Create the client (same pattern used elsewhere)
     const supabase = window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyNH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
+
+    // More robust user fetch: prefer getSession(), fall back to getUser()
+    async function getCurrentUser() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) return session.user;
+      const { data: { user } } = await supabase.auth.getUser();
+      return user ?? null;
+    }
 
     const stakeholderLabels = [1, 2, 3, 4, 5, 6];
 
@@ -224,7 +233,7 @@
         stakeholderLabels.map(createStakeholderSection).join('');
 
       // Load any existing data
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getCurrentUser();
       if (!user) return;
 
       const { data } = await supabase
@@ -270,7 +279,7 @@
       status.textContent = "";
       status.style.color = "#084a58";
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getCurrentUser();
       if (!user) {
         status.textContent = "❌ User not authenticated.";
         status.style.color = "red";
@@ -308,7 +317,7 @@
 
     async function saveAndNext() {
       await saveData();
-      window.location.href = "/#page/101";
+      window.location.href = "/page-101.html";
     }
 
     function goBack() { window.location.href = "/page-99.html"; }
