@@ -1,34 +1,28 @@
-// components/Flipbook.js
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 export default function Flipbook() {
-  const router = useRouter();
   const totalPages = 109;
+  const router = useRouter();
 
-  // Pages that should open interactive HTML files
-  const interactivePages = useMemo(
-    () =>
-      new Set([
-        3,
-        16, 17, 18, 19, 20, 21,
-        26, 27, 28, 29, 30, 31,
-        34,
-        36, 37, 38, 39, 40, 41,
-        48,
-        53, 54,
-        65, 66, 67, 68, 69, 70,
-        72,
-        74,
-        82, 83, 84,
-        87, 88, 89,
-        91,
-        94, 95, 96,
-        99, 100, 101,
-        104
-      ]),
-    []
-  );
+  const interactivePages = new Set([
+    3,
+    16, 17, 18, 19, 20, 21,
+    26, 27, 28, 29, 30, 31,
+    34,
+    36, 37, 38, 39, 40, 41,
+    48,
+    53, 54,
+    65, 66, 67, 68, 69, 70,
+    72,
+    74,
+    82, 83, 84,
+    87, 88, 89,
+    91,
+    94, 95, 96,
+    99, 100, 101,
+    104
+  ]);
 
   const getInitialPage = () => {
     if (typeof window !== 'undefined') {
@@ -47,16 +41,8 @@ export default function Flipbook() {
   useEffect(() => {
     if (interactivePages.has(page)) {
       router.push(`/page-${page}.html`);
-      return;
     }
-    // keep hash in sync so reloads/bookmarks work
-    if (typeof window !== 'undefined') {
-      const desired = `#page/${page}`;
-      if (window.location.hash !== desired) {
-        window.location.hash = desired;
-      }
-    }
-  }, [page, router, interactivePages]);
+  }, [page, router]);
 
   if (interactivePages.has(page)) return null;
 
@@ -65,6 +51,7 @@ export default function Flipbook() {
 
   const imageUrl = `/page-${page}.jpg`;
 
+  // Shared style for ALL nav controls (buttons AND the TOC link)
   const baseBtn = {
     padding: '0.6rem 1.2rem',
     backgroundColor: '#084a58',
@@ -86,7 +73,7 @@ export default function Flipbook() {
       style={{
         textAlign: 'center',
         padding: '1rem',
-        fontFamily: 'Avenir, "Nunito Sans", sans-serif',
+        fontFamily: 'Avenir, "Nunito Sans", sans-serif', // ensure consistent font everywhere
         color: '#000'
       }}
     >
@@ -126,9 +113,7 @@ export default function Flipbook() {
             ⬅ Back
           </button>
 
-          <span style={{ margin: '0 1rem' }}>
-            Page {page} of {totalPages}
-          </span>
+          <span style={{ margin: '0 1rem' }}>Page {page} of {totalPages}</span>
 
           <button
             onClick={goNext}
@@ -147,7 +132,10 @@ export default function Flipbook() {
           href="/page-3.html"
           role="button"
           tabIndex={0}
-          style={{ ...baseBtn, marginTop: '1rem' }}
+          style={{
+            ...baseBtn,
+            marginTop: '1rem'
+          }}
         >
           Go to the Table of Contents
         </a>
