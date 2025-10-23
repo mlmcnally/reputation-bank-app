@@ -1,22 +1,12 @@
-// pages/flipbook.js (or wherever this component lives)
+// components/Flipbook.js
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  'https://nidxvthbowdgdfuopmzk.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-);
 
 export default function Flipbook() {
   const router = useRouter();
   const totalPages = 109;
 
-  // 🔒 Auth gate state
-  const [authed, setAuthed] = useState(false); // render only after we verify
-  const [checking, setChecking] = useState(true);
-
-  // ✅ Pages that should open interactive HTML files
+  // Pages that should open interactive HTML files
   const interactivePages = useMemo(
     () =>
       new Set([
@@ -40,45 +30,6 @@ export default function Flipbook() {
     []
   );
 
-  // 🔒 Auth check on mount + react to sign-out
-  useEffect(() => {
-    let mounted = true;
-
-    async function guard() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!mounted) return;
-
-      if (!session?.user) {
-        // Not logged in → go to login page
-        router.replace('/login.html');
-        return;
-      }
-
-      setAuthed(true);
-      setChecking(false);
-    }
-
-    guard();
-
-    // If the user signs out anywhere, boot them to login
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user) {
-        router.replace('/login.html');
-      }
-    });
-
-    return () => {
-      mounted = false;
-      sub?.subscription?.unsubscribe?.();
-    };
-  }, [router]);
-
-  // ⛔ Until we know auth state, render nothing (avoids flicker)
-  if (checking) return null;
-  if (!authed) return null;
-
-  // ===== Flipbook logic (unchanged) =====
-
   const getInitialPage = () => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash;
@@ -96,9 +47,10 @@ export default function Flipbook() {
   useEffect(() => {
     if (interactivePages.has(page)) {
       router.push(`/page-${page}.html`);
+      return;
     }
     // keep hash in sync so reloads/bookmarks work
-    if (typeof window !== 'undefined' && !interactivePages.has(page)) {
+    if (typeof window !== 'undefined') {
       const desired = `#page/${page}`;
       if (window.location.hash !== desired) {
         window.location.hash = desired;
@@ -113,7 +65,6 @@ export default function Flipbook() {
 
   const imageUrl = `/page-${page}.jpg`;
 
-  // Shared style for ALL nav controls (buttons AND the TOC link)
   const baseBtn = {
     padding: '0.6rem 1.2rem',
     backgroundColor: '#084a58',
@@ -175,7 +126,9 @@ export default function Flipbook() {
             ⬅ Back
           </button>
 
-          <span style={{ margin: '0 1rem' }}>Page {page} of {totalPages}</span>
+          <span style={{ margin: '0 1rem' }}>
+            Page {page} of {totalPages}
+          </span>
 
           <button
             onClick={goNext}
@@ -194,10 +147,7 @@ export default function Flipbook() {
           href="/page-3.html"
           role="button"
           tabIndex={0}
-          style={{
-            ...baseBtn,
-            marginTop: '1rem'
-          }}
+          style={{ ...baseBtn, marginTop: '1rem' }}
         >
           Go to the Table of Contents
         </a>
