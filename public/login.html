@@ -35,25 +35,7 @@
 
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
-    let redirecting = false; // prevent infinite loop
 
-    // ✅ Check session safely (debounced)
-    async function checkSessionAndRedirect() {
-      if (redirecting) return;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        redirecting = true;
-        console.log("✅ Session found, redirecting to flipbook...");
-        setTimeout(() => {
-          window.location.replace("/#page/1");
-        }, 500);
-      }
-    }
-
-    // Initial delayed check
-    setTimeout(checkSessionAndRedirect, 800);
-
-    // ✅ Handle login form
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       errorMessage.style.display = 'none';
@@ -73,11 +55,9 @@
       }
 
       console.log("✅ Login successful for:", data.user.email);
-
-      // Wait for Supabase session propagation
       setTimeout(() => {
-        window.location.replace("/#page/1");
-      }, 800);
+        window.location.href = "/#page/1";
+      }, 300);
     });
   </script>
 </body>
