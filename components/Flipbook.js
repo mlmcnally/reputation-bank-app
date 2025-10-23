@@ -1,28 +1,83 @@
-import { useState, useEffect } from 'react';
+// pages/flipbook.js (or wherever this component lives)
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  'https://nidxvthbowdgdfuopmzk.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+);
 
 export default function Flipbook() {
-  const totalPages = 109;
   const router = useRouter();
+  const totalPages = 109;
 
-  const interactivePages = new Set([
-    3,
-    16, 17, 18, 19, 20, 21,
-    26, 27, 28, 29, 30, 31,
-    34,
-    36, 37, 38, 39, 40, 41,
-    48,
-    53, 54,
-    65, 66, 67, 68, 69, 70,
-    72,
-    74,
-    82, 83, 84,
-    87, 88, 89,
-    91,
-    94, 95, 96,
-    99, 100, 101,
-    104
-  ]);
+  // 🔒 Auth gate state
+  const [authed, setAuthed] = useState(false); // render only after we verify
+  const [checking, setChecking] = useState(true);
+
+  // ✅ Pages that should open interactive HTML files
+  const interactivePages = useMemo(
+    () =>
+      new Set([
+        3,
+        16, 17, 18, 19, 20, 21,
+        26, 27, 28, 29, 30, 31,
+        34,
+        36, 37, 38, 39, 40, 41,
+        48,
+        53, 54,
+        65, 66, 67, 68, 69, 70,
+        72,
+        74,
+        82, 83, 84,
+        87, 88, 89,
+        91,
+        94, 95, 96,
+        99, 100, 101,
+        104
+      ]),
+    []
+  );
+
+  // 🔒 Auth check on mount + react to sign-out
+  useEffect(() => {
+    let mounted = true;
+
+    async function guard() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mounted) return;
+
+      if (!session?.user) {
+        // Not logged in → go to login page
+        router.replace('/login.html');
+        return;
+      }
+
+      setAuthed(true);
+      setChecking(false);
+    }
+
+    guard();
+
+    // If the user signs out anywhere, boot them to login
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        router.replace('/login.html');
+      }
+    });
+
+    return () => {
+      mounted = false;
+      sub?.subscription?.unsubscribe?.();
+    };
+  }, [router]);
+
+  // ⛔ Until we know auth state, render nothing (avoids flicker)
+  if (checking) return null;
+  if (!authed) return null;
+
+  // ===== Flipbook logic (unchanged) =====
 
   const getInitialPage = () => {
     if (typeof window !== 'undefined') {
@@ -42,7 +97,14 @@ export default function Flipbook() {
     if (interactivePages.has(page)) {
       router.push(`/page-${page}.html`);
     }
-  }, [page, router]);
+    // keep hash in sync so reloads/bookmarks work
+    if (typeof window !== 'undefined' && !interactivePages.has(page)) {
+      const desired = `#page/${page}`;
+      if (window.location.hash !== desired) {
+        window.location.hash = desired;
+      }
+    }
+  }, [page, router, interactivePages]);
 
   if (interactivePages.has(page)) return null;
 
@@ -73,7 +135,7 @@ export default function Flipbook() {
       style={{
         textAlign: 'center',
         padding: '1rem',
-        fontFamily: 'Avenir, "Nunito Sans", sans-serif', // ensure consistent font everywhere
+        fontFamily: 'Avenir, "Nunito Sans", sans-serif',
         color: '#000'
       }}
     >
