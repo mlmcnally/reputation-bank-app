@@ -24,7 +24,7 @@
     /* Layout proportions */
     .container {
       display: flex;
-      gap: 1rem;            /* tight, consistent gap */
+      gap: 1rem; /* tight, consistent gap */
       align-items: flex-start;
     }
     .left-pane {
@@ -51,9 +51,12 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
-    p { line-height: 1.5; margin: 0 0 0.5rem; }
+    p {
+      line-height: 1.5;
+      margin: 0 0 1rem;
+    }
 
-    /* Button group (dark teal) */
+    /* Button group (dark teal theme) */
     .button-group {
       display: flex;
       flex-wrap: wrap;
@@ -87,7 +90,7 @@
 
   <div class="container">
     <div class="left-pane">
-      <img src="/page-101.jpg" alt="Exercise 14 Page 101">
+      <img src="/page-101.jpg" alt="Exercise 14 Page 101" />
     </div>
 
     <div class="right-pane">
@@ -109,8 +112,8 @@
 
   <script>
     function goBack() { window.location.href = "/page-100.html"; }
+    function goNext() { window.location.href = "/#page/102"; }
     function goToTOC() { window.location.href = "/page-3.html"; }
-    function goNext() { window.location.href = "/#page/102"; } // non-interactive next step
   </script>
 </body>
 </html>
