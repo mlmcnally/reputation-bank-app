@@ -28,7 +28,13 @@
   <div id="error-message" style="margin-top:15px; color:red; display:none;"></div>
 
   <script>
-    const supabase = window.supabase.createClient(
+  window.addEventListener('DOMContentLoaded', async function () {
+    // Strip any leftover hash (#page/1) from the login URL
+    if (location.hash) {
+      history.replaceState(null, '', `${location.origin}/login.html`);
+    }
+
+    const supabaseClient = window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
@@ -36,29 +42,38 @@
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
 
+    // If already logged in, go to the app
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session?.user) {
+      window.location.replace(`${location.origin}/`);
+      return;
+    }
+
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       errorMessage.style.display = 'none';
 
       const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
+      const password = document.getElementById('password').value;
 
-      console.log("🟡 Attempting login for:", email);
+      // Optional UX: disable button while logging in
+      const btn = loginForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
-        console.error("❌ Login failed:", error);
         errorMessage.textContent = error.message;
         errorMessage.style.display = 'block';
+        btn.disabled = false;
         return;
       }
 
-      console.log("✅ Login successful for:", data.user.email);
-      setTimeout(() => {
-        window.location.href = "/#page/1";
-      }, 300);
+      // Success → go to app root (absolute URL, no hash)
+      window.location.replace(`${location.origin}/`);
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>
