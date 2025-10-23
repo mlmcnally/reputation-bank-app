@@ -17,6 +17,7 @@ export default function Home() {
 
     const LOGIN_URL = `${window.location.origin}/login.html`;
 
+    // ---- First-load grace window (avoid bounce during silent restore) ----
     const GRACE_MS = 2000;
     const redirectTimer = setTimeout(async () => {
       if (!mounted || redirected) return;
@@ -27,33 +28,59 @@ export default function Home() {
       }
     }, GRACE_MS);
 
-    async function checkNow() {
+    // Immediate check (after a tiny delay so Supabase can hydrate)
+    (async () => {
       await new Promise(r => setTimeout(r, 150));
+      if (!mounted || redirected) return;
       const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        clearTimeout(redirectTimer);
+        if (mounted) setReady(true);
+      }
+    })();
+
+    // ---- Auth state listener (handles sign-in / sign-out / token refresh) ----
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted || redirected) return;
 
-      if (session?.user) {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
         clearTimeout(redirectTimer);
         setReady(true);
       }
-    }
 
-    checkNow();
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
-      if (!mounted || redirected) return;
-      if (session?.user) {
-        clearTimeout(redirectTimer);
-        setReady(true);
-      } else {
+      if (event === 'SIGNED_OUT') {
         redirected = true;
-        window.location.replace(LOGIN_URL); // absolute, no hash
+        setReady(false);
+        window.location.replace(LOGIN_URL);
       }
     });
+
+    // ---- Keep the session alive while the tab is open ----
+    // Refresh token every ~25 minutes (Supabase rotates/refreshes quietly)
+    const KEEP_ALIVE_MS = 25 * 60 * 1000;
+    const keepAlive = setInterval(() => {
+      // Best-effort; errors are fine (network / offline)
+      supabase.auth.refreshSession().catch(() => {});
+    }, KEEP_ALIVE_MS);
+
+    // Nudge refresh when the tab becomes visible again
+    const onVisible = async () => {
+      if (document.visibilityState === 'visible') {
+        await supabase.auth.refreshSession().catch(() => {});
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user && !redirected) {
+          redirected = true;
+          window.location.replace(LOGIN_URL);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
       mounted = false;
       clearTimeout(redirectTimer);
+      clearInterval(keepAlive);
+      document.removeEventListener('visibilitychange', onVisible);
       sub?.subscription?.unsubscribe?.();
     };
   }, []);
@@ -66,3 +93,4 @@ export default function Home() {
     </main>
   );
 }
+
