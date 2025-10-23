@@ -13,41 +13,51 @@ export default function Home() {
 
   useEffect(() => {
     let mounted = true;
+    let redirected = false;
 
-    async function check() {
-      // small hydration delay so Supabase can restore session
-      await new Promise(r => setTimeout(r, 300));
+    const LOGIN_URL = `${window.location.origin}/login.html`;
 
+    const GRACE_MS = 2000;
+    const redirectTimer = setTimeout(async () => {
+      if (!mounted || redirected) return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (!mounted) return;
+      if (!session?.user) {
+        redirected = true;
+        window.location.replace(LOGIN_URL); // absolute, no hash
+      }
+    }, GRACE_MS);
+
+    async function checkNow() {
+      await new Promise(r => setTimeout(r, 150));
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mounted || redirected) return;
 
       if (session?.user) {
+        clearTimeout(redirectTimer);
         setReady(true);
-      } else {
-        // no session → go to login (single redirect)
-        window.location.replace('/login.html');
       }
     }
 
-    check();
+    checkNow();
 
-    // Also react to late session restores or sign-outs
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
-      if (!mounted) return;
+      if (!mounted || redirected) return;
       if (session?.user) {
+        clearTimeout(redirectTimer);
         setReady(true);
       } else {
-        window.location.replace('/login.html');
+        redirected = true;
+        window.location.replace(LOGIN_URL); // absolute, no hash
       }
     });
 
     return () => {
       mounted = false;
+      clearTimeout(redirectTimer);
       sub?.subscription?.unsubscribe?.();
     };
   }, []);
 
-  // Don’t render until we know auth state
   if (!ready) return null;
 
   return (
