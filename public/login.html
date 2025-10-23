@@ -38,17 +38,17 @@
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
 
-    // ✅ Step 1: Skip login if already authenticated
+    // ✅ Step 1: If already logged in, skip to flipbook
     document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        console.log("✅ Already logged in, redirecting to flipbook...");
-        window.location.href = "/flipbook";  // Go straight to flipbook
+        console.log("✅ Already logged in, redirecting to page 1...");
+        window.location.href = "/#page/1";  // redirect directly to first flipbook page
         return;
       }
     });
 
-    // ✅ Step 2: Handle form submission
+    // ✅ Step 2: Handle login
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       errorMessage.style.display = 'none';
@@ -72,9 +72,9 @@
 
       console.log("✅ Login successful for:", data.user.email);
 
-      // ✅ Step 3: Wait briefly to ensure session cookie sets, then redirect
+      // ✅ Short delay ensures Supabase cookie/session finishes setting
       setTimeout(() => {
-        window.location.href = "/flipbook"; // or "/#page/1" if you prefer starting there
+        window.location.href = "/#page/1"; // start flipbook
       }, 500);
     });
   </script>
