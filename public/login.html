@@ -7,27 +7,25 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body style="font-family: 'Avenir', 'Nunito Sans', sans-serif; background: #f3f4f6; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: #084a58;">
+<body style="font-family: 'Avenir','Nunito Sans',sans-serif; background:#f3f4f6; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; color:#084a58;">
 
-  <h1 style="margin-bottom: 1rem;">Login to Your Account</h1>
+  <h1 style="margin-bottom:1rem;">Login to Your Account</h1>
 
-  <form id="login-form" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); width: 300px;">
-    <div style="margin-bottom: 15px;">
-      <label for="email" style="font-weight: 600;">Email:</label>
-      <input type="email" id="email" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" />
+  <form id="login-form" style="background:white; padding:20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:300px;">
+    <div style="margin-bottom:15px;">
+      <label for="email" style="font-weight:600;">Email:</label>
+      <input type="email" id="email" required style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px;" />
     </div>
-
-    <div style="margin-bottom: 15px;">
-      <label for="password" style="font-weight: 600;">Password:</label>
-      <input type="password" id="password" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" />
+    <div style="margin-bottom:15px;">
+      <label for="password" style="font-weight:600;">Password:</label>
+      <input type="password" id="password" required style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px;" />
     </div>
-
-    <button type="submit" style="width: 100%; padding: 10px; background-color: #084a58; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+    <button type="submit" style="width:100%; padding:10px; background-color:#084a58; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
       Login
     </button>
   </form>
 
-  <div id="error-message" style="margin-top: 15px; color: red; display: none;"></div>
+  <div id="error-message" style="margin-top:15px; color:red; display:none;"></div>
 
   <script>
     const supabase = window.supabase.createClient(
@@ -37,18 +35,25 @@
 
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
+    let redirecting = false; // prevent infinite loop
 
-    // ✅ Step 1: If already logged in, skip to flipbook
-    document.addEventListener('DOMContentLoaded', async () => {
+    // ✅ Check session safely (debounced)
+    async function checkSessionAndRedirect() {
+      if (redirecting) return;
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        console.log("✅ Already logged in, redirecting to page 1...");
-        window.location.href = "/#page/1";  // redirect directly to first flipbook page
-        return;
+        redirecting = true;
+        console.log("✅ Session found, redirecting to flipbook...");
+        setTimeout(() => {
+          window.location.replace("/#page/1");
+        }, 500);
       }
-    });
+    }
 
-    // ✅ Step 2: Handle login
+    // Initial delayed check
+    setTimeout(checkSessionAndRedirect, 800);
+
+    // ✅ Handle login form
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       errorMessage.style.display = 'none';
@@ -58,10 +63,7 @@
 
       console.log("🟡 Attempting login for:", email);
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         console.error("❌ Login failed:", error);
@@ -72,10 +74,10 @@
 
       console.log("✅ Login successful for:", data.user.email);
 
-      // ✅ Short delay ensures Supabase cookie/session finishes setting
+      // Wait for Supabase session propagation
       setTimeout(() => {
-        window.location.href = "/#page/1"; // start flipbook
-      }, 500);
+        window.location.replace("/#page/1");
+      }, 800);
     });
   </script>
 </body>
