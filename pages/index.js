@@ -13,20 +13,43 @@ export default function Home() {
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
+
+    async function check() {
+      // small hydration delay so Supabase can restore session
+      await new Promise(r => setTimeout(r, 300));
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!mounted) return;
-      if (!session?.user) {
-        // no session → go to login (one redirect, no loop)
-        window.location.replace('/login.html');
-      } else {
+
+      if (session?.user) {
         setReady(true);
+      } else {
+        // no session → go to login (single redirect)
+        window.location.replace('/login.html');
       }
-    })();
-    return () => { mounted = false; };
+    }
+
+    check();
+
+    // Also react to late session restores or sign-outs
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
+      if (!mounted) return;
+      if (session?.user) {
+        setReady(true);
+      } else {
+        window.location.replace('/login.html');
+      }
+    });
+
+    return () => {
+      mounted = false;
+      sub?.subscription?.unsubscribe?.();
+    };
   }, []);
 
-  if (!ready) return null; // don't render until auth check is done
+  // Don’t render until we know auth state
+  if (!ready) return null;
+
   return (
     <main style={{ padding: '1rem' }}>
       <Flipbook />
