@@ -5,75 +5,172 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login - The Reputation Bank</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Avenir, "Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #f3f4f6; margin: 0; min-height: 100vh;
+      display: grid; place-items: center;
+      color: #111;
+    }
+    .card {
+      width: 340px; max-width: 92vw;
+      background: #fff; border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      padding: 20px;
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 8px; color: #084a58; text-align: center; }
+    .tabs { display: flex; gap: 6px; margin: 10px 0 16px; }
+    .tab {
+      flex: 1; text-align: center; padding: 8px 10px; border-radius: 6px;
+      cursor: pointer; border: 1px solid #cbd5e1; background: #f8fafc;
+      user-select: none; font-weight: 600;
+    }
+    .tab.active { background: #084a58; color: #fff; border-color: #084a58; }
+    label { display: block; font-size: .9rem; margin: 10px 0 6px; font-weight: 600; color: #084a58; }
+    input[type="email"], input[type="password"] {
+      width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;
+    }
+    .btn {
+      width: 100%; padding: 10px 14px; border: 0; border-radius: 6px;
+      background: #084a58; color: #fff; font-weight: 700; cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0,0,0,.2); margin-top: 12px;
+    }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    .muted { color: #475569; font-size: .9rem; }
+    .link { color: #084a58; font-weight: 600; text-decoration: none; cursor: pointer; }
+    .status { margin-top: 10px; font-weight: 600; text-align: center; }
+    .status.ok { color: #0a7c4a; }
+    .status.err { color: #b91c1c; }
+  </style>
 </head>
-
-<body style="font-family: 'Avenir','Nunito Sans',sans-serif; background:#f3f4f6; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; color:#084a58;">
-
-  <h1 style="margin-bottom:1rem;">Login to Your Account</h1>
-
-  <form id="login-form" style="background:white; padding:20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:300px;">
-    <div style="margin-bottom:15px;">
-      <label for="email" style="font-weight:600;">Email:</label>
-      <input type="email" id="email" required style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px;" />
+<body>
+  <div class="card">
+    <h1>The Reputation Bank</h1>
+    <div class="tabs">
+      <div id="tab-signin" class="tab active">Sign in</div>
+      <div id="tab-signup" class="tab">Create account</div>
     </div>
-    <div style="margin-bottom:15px;">
-      <label for="password" style="font-weight:600;">Password:</label>
-      <input type="password" id="password" required style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px;" />
-    </div>
-    <button type="submit" style="width:100%; padding:10px; background-color:#084a58; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
-      Login
-    </button>
-  </form>
 
-  <div id="error-message" style="margin-top:15px; color:red; display:none;"></div>
+    <!-- Sign in -->
+    <form id="form-signin">
+      <label for="si-email">Email</label>
+      <input id="si-email" type="email" autocomplete="email" required />
+      <label for="si-password">Password</label>
+      <input id="si-password" type="password" autocomplete="current-password" required />
+      <button id="btn-signin" class="btn" type="submit">Sign in</button>
+      <div style="margin-top:10px; text-align:center;">
+        <a id="forgot" class="link">Forgot your password?</a>
+      </div>
+    </form>
+
+    <!-- Sign up -->
+    <form id="form-signup" style="display:none;">
+      <label for="su-email">Email</label>
+      <input id="su-email" type="email" autocomplete="email" required />
+      <label for="su-password">Password</label>
+      <input id="su-password" type="password" autocomplete="new-password" required />
+      <button id="btn-signup" class="btn" type="submit">Create account</button>
+      <p class="muted" style="margin-top:8px;">
+        You’ll receive a confirmation or a sign-in session depending on your Supabase settings.
+      </p>
+    </form>
+
+    <div id="status" class="status"></div>
+  </div>
 
   <script>
-  window.addEventListener('DOMContentLoaded', async function () {
-    // Strip any leftover hash (#page/1) from the login URL
-    if (location.hash) {
-      history.replaceState(null, '', `${location.origin}/login.html`);
-    }
+    window.addEventListener('DOMContentLoaded', async () => {
+      // 💨 Clean any hash that rides along (/#page/1 → /login.html)
+      if (location.hash) {
+        history.replaceState(null, '', `${location.origin}/login.html`);
+      }
 
-    const supabaseClient = window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-    );
+      const supabase = window.supabase.createClient(
+        'https://nidxvthbowdgdfuopmzk.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+      );
 
-    const loginForm = document.getElementById('login-form');
-    const errorMessage = document.getElementById('error-message');
+      const status = document.getElementById('status');
+      const tabSignin = document.getElementById('tab-signin');
+      const tabSignup = document.getElementById('tab-signup');
+      const formSignin = document.getElementById('form-signin');
+      const formSignup = document.getElementById('form-signup');
 
-    // If already logged in, go to the app
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session?.user) {
-      window.location.replace(`${location.origin}/`);
-      return;
-    }
+      function setStatus(msg, ok=false) {
+        status.textContent = msg || '';
+        status.className = 'status ' + (msg ? (ok ? 'ok' : 'err') : '');
+      }
+      function switchTab(which) {
+        if (which === 'in') {
+          tabSignin.classList.add('active'); tabSignup.classList.remove('active');
+          formSignin.style.display = ''; formSignup.style.display = 'none';
+        } else {
+          tabSignup.classList.add('active'); tabSignin.classList.remove('active');
+          formSignup.style.display = ''; formSignin.style.display = 'none';
+        }
+        setStatus('');
+      }
+      tabSignin.addEventListener('click', () => switchTab('in'));
+      tabSignup.addEventListener('click', () => switchTab('up'));
 
-    loginForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      errorMessage.style.display = 'none';
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      // Optional UX: disable button while logging in
-      const btn = loginForm.querySelector('button[type="submit"]');
-      btn.disabled = true;
-
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        errorMessage.textContent = error.message;
-        errorMessage.style.display = 'block';
-        btn.disabled = false;
+      // If already logged in, go to app
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        window.location.replace(`${location.origin}/`);
         return;
       }
 
-      // Success → go to app root (absolute URL, no hash)
-      window.location.replace(`${location.origin}/`);
-    });
-  });
-</script>
+      // Sign in
+      formSignin.addEventListener('submit', async (e) => {
+        e.preventDefault(); setStatus('');
+        const btn = document.getElementById('btn-signin'); btn.disabled = true;
+        const email = document.getElementById('si-email').value.trim();
+        const password = document.getElementById('si-password').value;
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        btn.disabled = false;
+        if (error) return setStatus(error.message);
+        window.location.replace(`${location.origin}/`);
+      });
 
+      // Sign up
+      formSignup.addEventListener('submit', async (e) => {
+        e.preventDefault(); setStatus('');
+        const btn = document.getElementById('btn-signup'); btn.disabled = true;
+        const email = document.getElementById('su-email').value.trim();
+        const password = document.getElementById('su-password').value;
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: {
+            // If you require email confirmations, set redirect to login (or flipbook root).
+            emailRedirectTo: `${location.origin}/login.html`
+          }
+        });
+        btn.disabled = false;
+        if (error) return setStatus(error.message);
+        // If email confirmation is ON, user must confirm; otherwise they may be signed in immediately.
+        setStatus(
+          data.user?.identities?.length
+            ? 'Account created. Check your inbox to confirm (if required).'
+            : 'If your project does not require confirmations, you are signed in.',
+          true
+        );
+        // If Supabase already started a session (no confirmations), send to app
+        const { data: now } = await supabase.auth.getSession();
+        if (now?.session?.user) window.location.replace(`${location.origin}/`);
+      });
+
+      // Forgot password
+      document.getElementById('forgot').addEventListener('click', async () => {
+        setStatus('');
+        const email = document.getElementById('si-email').value.trim();
+        if (!email) return setStatus('Enter your email above first.');
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${location.origin}/reset-password.html`
+        });
+        if (error) return setStatus(error.message);
+        setStatus('Password reset email sent. Check your inbox.', true);
+      });
+    });
+  </script>
 </body>
 </html>
