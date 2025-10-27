@@ -2,7 +2,10 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 export default function Subscribe() {
   const [loading, setLoading] = useState(false);
@@ -19,7 +22,7 @@ export default function Subscribe() {
     })();
   }, []);
 
-    async function beginCheckout() {
+  async function beginCheckout() {
     setLoading(true);
     const { data: { session } } = await supabase.auth.getSession();
     const resp = await fetch('/api/create-checkout-session', {
@@ -39,7 +42,11 @@ export default function Subscribe() {
     <main style={{maxWidth: 600, margin: '2rem auto', fontFamily: 'Avenir, "Nunito Sans", sans-serif'}}>
       <h2>The Reputation Bank — 1-Year License</h2>
       <p>Purchase a one-year license to unlock the app.</p>
-      <button onClick={beginCheckout} disabled={loading} style={{padding:'10px 16px', background:'#084a58', color:'#fff', border:'none', borderRadius:4}}>
+      <button
+        onClick={beginCheckout}
+        disabled={loading}
+        style={{padding:'10px 16px', background:'#084a58', color:'#fff', border:'none', borderRadius:4}}
+      >
         {loading ? 'Starting checkout…' : 'Buy Now'}
       </button>
     </main>
