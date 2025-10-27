@@ -36,11 +36,20 @@
       box-shadow: 2px 2px 5px rgba(0,0,0,.2); margin-top: 12px;
     }
     .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    .btn-outline {
+      width: 100%; padding: 10px 14px; border-radius: 6px;
+      background: #fff; color: #084a58; font-weight: 700; cursor: pointer;
+      border: 1px solid #084a58; margin-top: 10px;
+    }
     .muted { color: #475569; font-size: .9rem; }
     .link { color: #084a58; font-weight: 600; text-decoration: none; cursor: pointer; }
     .status { margin-top: 10px; font-weight: 600; text-align: center; }
     .status.ok { color: #0a7c4a; }
     .status.err { color: #b91c1c; }
+    .divider {
+      margin: 14px 0; height: 1px; background: #e5e7eb; border: 0;
+    }
+    .cta { margin-top: 6px; text-align: center; }
   </style>
 </head>
 <body>
@@ -74,6 +83,15 @@
         You’ll receive a confirmation or a sign-in session depending on your Supabase settings.
       </p>
     </form>
+
+    <!-- BUY THE APP -->
+    <hr class="divider" />
+    <div class="cta">
+      <p class="muted" style="margin:6px 0 8px;">New here and don’t have access yet?</p>
+      <a href="/pricing" class="btn-outline" style="display:inline-block; text-decoration:none; text-align:center;">
+        Buy the app
+      </a>
+    </div>
 
     <div id="status" class="status"></div>
   </div>
@@ -147,14 +165,12 @@
         });
         btn.disabled = false;
         if (error) return setStatus(error.message);
-        // If email confirmation is ON, user must confirm; otherwise they may be signed in immediately.
         setStatus(
           data.user?.identities?.length
             ? 'Account created. Check your inbox to confirm (if required).'
             : 'If your project does not require confirmations, you are signed in.',
           true
         );
-        // If Supabase already started a session (no confirmations), send to app
         const { data: now } = await supabase.auth.getSession();
         if (now?.session?.user) window.location.replace(`${location.origin}/`);
       });
