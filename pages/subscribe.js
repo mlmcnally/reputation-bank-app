@@ -19,9 +19,14 @@ export default function Subscribe() {
     })();
   }, []);
 
-  async function beginCheckout() {
+    async function beginCheckout() {
     setLoading(true);
-    const resp = await fetch('/api/create-checkout-session', { method: 'POST' });
+    const { data: { session } } = await supabase.auth.getSession();
+    const resp = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ user_id: session.user.id })
+    });
     const json = await resp.json();
     setLoading(false);
     if (json.url) window.location.href = json.url;
