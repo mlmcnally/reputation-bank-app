@@ -1,47 +1,77 @@
+// pages/api/create-checkout-session.js
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+// ----- Env checks (fail fast with clear errors) -----
+const {
+  STRIPE_SECRET_KEY,
+  NEXT_PUBLIC_STRIPE_PRICE_ID,   // recurring Price ID
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
+  NEXT_PUBLIC_SITE_URL,          // e.g. https://yourapp.vercel.app
+} = process.env;
 
-// set in Vercel env
-const PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID;
+if (!STRIPE_SECRET_KEY) throw new Error('Missing STRIPE_SECRET_KEY');
+if (!NEXT_PUBLIC_STRIPE_PRICE_ID) throw new Error('Missing NEXT_PUBLIC_STRIPE_PRICE_ID');
+if (!SUPABASE_URL) throw new Error('Missing SUPABASE_URL');
+if (!SUPABASE_SERVICE_ROLE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+if (!NEXT_PUBLIC_SITE_URL) throw new Error('Missing NEXT_PUBLIC_SITE_URL');
+
+const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { user_id } = req.body;
+    // Expect the caller to send the authenticated Supabase user id
+    const { user_id } = req.body || {};
     if (!user_id) return res.status(400).json({ error: 'Missing user_id' });
 
-    // ensure a Stripe customer
-    const { data: profile } = await supabaseAdmin
+    // Fetch (or create) a Stripe customer linked to this user_id
+    const { data: profile, error: profileErr } = await supabaseAdmin
       .from('profiles')
       .select('stripe_customer_id')
       .eq('user_id', user_id)
       .single();
 
+    if (profileErr && profileErr.code !== 'PGRST116') {
+      // not "row not found"
+      console.error('Supabase select error:', profileErr);
+      return res.status(500).json({ error: 'Failed to read profile' });
+    }
+
     let customerId = profile?.stripe_customer_id || null;
+
     if (!customerId) {
       const customer = await stripe.customers.create({ metadata: { user_id } });
       customerId = customer.id;
-      await supabaseAdmin.from('profiles')
-        .update({ stripe_customer_id: customerId })
-        .eq('user_id', user_id);
+
+      const { error: upErr } = await supabaseAdmin
+        .from('profiles')
+        .upsert({ user_id, stripe_customer_id: customerId }, { onConflict: 'user_id' });
+
+      if (upErr) {
+        console.error('Supabase upsert error:', upErr);
+        return res.status(500).json({ error: 'Failed to store Stripe customer on profile' });
+      }
     }
 
+    // Create a Checkout session for a subscription
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
-      line_items: [{ price: PRICE_ID, quantity: 1 }],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/post-purchase?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/subscribe`,
-      metadata: { user_id }
+      line_items: [{ price: NEXT_PUBLIC_STRIPE_PRICE_ID, quantity: 1 }],
+      // Send users back appropriately (tweak if you prefer different routes)
+      success_url: `${NEXT_PUBLIC_SITE_URL}/login.html#page/1?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${NEXT_PUBLIC_SITE_URL}/pricing?canceled=1`,
+      allow_promotion_codes: true,
+      metadata: { user_id },
     });
 
     return res.status(200).json({ url: session.url });
   } catch (e) {
-    console.error(e);
+    console.error('create-checkout-session error:', e);
     return res.status(500).json({ error: e.message });
   }
 }
