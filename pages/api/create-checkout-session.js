@@ -5,14 +5,15 @@ import { createClient } from '@supabase/supabase-js';
 // ----- Env checks (fail fast with clear errors) -----
 const {
   STRIPE_SECRET_KEY,
-  NEXT_PUBLIC_STRIPE_PRICE_ID,   // recurring Price ID
   SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY,
-  NEXT_PUBLIC_SITE_URL,          // e.g. https://yourapp.vercel.app
+  NEXT_PUBLIC_SITE_URL, // e.g. https://yourapp.vercel.app
 } = process.env;
 
+// ✅ Hardcode the correct Stripe Price ID here
+const NEXT_PUBLIC_STRIPE_PRICE_ID = 'price_1SLskSBAZDzPNmn2T5KB4mv5';
+
 if (!STRIPE_SECRET_KEY) throw new Error('Missing STRIPE_SECRET_KEY');
-if (!NEXT_PUBLIC_STRIPE_PRICE_ID) throw new Error('Missing NEXT_PUBLIC_STRIPE_PRICE_ID');
 if (!SUPABASE_URL) throw new Error('Missing SUPABASE_URL');
 if (!SUPABASE_SERVICE_ROLE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
 if (!NEXT_PUBLIC_SITE_URL) throw new Error('Missing NEXT_PUBLIC_SITE_URL');
@@ -36,7 +37,6 @@ export default async function handler(req, res) {
       .single();
 
     if (profileErr && profileErr.code !== 'PGRST116') {
-      // not "row not found"
       console.error('Supabase select error:', profileErr);
       return res.status(500).json({ error: 'Failed to read profile' });
     }
@@ -57,12 +57,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // Create a Checkout session for a subscription
+    // ✅ Create a Checkout session for the hardcoded price
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: NEXT_PUBLIC_STRIPE_PRICE_ID, quantity: 1 }],
-      // Send users back appropriately (tweak if you prefer different routes)
       success_url: `${NEXT_PUBLIC_SITE_URL}/login.html#page/1?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${NEXT_PUBLIC_SITE_URL}/pricing?canceled=1`,
       allow_promotion_codes: true,
