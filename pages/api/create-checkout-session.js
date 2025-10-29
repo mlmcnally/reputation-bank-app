@@ -10,7 +10,7 @@ const {
   NEXT_PUBLIC_SITE_URL, // e.g. https://yourapp.vercel.app
 } = process.env;
 
-// ✅ Hardcode the correct Stripe Price ID here
+// ✅ Hardcode the Stripe Price ID (yours)
 const NEXT_PUBLIC_STRIPE_PRICE_ID = 'price_1SLskSBAZDzPNmn2T5KB4mv5';
 
 if (!STRIPE_SECRET_KEY) throw new Error('Missing STRIPE_SECRET_KEY');
@@ -25,11 +25,10 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    // Expect the caller to send the authenticated Supabase user id
     const { user_id } = req.body || {};
     if (!user_id) return res.status(400).json({ error: 'Missing user_id' });
 
-    // Fetch (or create) a Stripe customer linked to this user_id
+    // Get or create Stripe customer
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from('profiles')
       .select('stripe_customer_id')
@@ -57,12 +56,13 @@ export default async function handler(req, res) {
       }
     }
 
-    // ✅ Create a Checkout session for the hardcoded price
+    // ✅ Create Checkout session (note the fixed URLs)
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: NEXT_PUBLIC_STRIPE_PRICE_ID, quantity: 1 }],
-      success_url: `${NEXT_PUBLIC_SITE_URL}/login.html#page/1?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
+      // Query string first, then fragment
+      success_url: `${NEXT_PUBLIC_SITE_URL}/login.html?purchase=success&session_id={CHECKOUT_SESSION_ID}#page/1`,
       cancel_url: `${NEXT_PUBLIC_SITE_URL}/pricing?canceled=1`,
       allow_promotion_codes: true,
       metadata: { user_id },
