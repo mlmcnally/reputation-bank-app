@@ -1,55 +1,113 @@
 // pages/pricing.js
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 export default function Pricing() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError]   = useState('');
+  const [priceData, setPriceData] = useState(null);
+  const [loadingPrice, setLoadingPrice] = useState(true);
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  async function startCheckout() {
-    setLoading(true);
-    setError('');
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/get-price');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load price');
+        setPriceData(data);
+      } catch (e) {
+        setErr(e.message);
+      } finally {
+        setLoadingPrice(false);
+      }
+    })();
+  }, []);
+
+  const formattedPrice = priceData
+    ? (priceData.unit_amount / 100).toLocaleString(undefined, {
+        style: 'currency',
+        currency: (priceData.currency || 'USD').toUpperCase(),
+      })
+    : '$—';
+
+  async function handleSubscribe() {
     try {
-      const res = await fetch('/api/checkout', {
+      setErr('');
+      setBusy(true);
+
+      // Require login (we need user_id for the checkout session)
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'annual' }),
+        body: JSON.stringify({ user_id: userId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Checkout failed');
-      // Redirect to Stripe Checkout
+      if (!res.ok) throw new Error(data.error || 'Failed to start checkout');
+
+      // Go to Stripe Checkout
       window.location.href = data.url;
     } catch (e) {
-      setError(e.message);
+      setErr(e.message);
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   }
 
   return (
-    <main style={{ fontFamily: 'Avenir, "Nunito Sans", sans-serif', padding: '2rem' }}>
-      <h1 style={{ color: '#084a58', textAlign: 'center' }}>Choose your plan</h1>
+    <div style={{ maxWidth: 900, margin: '2rem auto', padding: '1rem' }}>
+      <h1 style={{ color: '#084a58', textAlign: 'center', marginBottom: '1.5rem' }}>
+        Choose your plan
+      </h1>
 
-      <div style={{
-        maxWidth: 520, margin: '2rem auto', background: '#fff', borderRadius: 8,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)', padding: '1.25rem'
-      }}>
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 12,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+          padding: '2rem',
+        }}
+      >
         <h2 style={{ marginTop: 0 }}>Annual Access</h2>
         <p>One year of access to The Reputation Bank app.</p>
-        <p style={{ fontSize: 24, margin: '0.5rem 0' }}><strong>$XX / year</strong></p>
+
+        <p style={{ fontSize: '2rem', margin: '1rem 0' }}>
+          {loadingPrice ? 'Loading…' : `${formattedPrice} / ${priceData?.interval || 'year'}`}
+        </p>
 
         <button
-          onClick={startCheckout}
-          disabled={loading}
+          onClick={handleSubscribe}
+          disabled={busy || loadingPrice}
           style={{
-            background: '#084a58', color: '#fff', border: 'none',
-            padding: '0.75rem 1.25rem', borderRadius: 6, cursor: 'pointer'
+            backgroundColor: '#084a58',
+            color: '#fff',
+            border: 'none',
+            padding: '0.75rem 1.25rem',
+            borderRadius: 6,
+            cursor: busy ? 'not-allowed' : 'pointer',
+            boxShadow: '2px 2px 5px rgba(0,0,0,0.2)'
           }}
         >
-          {loading ? 'Redirecting…' : 'Subscribe'}
+          {busy ? 'Starting checkout…' : 'Subscribe'}
         </button>
 
-        {error && <p style={{ color: 'red', marginTop: 12 }}>{error}</p>}
+        {err && (
+          <p style={{ color: 'red', marginTop: '1rem' }}>
+            {err}
+          </p>
+        )}
       </div>
-    </main>
+    </div>
   );
 }
