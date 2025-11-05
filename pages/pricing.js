@@ -29,13 +29,13 @@ export default function Pricing() {
   return (
     <>
       <Head>
-        <title>The Reputation Bank – Subscribe</title>
+        <title>The Reputation Bank – Subscribe Now</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div style={styles.page}>
         <div style={styles.card}>
-          <h1 style={styles.h1}>Get Full Access</h1>
+          <h1 style={styles.h1}>Get One Year of Access</h1>
           <p>Unlock the complete interactive edition of <em>The Reputation Bank</em>.</p>
           <div style={styles.price}>$49 / year</div>
 
