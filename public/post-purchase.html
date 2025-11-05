@@ -6,81 +6,140 @@
   <title>Thank You – The Reputation Bank</title>
   <style>
     body {
-      font-family: 'Avenir', 'Nunito Sans', sans-serif;
+      font-family: Avenir, "Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       background-color: #f3f4f6;
       color: #000;
       margin: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
     }
-
     .card {
-      background: #ffffff;
+      background: #fff;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.1);
       padding: 2.5rem 3rem;
-      max-width: 520px;
+      max-width: 560px;
+      width: 92vw;
       text-align: center;
       border: 1px solid #d1d3d4;
     }
-
     h1 {
       color: #084a58;
-      margin-bottom: 0.75rem;
+      margin: 0 0 0.75rem;
       font-size: 1.8rem;
       font-weight: 700;
     }
-
-    p {
-      margin: 0.5rem 0;
-      line-height: 1.5;
-      font-size: 1rem;
+    p { margin: 0.5rem 0; line-height: 1.6; }
+    .muted { color: #555; font-size: 0.95rem; }
+    .success { color: #0a7c4a; font-weight: 700; }
+    .error { color: #b91c1c; font-weight: 700; }
+    .spinner {
+      margin: 1rem auto;
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 3px solid #d1d5db; border-top-color: #084a58;
+      animation: spin 1s linear infinite;
     }
-
-    .button-group {
-      margin-top: 1.5rem;
-    }
-
-    a.button {
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .button-group { margin-top: 1.25rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    a.button, button.button {
       display: inline-block;
       background-color: #084a58;
-      color: #ffffff;
+      color: #fff;
       text-decoration: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
-      font-weight: 600;
+      padding: 0.7rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 700;
       box-shadow: 2px 2px 4px rgba(0,0,0,0.25);
-      transition: all 0.2s ease-in-out;
-      font-size: 1rem;
+      transition: opacity .15s ease-in-out, transform .15s ease-in-out;
+      border: none; cursor: pointer;
     }
-
-    a.button:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .note {
-      margin-top: 1.25rem;
-      color: #555;
-      font-size: 0.9rem;
-    }
+    a.button:hover, button.button:hover { opacity: .9; transform: translateY(-1px); }
+    .link { color: #2ea1a8; text-decoration: none; }
+    .hidden { display: none; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; background:#f1f5f9; padding:.15rem .4rem; border-radius:4px; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Welcome to The Reputation Bank 🎉</h1>
-    <p>Thank you for subscribing! We’ve sent an email so you can set your password and sign in.</p>
-    <p>If you don’t see it in your inbox, please check your spam or promotions folder.</p>
 
-    <div class="button-group">
-      <a href="/login.html" class="button">Go to Login</a>
+    <div id="verifying">
+      <p class="muted">Verifying your purchase… this usually takes a moment.</p>
+      <div class="spinner" aria-label="Loading"></div>
     </div>
 
-    <div class="note">
-      Need help? Contact <a href="mailto:support@reputationbank.com" style="color:#2ea1a8; text-decoration:none;">support@reputationbank.com</a>
+    <div id="ok" class="hidden">
+      <p class="success">Your subscription is active.</p>
+      <p>We’ve sent an email so you can set your password and sign in.<br/>If you don’t see it, please check your spam or promotions folder.</p>
+      <div class="button-group">
+        <a href="/login.html" class="button">Go to Login</a>
+      </div>
+    </div>
+
+    <div id="pending" class="hidden">
+      <p class="muted">Your payment is still processing. Please wait a few seconds and refresh this page.</p>
+      <div class="button-group">
+        <button class="button" onclick="location.reload()">Refresh</button>
+        <a href="/pricing.html" class="button" style="background:#475569">Try Again</a>
+      </div>
+    </div>
+
+    <div id="bad" class="hidden">
+      <p class="error">We couldn’t confirm this purchase.</p>
+      <p class="muted">If you reached this page in error, please try again or contact support.<br/>
+        <span id="sidWrap" class="hidden">Session: <span id="sid" class="code"></span></span>
+      </p>
+      <div class="button-group">
+        <a href="/pricing.html" class="button" style="background:#475569">Back to Pricing</a>
+        <a href="mailto:support@reputationbank.com" class="button" style="background:#0e7490">Contact Support</a>
+      </div>
     </div>
   </div>
+
+  <script>
+    (async function () {
+      const params = new URLSearchParams(location.search);
+      const sessionId = params.get('session_id');
+
+      const $ver = document.getElementById('verifying');
+      const $ok = document.getElementById('ok');
+      const $pending = document.getElementById('pending');
+      const $bad = document.getElementById('bad');
+      const $sidWrap = document.getElementById('sidWrap');
+      const $sid = document.getElementById('sid');
+
+      function show(el) {
+        [$ver, $ok, $pending, $bad].forEach(e => e.classList.add('hidden'));
+        el.classList.remove('hidden');
+      }
+
+      if (!sessionId) {
+        show($bad);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/checkout-status?session_id=${encodeURIComponent(sessionId)}`);
+        const data = await res.json();
+
+        // data: { ok: boolean, state: 'complete'|'open'|'expired'|'processing'|..., session_id }
+        if (data.ok && data.state === 'complete') {
+          show($ok);
+        } else if (data.state === 'processing' || data.state === 'open') {
+          show($pending);
+        } else {
+          if (data.session_id) {
+            $sid.textContent = data.session_id;
+            $sidWrap.classList.remove('hidden');
+          }
+          show($bad);
+        }
+      } catch (err) {
+        console.error(err);
+        show($bad);
+      }
+    })();
+  </script>
 </body>
 </html>
