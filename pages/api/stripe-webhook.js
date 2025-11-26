@@ -3,133 +3,96 @@ import Stripe from 'stripe';
 import { buffer } from 'micro';
 import { createClient } from '@supabase/supabase-js';
 
-export const config = { api: { bodyParser: false } }; // we must read raw body for signature verification
+export const config = {
+  api: {
+    bodyParser: false, // ❗ required so Stripe can verify the raw body
+  },
+};
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
-const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+// ---- Env vars ----
+const {
+  STRIPE_SECRET_KEY,
+  STRIPE_WEBHOOK_SECRET,
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
+  NEXT_PUBLIC_SITE_URL,
+} = process.env;
 
-// Utility: upsert profile by stripe_customer_id or email
-async function upsertProfile({ user_id, email, stripe_customer_id, plan, status, current_period_end }) {
-  const payload = {
-    user_id: user_id || null,
-    email,
-    stripe_customer_id,
-    plan,
-    status,
-    current_period_end,
-  };
-  // onConflict: prefer stripe_customer_id uniqueness; adjust if your schema differs
-  const { error } = await supabaseAdmin
-    .from('profiles')
-    .upsert(payload, { onConflict: 'stripe_customer_id' });
-  if (error) console.error('profiles upsert error:', error);
-}
+if (!STRIPE_SECRET_KEY) throw new Error('Missing STRIPE_SECRET_KEY');
+if (!STRIPE_WEBHOOK_SECRET) throw new Error('Missing STRIPE_WEBHOOK_SECRET');
+if (!SUPABASE_URL) throw new Error('Missing SUPABASE_URL');
+if (!SUPABASE_SERVICE_ROLE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+if (!NEXT_PUBLIC_SITE_URL) throw new Error('Missing NEXT_PUBLIC_SITE_URL');
+
+const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 export default async function handler(req, res) {
-  const sig = req.headers['stripe-signature'];
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).end('Method Not Allowed');
+  }
+
   let event;
 
   try {
     const buf = await buffer(req);
-    event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    const sig = req.headers['stripe-signature'];
+
+    event = stripe.webhooks.constructEvent(
+      buf.toString(),
+      sig,
+      STRIPE_WEBHOOK_SECRET
+    );
   } catch (err) {
-    console.error('Webhook signature verification failed.', err.message);
+    console.error('❌ Stripe webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  try {
-    // We only need to handle completed Checkout for subscription start
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
+  // We only care about completed checkouts for subscriptions
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
 
+    try {
       const email =
         session.customer_details?.email ||
         session.customer_email ||
         null;
 
-      const customerId = session.customer || null;
-      const subscriptionId = session.subscription || null;
-
-      // Fetch subscription to get period end, status, etc.
-      let currentPeriodEndISO = null;
-      let subStatus = 'active';
-
-      if (subscriptionId) {
-        const sub = await stripe.subscriptions.retrieve(subscriptionId);
-        currentPeriodEndISO = new Date(sub.current_period_end * 1000).toISOString();
-        subStatus = sub.status; // 'active', 'trialing', etc.
-      }
-
-      // 1) Create or ensure a Supabase user exists for this email
-      //    Use the built-in Supabase invite (sends an email to set password).
-      let userId = null;
-
-      // Try to create; if user exists already, Supabase will return an error we can ignore.
-      const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        email_confirm: true, // mark confirmed, since Stripe verified email ownership during checkout
-        user_metadata: { stripe_customer_id: customerId },
-      });
-
-      if (createErr) {
-        // If already exists, we’ll try to invite but it's ok to proceed
-        console.warn('createUser warning (likely already exists):', createErr.message);
+      if (!email) {
+        console.warn('checkout.session.completed had no email, skipping invite');
       } else {
-        userId = created?.user?.id || null;
+        // 1) Check if a Supabase user already exists for this email
+        const { data: existing, error: getErr } =
+          await supabaseAdmin.auth.admin.getUserByEmail(email);
+
+        if (getErr && !/User not found/i.test(getErr.message || '')) {
+          console.error('Error checking for existing user in Supabase:', getErr);
+        }
+
+        if (existing?.user) {
+          console.log('User already exists in Supabase for', email);
+        } else {
+          // 2) Invite the user – this sends the "Invite user" email
+          const { data: invited, error: inviteErr } =
+            await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+              // When user clicks the email link, land on create-account.html
+              redirectTo: `${NEXT_PUBLIC_SITE_URL}/create-account.html`,
+            });
+
+          if (inviteErr) {
+            console.error('Error inviting user in Supabase:', inviteErr);
+          } else {
+            console.log('✅ Invited user after checkout:', invited?.user?.id, email);
+          }
+        }
       }
-
-      // Send an invite (if SMTP configured in Supabase, this sends the email).
-      // If user already exists, this may return an error we can ignore.
-      const { error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-        data: { source: 'stripe' },
-      });
-      if (inviteErr) {
-        console.warn('inviteUserByEmail warning:', inviteErr.message);
-      }
-
-      // 2) Upsert profile
-      await upsertProfile({
-        user_id: userId,
-        email,
-        stripe_customer_id: customerId,
-        plan: 'annual',
-        status: subStatus,
-        current_period_end: currentPeriodEndISO,
-      });
+    } catch (err) {
+      console.error('Error handling checkout.session.completed:', err);
     }
-
-    // (Optional) Handle renewals / cancellations to keep profile in sync
-    if (event.type === 'invoice.payment_succeeded') {
-      const inv = event.data.object;
-      if (inv.billing_reason === 'subscription_cycle') {
-        const sub = await stripe.subscriptions.retrieve(inv.subscription);
-        await upsertProfile({
-          user_id: null,
-          email: null,
-          stripe_customer_id: sub.customer,
-          plan: 'annual',
-          status: sub.status,
-          current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-        });
-      }
-    }
-
-    if (event.type === 'customer.subscription.deleted') {
-      const sub = event.data.object;
-      await upsertProfile({
-        user_id: null,
-        email: null,
-        stripe_customer_id: sub.customer,
-        plan: 'annual',
-        status: 'canceled',
-        current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-      });
-    }
-
-    return res.status(200).json({ received: true });
-  } catch (err) {
-    console.error('Webhook handler error:', err);
-    return res.status(500).json({ error: 'Webhook handler failed' });
+  } else {
+    console.log(`ℹ️ Ignoring event type ${event.type}`);
   }
-}
 
+  return res.json({ received: true });
+}
