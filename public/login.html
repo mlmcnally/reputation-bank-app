@@ -32,7 +32,7 @@
     h1 { font-size: 1.25rem; margin: 0 0 8px; color: var(--teal); text-align: center; }
     p.sub { margin: 0 0 14px; text-align: center; color: var(--muted); font-size: .95rem; }
 
-    label { display: block; font-size: .9rem; margin: 12px 0 6px; font-weight: 700; color: var(--teal); }
+    label { display: block; font-size: .9rem; margin: 12px 0 6px; font-weight: 800; color: var(--teal); }
     input[type="email"], input[type="password"] {
       width: 100%; padding: 10px 12px; border: 1px solid var(--border);
       border-radius: 8px; background: #fff;
@@ -40,29 +40,22 @@
 
     .btn {
       width: 100%; padding: 12px 14px; border: 0; border-radius: 8px;
-      background: var(--teal); color: var(--white); font-weight: 800; cursor: pointer;
+      background: var(--teal); color: var(--white); font-weight: 900; cursor: pointer;
       box-shadow: 2px 2px 5px rgba(0,0,0,.2); margin-top: 14px; font-size: 1rem;
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     }
     .btn[disabled] { opacity: .65; cursor: not-allowed; }
 
-    .btn-outline {
-      width: 100%; padding: 11px 14px; border-radius: 8px;
-      background: #fff; color: var(--teal); font-weight: 800; cursor: pointer;
-      border: 1px solid var(--teal); margin-top: 10px; text-decoration: none; display: inline-block; text-align: center;
-      box-shadow: 1px 1px 3px rgba(0,0,0,.08);
-    }
-
     .row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-    .link { color: var(--teal); font-weight: 700; text-decoration: none; cursor: pointer; font-size: .92rem; }
+    .link { color: var(--teal); font-weight: 800; text-decoration: none; cursor: pointer; font-size: .92rem; }
 
     .divider { margin: 16px 0; height: 1px; background: #e5e7eb; border: 0; }
 
-    .status { margin-top: 12px; font-weight: 700; text-align: center; min-height: 20px; }
+    .status { margin-top: 12px; font-weight: 800; text-align: center; min-height: 20px; }
     .status.ok { color: #0a7c4a; }
     .status.err { color: #b91c1c; }
 
-    small.helper { display:block; margin-top:6px; color: var(--muted); }
+    small.helper { display:block; margin-top:6px; color: var(--muted); line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -70,7 +63,6 @@
     <h1>The Reputation Bank</h1>
     <p class="sub">Sign in to continue</p>
 
-    <!-- Sign in -->
     <form id="form-signin" autocomplete="on">
       <label for="si-email">Email</label>
       <input id="si-email" type="email" autocomplete="email" required />
@@ -84,7 +76,10 @@
         <a id="forgot" class="link">Forgot your password?</a>
         <a class="link" href="/pricing">Buy the app</a>
       </div>
-      <small class="helper">New customers: purchase first, then create your username/password from the email link.</small>
+
+      <small class="helper">
+        New customers: purchase first, then set your password using the link you receive (or via the “Create username &amp; password” button after checkout).
+      </small>
     </form>
 
     <hr class="divider" />
@@ -93,7 +88,6 @@
   </div>
 
   <script>
-    // --- helpers ---
     function parseQuery() {
       const out = {};
       const q = new URLSearchParams(location.search || "");
@@ -114,13 +108,13 @@
 
       const supabase = window.supabase.createClient(
         'https://nidxvthbowdgdfuopmzk.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJI NIVwosqYk4'
+        // ✅ FIXED: removed accidental space in the anon key
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
       );
 
-      // Show friendly messages based on querystring
       const q = parseQuery();
-      if (q.purchase === 'success') {
-        setStatus('Purchase complete! Check your email to set your password.', true);
+      if (q.welcome === '1') {
+        setStatus('Password saved — please sign in.', true);
       } else if (q.reset === 'ok') {
         setStatus('Password updated. You can sign in now.', true);
       }
@@ -132,9 +126,7 @@
         return;
       }
 
-      // Sign in
-      const form = document.getElementById('form-signin');
-      form.addEventListener('submit', async (e) => {
+      document.getElementById('form-signin').addEventListener('submit', async (e) => {
         e.preventDefault(); setStatus('');
         const btn = document.getElementById('btn-signin'); btn.disabled = true;
 
@@ -144,27 +136,26 @@
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         btn.disabled = false;
 
-        if (error) {
-          setStatus(error.message);
-          return;
-        }
-        // Success → go to app root (index with auth gate + flipbook)
+        if (error) return setStatus(error.message, false);
+
         window.location.replace(`${location.origin}/`);
       });
 
-      // Forgot password
       document.getElementById('forgot').addEventListener('click', async () => {
         setStatus('');
         const email = document.getElementById('si-email').value.trim();
-        if (!email) { setStatus('Enter your email in the field above first.'); return; }
+        if (!email) return setStatus('Enter your email in the field above first.', false);
+
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${location.origin}/reset-password.html`
         });
-        if (error) return setStatus(error.message);
+
+        if (error) return setStatus(error.message, false);
         setStatus('Password reset email sent. Check your inbox.', true);
       });
     });
   </script>
 </body>
 </html>
+
 
