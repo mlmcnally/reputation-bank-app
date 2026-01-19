@@ -32,8 +32,8 @@
     }
     p { margin: 0.5rem 0; line-height: 1.6; }
     .muted { color: #555; font-size: 0.95rem; }
-    .success { color: #0a7c4a; font-weight: 700; }
-    .error { color: #b91c1c; font-weight: 700; }
+    .success { color: #0a7c4a; font-weight: 800; }
+    .error { color: #b91c1c; font-weight: 800; }
     .spinner {
       margin: 1rem auto;
       width: 32px; height: 32px; border-radius: 50%;
@@ -49,15 +49,15 @@
       text-decoration: none;
       padding: 0.7rem 1.2rem;
       border-radius: 6px;
-      font-weight: 700;
+      font-weight: 800;
       box-shadow: 2px 2px 4px rgba(0,0,0,0.25);
       transition: opacity .15s ease-in-out, transform .15s ease-in-out;
       border: none; cursor: pointer;
     }
     a.button:hover, button.button:hover { opacity: .9; transform: translateY(-1px); }
-    .link { color: #2ea1a8; text-decoration: none; }
     .hidden { display: none; }
     .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; background:#f1f5f9; padding:.15rem .4rem; border-radius:4px; }
+    .link { color: #2ea1a8; text-decoration: none; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -70,29 +70,39 @@
     </div>
 
     <div id="ok" class="hidden">
-  <p class="success">Your subscription is active.</p>
-  <p>We’ve sent an email so you can set your password and sign in.<br/>If you don’t see it, please check your spam or promotions folder.</p>
-  <div class="button-group">
-    <!-- CHANGED: now goes to create-account.html -->
-    <a href="/create-account.html" class="button">Create username & password</a>
-  </div>
-</div>
+      <p class="success">Your subscription is active.</p>
+      <p>
+        Next step: create your username and password so you can sign in.
+      </p>
+      <p class="muted">
+        If you don’t receive an email within a few minutes, you can still continue using the button below.
+      </p>
+
+      <div class="button-group">
+        <a href="/create-account.html" class="button">Create username &amp; password</a>
+      </div>
+
+      <p class="muted" style="margin-top:14px;">
+        Need help? <a class="link" href="mailto:support@reputationbank.com">support@reputationbank.com</a>
+      </p>
+    </div>
 
     <div id="pending" class="hidden">
       <p class="muted">Your payment is still processing. Please wait a few seconds and refresh this page.</p>
       <div class="button-group">
         <button class="button" onclick="location.reload()">Refresh</button>
-        <a href="/pricing.html" class="button" style="background:#475569">Try Again</a>
+        <a href="/pricing?canceled=1" class="button" style="background:#475569">Back to Pricing</a>
       </div>
     </div>
 
     <div id="bad" class="hidden">
       <p class="error">We couldn’t confirm this purchase.</p>
-      <p class="muted">If you reached this page in error, please try again or contact support.<br/>
+      <p class="muted">
+        Please try again or contact support.<br/>
         <span id="sidWrap" class="hidden">Session: <span id="sid" class="code"></span></span>
       </p>
       <div class="button-group">
-        <a href="/pricing.html" class="button" style="background:#475569">Back to Pricing</a>
+        <a href="/pricing?canceled=1" class="button" style="background:#475569">Back to Pricing</a>
         <a href="mailto:support@reputationbank.com" class="button" style="background:#0e7490">Contact Support</a>
       </div>
     </div>
@@ -124,7 +134,6 @@
         const res = await fetch(`/api/checkout-status?session_id=${encodeURIComponent(sessionId)}`);
         const data = await res.json();
 
-        // data: { ok: boolean, state: 'complete'|'open'|'expired'|'processing'|..., session_id }
         if (data.ok && data.state === 'complete') {
           show($ok);
         } else if (data.state === 'processing' || data.state === 'open') {
