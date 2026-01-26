@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import Head from 'next/head';
 
+const DISPLAY_PRICE = '$49.99';
+
 export default function Pricing() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
@@ -36,18 +38,30 @@ export default function Pricing() {
       <div style={styles.page}>
         <div style={styles.card}>
           <h1 style={styles.h1}>Get One Year of Access</h1>
-          <p>Unlock the complete interactive edition of <em>The Reputation Bank</em>.</p>
-          <div style={styles.price}>$49 / year</div>
+
+          <p style={styles.copy}>
+            Unlock the complete interactive edition of <em>The Reputation Bank</em>.
+          </p>
+
+          <div style={styles.price}>{DISPLAY_PRICE} / year</div>
+
+          <p style={styles.subcopy}>
+            Billed annually. Cancel anytime from your Stripe customer portal.
+          </p>
 
           <button
             style={{ ...styles.btn, ...(loading ? styles.btnDisabled : null) }}
             onClick={startCheckout}
             disabled={loading}
           >
-            {loading ? 'Starting checkout…' : 'Buy Now'}
+            {loading ? 'Starting checkout…' : 'Subscribe'}
           </button>
 
           <div style={styles.status}>{status}</div>
+
+          <div style={styles.footerLinks}>
+            <a href="/login.html" style={styles.link}>Already purchased? Sign in</a>
+          </div>
         </div>
       </div>
     </>
@@ -56,7 +70,8 @@ export default function Pricing() {
 
 const styles = {
   page: {
-    fontFamily: 'Avenir, "Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
+    fontFamily:
+      'Avenir, "Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
     display: 'grid',
     placeItems: 'center',
     background: '#f8fafc',
@@ -67,27 +82,37 @@ const styles = {
   },
   card: {
     background: '#fff',
-    borderRadius: '10px',
-    boxShadow: '0 6px 18px rgba(0,0,0,0.1)',
-    padding: '24px',
+    borderRadius: '12px',
+    boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
+    padding: '26px 24px 22px',
     textAlign: 'center',
-    maxWidth: '420px',
+    maxWidth: '460px',
     width: '100%',
+    border: '1px solid #e5e7eb',
   },
-  h1: { color: '#084a58', margin: '0 0 8px' },
-  price: { fontSize: '2rem', color: '#084a58', margin: '8px 0 20px' },
+  h1: { color: '#084a58', margin: '0 0 10px', fontSize: '1.6rem' },
+  copy: { margin: '0 0 10px', color: '#111', lineHeight: 1.5 },
+  price: { fontSize: '2.1rem', color: '#084a58', margin: '6px 0 8px', fontWeight: 800 },
+  subcopy: { margin: '0 0 18px', color: '#475569', fontSize: '.95rem' },
   btn: {
     background: '#084a58',
     color: '#fff',
     border: 'none',
-    borderRadius: '6px',
+    borderRadius: '8px',
     padding: '12px 20px',
     fontSize: '1rem',
-    fontWeight: 600,
+    fontWeight: 800,
     cursor: 'pointer',
     boxShadow: '2px 2px 5px rgba(0,0,0,.2)',
     width: '100%',
   },
   btnDisabled: { opacity: 0.6, cursor: 'not-allowed' },
-  status: { marginTop: '10px', color: '#b91c1c', fontWeight: 600, minHeight: '1.2em' },
+  status: {
+    marginTop: '10px',
+    color: '#b91c1c',
+    fontWeight: 700,
+    minHeight: '1.2em',
+  },
+  footerLinks: { marginTop: '14px' },
+  link: { color: '#2ea1a8', textDecoration: 'none', fontWeight: 700 },
 };
