@@ -15,18 +15,22 @@
       background:var(--bg); margin:0; min-height:100vh; display:grid; place-items:center; color:var(--ink);
     }
     .card{
-      width:420px; max-width:92vw;
+      width:460px; max-width:92vw;
       background:var(--white); border-radius:14px;
       box-shadow:0 10px 28px rgba(0,0,0,.12);
       padding:26px 26px 20px;
       border:1px solid #e5e7eb;
     }
     h1{margin:0 0 8px; color:var(--teal); text-align:center; font-size:1.5rem; font-weight:800;}
-    p.sub{margin:0 0 18px; color:var(--muted); text-align:center; line-height:1.45;}
+    p.sub{margin:0 0 14px; color:var(--muted); text-align:center; line-height:1.45;}
+    .steps{margin:0 0 16px; padding:0; list-style:none; color:var(--muted); font-size:.95rem;}
+    .steps li{margin:6px 0;}
     label{display:block; margin:12px 0 6px; font-weight:800; color:var(--teal);}
     input{
       width:100%; padding:11px 12px; border:1px solid var(--border); border-radius:10px; font-size:1rem;
+      background:#fff;
     }
+    input[disabled]{background:#f1f5f9; color:#334155;}
     .btn{
       width:100%; margin-top:16px; padding:12px 14px; border:0; border-radius:10px;
       background:var(--teal); color:#fff; font-weight:900; cursor:pointer;
@@ -38,30 +42,54 @@
     .err{color:#b91c1c;}
     .row{margin-top:14px; text-align:center;}
     a{color:#2ea1a8; font-weight:800; text-decoration:none;}
+    .hint{margin-top:10px; color:var(--muted); font-size:.92rem; text-align:center;}
+    .tiny{font-size:.85rem;}
+    .code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;background:#f1f5f9;padding:.12rem .35rem;border-radius:6px;}
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Create your login</h1>
-    <p class="sub">You’ve subscribed to The Reputation Bank. Create a password to finish setting up your account.</p>
+    <p class="sub">Finish setup by creating a password for the email used at checkout.</p>
 
-    <form id="form">
+    <ul class="steps">
+      <li><strong>1)</strong> Verify your purchase</li>
+      <li><strong>2)</strong> Confirm your email</li>
+      <li><strong>3)</strong> Create your password</li>
+      <li><strong>4)</strong> Sign in & continue</li>
+    </ul>
+
+    <form id="form" autocomplete="off">
       <label for="email">Email</label>
-      <!-- IMPORTANT: email is editable -->
-      <input id="email" type="email" autocomplete="email" required />
+      <!-- We intentionally defeat browser autofill and disable until verified -->
+      <input
+        id="email"
+        name="rb_email_new"
+        type="email"
+        inputmode="email"
+        autocomplete="off"
+        placeholder="Verifying checkout…"
+        disabled
+        required
+      />
+      <div class="hint tiny" id="emailHint"></div>
 
       <label for="pw">Password</label>
-      <input id="pw" type="password" autocomplete="new-password" minlength="8" required />
+      <input id="pw" name="rb_pw_new" type="password" autocomplete="new-password" minlength="8" required />
 
       <label for="pw2">Confirm password</label>
-      <input id="pw2" type="password" autocomplete="new-password" minlength="8" required />
+      <input id="pw2" name="rb_pw2_new" type="password" autocomplete="new-password" minlength="8" required />
 
-      <button id="btn" class="btn" type="submit">Save and continue</button>
+      <button id="btn" class="btn" type="submit" disabled>Save and continue</button>
       <div id="status" class="status"></div>
     </form>
 
     <div class="row">
-      Already created your password? <a href="/login.html">Sign in here.</a>
+      Already have a password? <a href="/login.html">Sign in here.</a>
+    </div>
+
+    <div class="hint" id="fallback" style="display:none;">
+      Missing your checkout link? Start again from <a href="/pricing">Pricing</a>.
     </div>
   </div>
 
@@ -78,55 +106,117 @@
         'PASTE_YOUR_ANON_KEY_FROM_LOGIN_HTML_HERE'
       );
 
-      // ✅ Critical: prevent old dev/test session from hijacking this flow
-      await supabase.auth.signOut();
+      // STEP 0 (critical): ensure no existing dev/test session hijacks this page
+      try { await supabase.auth.signOut(); } catch (_) {}
 
-      // Optional: prefill email if passed in URL (?email=...)
       const params = new URLSearchParams(location.search);
-      const emailFromUrl = params.get('email');
-      if (emailFromUrl) document.getElementById('email').value = emailFromUrl;
+      const sessionId = params.get('session_id');
 
+      const emailEl = document.getElementById('email');
+      const emailHint = document.getElementById('emailHint');
+      const btn = document.getElementById('btn');
+      const fallback = document.getElementById('fallback');
+
+      if (!sessionId) {
+        fallback.style.display = 'block';
+        emailEl.disabled = false;
+        emailEl.placeholder = 'Enter the email you used at checkout';
+        btn.disabled = false;
+        emailHint.textContent = 'Tip: open this page from the Stripe redirect so we can verify purchase automatically.';
+        setStatus('Missing session_id. Please use the link after checkout, or re-purchase from Pricing.', false);
+        return;
+      }
+
+      // STEP 1: verify purchase and pull the correct email from Stripe session
+      try {
+        setStatus('Verifying purchase…', true);
+        const res = await fetch(`/api/checkout-status?session_id=${encodeURIComponent(sessionId)}`);
+        const data = await res.json();
+
+        // Expecting something like: { ok: true, state: 'complete', email: 'buyer@email.com' }
+        if (!data?.ok || data?.state !== 'complete') {
+          fallback.style.display = 'block';
+          setStatus('We could not verify this checkout session yet. If your payment is still processing, refresh in 10–20 seconds.', false);
+          emailEl.disabled = true;
+          btn.disabled = true;
+          return;
+        }
+
+        if (!data?.email) {
+          fallback.style.display = 'block';
+          setStatus('Verified purchase, but could not read the email from checkout. Please contact support.', false);
+          emailEl.disabled = true;
+          btn.disabled = true;
+          return;
+        }
+
+        // STEP 2: lock in the verified email
+        emailEl.value = String(data.email).trim().toLowerCase();
+        emailEl.disabled = true;
+        emailEl.placeholder = '';
+        emailHint.innerHTML = `Verified from checkout (<span class="code">${data.email}</span>)`;
+        btn.disabled = false;
+        setStatus('', true);
+      } catch (e) {
+        console.error(e);
+        fallback.style.display = 'block';
+        setStatus('Error verifying purchase. Please refresh and try again.', false);
+        return;
+      }
+
+      // STEP 3: set password via secure server route (creates the Supabase user)
       document.getElementById('form').addEventListener('submit', async (e) => {
         e.preventDefault();
         setStatus('');
 
-        const btn = document.getElementById('btn');
         btn.disabled = true;
 
-        const email = document.getElementById('email').value.trim().toLowerCase();
+        const email = emailEl.value.trim().toLowerCase();
         const pw = document.getElementById('pw').value;
         const pw2 = document.getElementById('pw2').value;
 
+        if (pw.length < 8) {
+          btn.disabled = false;
+          return setStatus('Password must be at least 8 characters.');
+        }
         if (pw !== pw2) {
           btn.disabled = false;
           return setStatus('Passwords do not match.');
         }
 
-        // ✅ Create the user account (no “email sent” language needed)
-        const { error } = await supabase.auth.signUp({
-          email,
-          password: pw,
-          options: {
-            emailRedirectTo: `${location.origin}/login.html`
+        try {
+          setStatus('Creating your account…', true);
+
+          const res = await fetch('/api/provision-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId, email, password: pw })
+          });
+
+          const out = await res.json();
+
+          if (!res.ok) {
+            btn.disabled = false;
+            return setStatus(out?.error || 'Could not create account.');
           }
-        });
 
-        btn.disabled = false;
+          // STEP 4: sign in and continue
+          setStatus('Signing you in…', true);
+          const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+          if (error) {
+            btn.disabled = false;
+            return setStatus(error.message);
+          }
 
-        if (error) return setStatus(error.message);
-
-        // If confirmations are ON, user must confirm email before sign-in.
-        setStatus('Account created. If email confirmation is enabled, check your inbox to confirm—then sign in.', true);
-
-        // If confirmations are OFF, they may already be signed in:
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) window.location.replace('/login.html?welcome=1');
+          // Go to app root
+          window.location.replace(`${location.origin}/`);
+        } catch (err) {
+          console.error(err);
+          btn.disabled = false;
+          setStatus('Unexpected error. Please try again.', false);
+        }
       });
     });
-  </script>
-</body>
-</html>
-
   </script>
 </body>
 </html>
