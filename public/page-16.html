@@ -141,19 +141,25 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    // ✅ IMPORTANT FIX:
+    // Use ONE shared client stored on window to avoid "Identifier 'supabase' has already been declared"
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
+    // From here on, always use this reference:
+    const sb = window.supabaseClient;
+
     function setStatus(message, color = "#084a58") {
       const statusMsg = document.getElementById("status");
+      if (!statusMsg) return;
       statusMsg.textContent = message;
       statusMsg.style.color = color;
     }
 
     async function requireUserOrRedirect() {
-      const { data, error } = await supabase.auth.getUser();
+      const { data, error } = await sb.auth.getUser();
       if (error) {
         console.error("Auth getUser error:", error);
       }
@@ -165,7 +171,7 @@
       return user;
     }
 
-    // ✅ DEBUG + LOAD LOGIC (UPDATED)
+    // ✅ DEBUG + LOAD LOGIC
     window.addEventListener('DOMContentLoaded', async function () {
       const user = await requireUserOrRedirect();
       if (!user) return;
@@ -173,7 +179,7 @@
       console.log("✅ Logged in user.id:", user.id);
       setStatus("Logged in user id:\n" + user.id);
 
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from('exercise1_page16')
         .select('id, user_id, stakeholder, opinion, advocacy, action')
         .eq('user_id', user.id)
@@ -216,7 +222,7 @@
 
       setStatus("Saving...");
 
-      const { error } = await supabase
+      const { error } = await sb
         .from("exercise1_page16")
         .upsert(
           { user_id: user.id, stakeholder, opinion, advocacy, action },
@@ -245,3 +251,4 @@
 
 </body>
 </html>
+
