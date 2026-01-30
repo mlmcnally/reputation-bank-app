@@ -93,6 +93,7 @@
       margin-top: 1rem;
       font-weight: 600;
       color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -106,25 +107,25 @@
   <div class="layout">
     <img src="/page-16.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <form id="exercise-form" class="form-container">
+    <form id="exercise-form" class="form-container" autocomplete="off">
       <label>
         <strong>Stakeholder #1 (name and/or description)</strong>
-        <input type="text" id="stakeholder" required />
+        <input type="text" id="stakeholder" required autocomplete="off" />
       </label>
 
       <label>
         <strong>Opinion</strong>
-        <textarea id="opinion" rows="4"></textarea>
+        <textarea id="opinion" rows="4" autocomplete="off"></textarea>
       </label>
 
       <label>
         <strong>Advocacy</strong>
-        <textarea id="advocacy" rows="4"></textarea>
+        <textarea id="advocacy" rows="4" autocomplete="off"></textarea>
       </label>
 
       <label>
         <strong>Action</strong>
-        <textarea id="action" rows="4"></textarea>
+        <textarea id="action" rows="4" autocomplete="off"></textarea>
       </label>
 
       <div class="button-bar">
@@ -158,37 +159,45 @@
       }
       const user = data?.user;
       if (!user) {
-        // Change this path if your login file lives elsewhere
         window.location.href = "/login.html";
         return null;
       }
       return user;
     }
 
+    // ✅ DEBUG + LOAD LOGIC (UPDATED)
     window.addEventListener('DOMContentLoaded', async function () {
       const user = await requireUserOrRedirect();
       if (!user) return;
 
-      // Load existing row (if it exists)
+      console.log("✅ Logged in user.id:", user.id);
+      setStatus("Logged in user id:\n" + user.id);
+
       const { data, error } = await supabase
         .from('exercise1_page16')
-        .select('stakeholder, opinion, advocacy, action')
+        .select('id, user_id, stakeholder, opinion, advocacy, action')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      // maybeSingle() returns null data if no row exists yet
+      console.log("📦 Load result data:", data);
+      console.log("⚠️ Load result error:", error);
+
       if (error) {
-        console.error("Load error:", error);
-        setStatus("⚠️ Could not load saved data.", "red");
+        setStatus("❌ Could not load saved data:\n" + error.message, "red");
         return;
       }
 
-      if (data) {
-        document.getElementById("stakeholder").value = data.stakeholder || "";
-        document.getElementById("opinion").value = data.opinion || "";
-        document.getElementById("advocacy").value = data.advocacy || "";
-        document.getElementById("action").value = data.action || "";
+      if (!data) {
+        setStatus("ℹ️ No saved row found yet for this login.\nClick Save once.");
+        return;
       }
+
+      document.getElementById("stakeholder").value = data.stakeholder || "";
+      document.getElementById("opinion").value = data.opinion || "";
+      document.getElementById("advocacy").value = data.advocacy || "";
+      document.getElementById("action").value = data.action || "";
+
+      setStatus("✅ Loaded saved data successfully.");
     });
 
     async function saveData() {
@@ -200,7 +209,6 @@
       const advocacy = document.getElementById("advocacy").value.trim();
       const action = document.getElementById("action").value.trim();
 
-      // Optional: basic guard so user doesn't save an empty stakeholder
       if (!stakeholder) {
         setStatus("Please enter a stakeholder name/description before saving.", "red");
         return;
@@ -217,18 +225,16 @@
 
       if (error) {
         console.error("Save error:", error);
-        setStatus("❌ Error saving data: " + error.message, "red");
+        setStatus("❌ Error saving data:\n" + error.message, "red");
       } else {
-        setStatus("Saved successfully!");
+        setStatus("✅ Saved successfully!");
       }
     }
 
     async function saveAndGoNext() {
       await saveData();
-      // Only proceed if last status isn't an error (simple check)
       const statusText = document.getElementById("status").textContent || "";
       if (statusText.startsWith("❌") || statusText.startsWith("Please")) return;
-
       window.location.href = "/page-17.html";
     }
 
