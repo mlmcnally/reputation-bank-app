@@ -93,6 +93,7 @@
       margin-top: 1rem;
       font-weight: 600;
       color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -106,25 +107,25 @@
   <div class="layout">
     <img src="/page-19.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <form id="exercise-form" class="form-container">
+    <form id="exercise-form" class="form-container" autocomplete="off">
       <label>
         <strong>Stakeholder #4 (name and/or description)</strong>
-        <input type="text" id="stakeholder" required />
+        <input type="text" id="stakeholder" required autocomplete="off" />
       </label>
 
       <label>
         <strong>Opinion</strong>
-        <textarea id="opinion" rows="4"></textarea>
+        <textarea id="opinion" rows="4" autocomplete="off"></textarea>
       </label>
 
       <label>
         <strong>Advocacy</strong>
-        <textarea id="advocacy" rows="4"></textarea>
+        <textarea id="advocacy" rows="4" autocomplete="off"></textarea>
       </label>
 
       <label>
         <strong>Action</strong>
-        <textarea id="action" rows="4"></textarea>
+        <textarea id="action" rows="4" autocomplete="off"></textarea>
       </label>
 
       <div class="button-bar">
@@ -140,59 +141,107 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    // ✅ Use ONE shared client stored on window
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    let user = null;
+    const sb = window.supabaseClient;
+
+    function setStatus(message, color = "#084a58") {
+      const statusMsg = document.getElementById("status");
+      if (!statusMsg) return;
+      statusMsg.textContent = message;
+      statusMsg.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data, error } = await sb.auth.getUser();
+      if (error) console.error("Auth getUser error:", error);
+
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
 
     window.addEventListener('DOMContentLoaded', async function () {
-      const response = await supabase.auth.getUser();
-      user = response.data.user;
+      const user = await requireUserOrRedirect();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('exercise1_page19')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      console.log("✅ Logged in user.id:", user.id);
+      setStatus("Logged in user id:\n" + user.id);
 
-      if (data) {
-        document.getElementById("stakeholder").value = data.stakeholder || "";
-        document.getElementById("opinion").value = data.opinion || "";
-        document.getElementById("advocacy").value = data.advocacy || "";
-        document.getElementById("action").value = data.action || "";
+      const { data, error } = await sb
+        .from('exercise1_page19')
+        .select('id, user_id, stakeholder, opinion, advocacy, action')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      console.log("📦 Load result data:", data);
+      console.log("⚠️ Load result error:", error);
+
+      if (error) {
+        setStatus("❌ Could not load saved data:\n" + error.message, "red");
+        return;
       }
+
+      if (!data) {
+        setStatus("ℹ️ No saved row found yet for this login.\nClick Save once.");
+        return;
+      }
+
+      document.getElementById("stakeholder").value = data.stakeholder || "";
+      document.getElementById("opinion").value = data.opinion || "";
+      document.getElementById("advocacy").value = data.advocacy || "";
+      document.getElementById("action").value = data.action || "";
+
+      setStatus("✅ Loaded saved data successfully.");
     });
 
     async function saveData() {
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
       const stakeholder = document.getElementById("stakeholder").value.trim();
       const opinion = document.getElementById("opinion").value.trim();
       const advocacy = document.getElementById("advocacy").value.trim();
       const action = document.getElementById("action").value.trim();
 
-      const { error } = await supabase.from("exercise1_page19").upsert([
-        { user_id: user.id, stakeholder, opinion, advocacy, action }
-      ], { onConflict: ['user_id'] });
+      if (!stakeholder) {
+        setStatus("Please enter a stakeholder name/description before saving.", "red");
+        return;
+      }
 
-      const statusMsg = document.getElementById("status");
+      setStatus("Saving...");
+
+      const { error } = await sb
+        .from("exercise1_page19")
+        .upsert(
+          { user_id: user.id, stakeholder, opinion, advocacy, action },
+          { onConflict: "user_id" }
+        );
+
       if (error) {
-        statusMsg.textContent = "❌ Error saving data: " + error.message;
-        statusMsg.style.color = "red";
+        console.error("Save error:", error);
+        setStatus("❌ Error saving data:\n" + error.message, "red");
       } else {
-        statusMsg.textContent = "Saved successfully!";
-        statusMsg.style.color = "#084a58";
+        setStatus("✅ Saved successfully!");
       }
     }
 
     async function saveAndGoNext() {
       await saveData();
+      const statusText = document.getElementById("status").textContent || "";
+      if (statusText.startsWith("❌") || statusText.startsWith("Please")) return;
       window.location.href = "/page-20.html";
     }
 
     function goBack() {
-      window.location.href = "/page-17.html";
+      window.location.href = "/page-18.html";
     }
   </script>
 
