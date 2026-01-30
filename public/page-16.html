@@ -145,18 +145,43 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
 
-    let user = null;
+    function setStatus(message, color = "#084a58") {
+      const statusMsg = document.getElementById("status");
+      statusMsg.textContent = message;
+      statusMsg.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Auth getUser error:", error);
+      }
+      const user = data?.user;
+      if (!user) {
+        // Change this path if your login file lives elsewhere
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
 
     window.addEventListener('DOMContentLoaded', async function () {
-      const response = await supabase.auth.getUser();
-      user = response.data.user;
+      const user = await requireUserOrRedirect();
       if (!user) return;
 
+      // Load existing row (if it exists)
       const { data, error } = await supabase
         .from('exercise1_page16')
-        .select('*')
+        .select('stakeholder, opinion, advocacy, action')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+
+      // maybeSingle() returns null data if no row exists yet
+      if (error) {
+        console.error("Load error:", error);
+        setStatus("⚠️ Could not load saved data.", "red");
+        return;
+      }
 
       if (data) {
         document.getElementById("stakeholder").value = data.stakeholder || "";
@@ -167,27 +192,43 @@
     });
 
     async function saveData() {
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
       const stakeholder = document.getElementById("stakeholder").value.trim();
       const opinion = document.getElementById("opinion").value.trim();
       const advocacy = document.getElementById("advocacy").value.trim();
       const action = document.getElementById("action").value.trim();
 
-      const { error } = await supabase.from("exercise1_page16").upsert([
-        { user_id: user.id, stakeholder, opinion, advocacy, action }
-      ], { onConflict: ['user_id'] });
+      // Optional: basic guard so user doesn't save an empty stakeholder
+      if (!stakeholder) {
+        setStatus("Please enter a stakeholder name/description before saving.", "red");
+        return;
+      }
 
-      const statusMsg = document.getElementById("status");
+      setStatus("Saving...");
+
+      const { error } = await supabase
+        .from("exercise1_page16")
+        .upsert(
+          { user_id: user.id, stakeholder, opinion, advocacy, action },
+          { onConflict: "user_id" }
+        );
+
       if (error) {
-        statusMsg.textContent = "❌ Error saving data: " + error.message;
-        statusMsg.style.color = "red";
+        console.error("Save error:", error);
+        setStatus("❌ Error saving data: " + error.message, "red");
       } else {
-        statusMsg.textContent = "Saved successfully!";
-        statusMsg.style.color = "#084a58";
+        setStatus("Saved successfully!");
       }
     }
 
     async function saveAndGoNext() {
       await saveData();
+      // Only proceed if last status isn't an error (simple check)
+      const statusText = document.getElementById("status").textContent || "";
+      if (statusText.startsWith("❌") || statusText.startsWith("Please")) return;
+
       window.location.href = "/page-17.html";
     }
 
