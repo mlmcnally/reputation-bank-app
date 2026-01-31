@@ -176,9 +176,10 @@
       console.log("✅ Logged in user.id:", user.id);
       setStatus("Logged in user id:\n" + user.id);
 
+      // ✅ FIX: remove 'id' from select list (table has no id column)
       const { data, error } = await sb
         .from('exercise2_page27')
-        .select('id, user_id, stakeholder, identity, ambition, role')
+        .select('user_id, stakeholder, identity, ambition, role')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -243,7 +244,6 @@
     };
 
     window.goBack = function () {
-      // ✅ FIXED: your original was "/page-26" (missing .html)
       window.location.href = "/page-26.html";
     };
   </script>
