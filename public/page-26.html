@@ -14,31 +14,11 @@
       margin: 0;
       color: #000;
     }
+    .header { text-align: center; color: #084a58; }
+    .header h2 { font-size: 28px; font-weight: 800; margin-bottom: 0.5rem; }
+    .header p { font-size: 16px; color: #084a58; max-width: 700px; margin: 0 auto; }
 
-    .header {
-      text-align: center;
-      color: #084a58;
-    }
-
-    .header h2 {
-      font-size: 28px;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-    }
-
-    .header p {
-      font-size: 16px;
-      color: #084a58;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-
-    .layout {
-      display: flex;
-      gap: 2rem;
-      align-items: flex-start;
-      margin-top: 2rem;
-    }
+    .layout { display: flex; gap: 2rem; align-items: flex-start; margin-top: 2rem; }
 
     .form-container {
       background: white;
@@ -48,15 +28,8 @@
       flex: 1;
     }
 
-    .form-container label {
-      display: block;
-      margin-bottom: 1rem;
-    }
-
-    .form-container strong {
-      display: block;
-      margin-bottom: 0.25rem;
-    }
+    .form-container label { display: block; margin-bottom: 1rem; }
+    .form-container strong { display: block; margin-bottom: 0.25rem; }
 
     input[type="text"], textarea {
       width: 100%;
@@ -66,12 +39,7 @@
       font-family: inherit;
     }
 
-    .button-bar {
-      margin-top: 1rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+    .button-bar { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 10px; }
 
     .nav-button {
       background-color: #084a58;
@@ -84,10 +52,7 @@
       cursor: pointer;
       border-radius: 4px;
     }
-
-    .nav-button:hover {
-      background-color: #0a5c6a;
-    }
+    .nav-button:hover { background-color: #0a5c6a; }
 
     #status {
       margin-top: 1rem;
@@ -143,7 +108,7 @@
   </div>
 
   <script>
-    // ✅ Use ONE shared client stored on window (prevents "already declared" issues)
+    // ✅ ONE shared client stored on window
     window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
@@ -151,25 +116,31 @@
     const sb = window.supabaseClient;
 
     function setStatus(message, color = "#084a58") {
-      const statusMsg = document.getElementById("status");
-      if (!statusMsg) return;
-      statusMsg.textContent = message;
-      statusMsg.style.color = color;
+      const el = document.getElementById("status");
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = color;
+    }
+
+    async function getActiveUser() {
+      const sessionRes = await sb.auth.getSession();
+      const sessionUser = sessionRes?.data?.session?.user;
+      if (sessionUser) return sessionUser;
+
+      const userRes = await sb.auth.getUser();
+      return userRes?.data?.user || null;
     }
 
     async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
-
-      const user = data?.user;
+      const user = await getActiveUser();
       if (!user) {
+        setStatus("⚠️ Not signed in. Redirecting to login...", "red");
         window.location.href = "/login.html";
         return null;
       }
       return user;
     }
 
-    // ✅ Load saved row safely (maybeSingle prevents silent failures)
     window.addEventListener('DOMContentLoaded', async function () {
       const user = await requireUserOrRedirect();
       if (!user) return;
@@ -177,9 +148,10 @@
       console.log("✅ Logged in user.id:", user.id);
       setStatus("Logged in user id:\n" + user.id);
 
+      // ✅ FIX: do NOT select columns that don't exist (no 'id' column in this table)
       const { data, error } = await sb
         .from('exercise2_page26')
-        .select('id, user_id, stakeholder, identity, ambition, role')
+        .select('user_id, stakeholder, identity, ambition, role')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -239,7 +211,6 @@
       await saveData();
       const statusText = document.getElementById("status").textContent || "";
       if (statusText.startsWith("❌") || statusText.startsWith("Please")) return;
-
       window.location.href = "/page-27.html";
     };
 
@@ -250,4 +221,3 @@
 
 </body>
 </html>
-
