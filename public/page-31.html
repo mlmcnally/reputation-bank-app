@@ -176,9 +176,10 @@
       console.log("✅ Logged in user.id:", user.id);
       setStatus("Logged in user id:\n" + user.id);
 
+      // ✅ FIX: removed `id` from select (table doesn't have it)
       const { data, error } = await sb
         .from('exercise2_page31')
-        .select('id, user_id, stakeholder, identity, ambition, role')
+        .select('user_id, stakeholder, identity, ambition, role')
         .eq('user_id', user.id)
         .maybeSingle();
 
