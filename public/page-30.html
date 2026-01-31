@@ -102,7 +102,9 @@
   <div class="header">
     <h2>Exercise 2 – Page 30</h2>
     <p>
-      Type in the boxes below a description of the stakeholder's identity (who they are at their deepest level), ambition (an aspiration or dream big or small), and role (in particular in the relationship with you.) These are important relationship and reputation insights about your stakeholders' wants and needs – from their points of view.
+      Type in the boxes below a description of the stakeholder's identity (who they are at their deepest level),
+      ambition (an aspiration or dream big or small), and role (in particular in the relationship with you.)
+      These are important relationship and reputation insights about your stakeholders' wants and needs – from their points of view.
     </p>
   </div>
 
@@ -176,9 +178,10 @@
       console.log("✅ Logged in user.id:", user.id);
       setStatus("Logged in user id:\n" + user.id);
 
+      // ✅ FIX: removed `id` from select (table doesn't have it)
       const { data, error } = await sb
         .from('exercise2_page30')
-        .select('id, user_id, stakeholder, identity, ambition, role')
+        .select('user_id, stakeholder, identity, ambition, role')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -243,7 +246,6 @@
     };
 
     window.goBack = function () {
-      // ✅ FIXED: your original was "/page-29" (missing .html)
       window.location.href = "/page-29.html";
     };
   </script>
