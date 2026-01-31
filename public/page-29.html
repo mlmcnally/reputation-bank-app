@@ -102,7 +102,8 @@
   <div class="header">
     <h2>Exercise 2 – Page 29</h2>
     <p>
-      Type in the boxes below a description of the stakeholder's identity (who they are at their deepest level), ambition (an aspiration or dream big or small), and role (in particular in the relationship with you.) These are important relationship and reputation insights about your stakeholders' wants and needs – from their points of view.
+      Type in the boxes below a description of the stakeholder's identity (who they are at their deepest level),
+      ambition (an aspiration or dream big or small), and role (in particular in the relationship with you.)
     </p>
   </div>
 
@@ -143,24 +144,22 @@
   </div>
 
   <script>
-    // ✅ Use ONE shared client stored on window (prevents "already declared" issues)
+    // ✅ Shared Supabase client
     window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+      'YOUR_ANON_KEY'
     );
     const sb = window.supabaseClient;
 
     function setStatus(message, color = "#084a58") {
-      const statusMsg = document.getElementById("status");
-      if (!statusMsg) return;
-      statusMsg.textContent = message;
-      statusMsg.style.color = color;
+      const el = document.getElementById("status");
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = color;
     }
 
     async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
-
+      const { data } = await sb.auth.getUser();
       const user = data?.user;
       if (!user) {
         window.location.href = "/login.html";
@@ -169,21 +168,18 @@
       return user;
     }
 
-    window.addEventListener('DOMContentLoaded', async function () {
+    window.addEventListener("DOMContentLoaded", async () => {
       const user = await requireUserOrRedirect();
       if (!user) return;
 
-      console.log("✅ Logged in user.id:", user.id);
       setStatus("Logged in user id:\n" + user.id);
 
+      // ✅ FIX: removed `id` from select
       const { data, error } = await sb
-        .from('exercise2_page29')
-        .select('id, user_id, stakeholder, identity, ambition, role')
-        .eq('user_id', user.id)
+        .from("exercise2_page29")
+        .select("user_id, stakeholder, identity, ambition, role")
+        .eq("user_id", user.id)
         .maybeSingle();
-
-      console.log("📦 Load result data:", data);
-      console.log("⚠️ Load result error:", error);
 
       if (error) {
         setStatus("❌ Could not load saved data:\n" + error.message, "red");
@@ -191,29 +187,32 @@
       }
 
       if (!data) {
-        setStatus("ℹ️ No saved row found yet for this login.\nClick Save once.");
+        setStatus("ℹ️ No saved row found yet.\nClick Save once.");
         return;
       }
 
-      document.getElementById("stakeholder").value = data.stakeholder || "";
-      document.getElementById("identity").value = data.identity || "";
-      document.getElementById("ambition").value = data.ambition || "";
-      document.getElementById("role").value = data.role || "";
+      stakeholder.value = data.stakeholder || "";
+      identity.value = data.identity || "";
+      ambition.value = data.ambition || "";
+      role.value = data.role || "";
 
       setStatus("✅ Loaded saved data successfully.");
     });
 
-    window.saveData = async function () {
+    async function saveData() {
       const user = await requireUserOrRedirect();
       if (!user) return;
 
-      const stakeholder = document.getElementById("stakeholder").value.trim();
-      const identity = document.getElementById("identity").value.trim();
-      const ambition = document.getElementById("ambition").value.trim();
-      const role = document.getElementById("role").value.trim();
+      const payload = {
+        user_id: user.id,
+        stakeholder: stakeholder.value.trim(),
+        identity: identity.value.trim(),
+        ambition: ambition.value.trim(),
+        role: role.value.trim()
+      };
 
-      if (!stakeholder) {
-        setStatus("Please enter a stakeholder name/description before saving.", "red");
+      if (!payload.stakeholder) {
+        setStatus("Please enter a stakeholder name before saving.", "red");
         return;
       }
 
@@ -221,30 +220,25 @@
 
       const { error } = await sb
         .from("exercise2_page29")
-        .upsert(
-          { user_id: user.id, stakeholder, identity, ambition, role },
-          { onConflict: "user_id" }
-        );
+        .upsert(payload, { onConflict: "user_id" });
 
       if (error) {
-        console.error("Save error:", error);
         setStatus("❌ Error saving data:\n" + error.message, "red");
       } else {
         setStatus("✅ Saved successfully!");
       }
-    };
+    }
 
-    window.saveAndGoNext = async function () {
+    async function saveAndGoNext() {
       await saveData();
-      const statusText = document.getElementById("status").textContent || "";
-      if (statusText.startsWith("❌") || statusText.startsWith("Please")) return;
+      if (!status.textContent.startsWith("❌")) {
+        window.location.href = "/page-30.html";
+      }
+    }
 
-      window.location.href = "/page-30.html";
-    };
-
-    window.goBack = function () {
+    function goBack() {
       window.location.href = "/page-28.html";
-    };
+    }
   </script>
 
 </body>
