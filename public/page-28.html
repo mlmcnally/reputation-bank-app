@@ -102,18 +102,14 @@
   <div class="header">
     <h2>Exercise 2 – Page 28</h2>
     <p>
-      Type in the boxes below a description of the stakeholder's identity (who they are at their deepest level),
-      ambition (an aspiration or dream big or small), and role (in particular in the relationship with you.)
-      These are important relationship and reputation insights about your stakeholders' wants and needs – from
-      their points of view.
+      Type in the boxes below a description of the stakeholder's identity (who they are at their deepest level), ambition (an aspiration or dream big or small), and role (in particular in the relationship with you.) These are important relationship and reputation insights about your stakeholders' wants and needs – from their points of view.
     </p>
   </div>
 
   <div class="layout">
-    <img src="./page-28.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
+    <img src="/page-28.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <!-- ✅ Prevent any accidental form submission -->
-    <form id="exercise-form" class="form-container" autocomplete="off" onsubmit="return false;">
+    <form id="exercise-form" class="form-container" autocomplete="off">
       <label>
         <strong>Stakeholder #3 (use the name/description from the last exercise)</strong>
         <input type="text" id="stakeholder" required autocomplete="off" />
@@ -139,9 +135,7 @@
         <button type="button" class="nav-button" onclick="saveData()">💾 Save</button>
         <button type="button" class="nav-button" onclick="saveAndGoNext()">➡ Save & Next</button>
         <button type="button" class="nav-button" onclick="window.print()">🖨️ Print</button>
-
-        <!-- ✅ Use relative paths (no leading slash) -->
-        <button type="button" class="nav-button" onclick="window.location.href='./page-3.html'">Go to the Table of Contents</button>
+        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">Go to the Table of Contents</button>
       </div>
 
       <div id="status"></div>
@@ -169,11 +163,41 @@
 
       const user = data?.user;
       if (!user) {
-        // ✅ relative login path
-        window.location.href = "./login.html";
+        window.location.href = "/login.html";
         return null;
       }
       return user;
+    }
+
+    // ✅ Helper: navigate to next interactive HTML page, and confirm it's not being rewritten to the flipbook/index
+    async function navigateToInteractivePage(nextFileName, expectedTitleText) {
+      const nextUrl = new URL(nextFileName, window.location.href).href;
+      console.log("➡️ Attempting navigation to:", nextUrl);
+
+      try {
+        const res = await fetch(nextUrl, { cache: "no-store" });
+        const html = await res.text();
+
+        // If your host is rewriting unknown routes to the flipbook, this check catches it.
+        if (!html.includes(expectedTitleText)) {
+          throw new Error(
+            "Next page request did not return the expected HTML title. " +
+            "This usually means the host/router is serving the flipbook/index page instead of " + nextFileName + "."
+          );
+        }
+
+        // All good — navigate
+        window.location.href = nextUrl;
+      } catch (err) {
+        console.error("❌ Navigation check failed:", err);
+        setStatus(
+          "❌ Could not navigate to the next page.\n\n" +
+          "Tried: " + nextUrl + "\n\n" +
+          "Reason: " + (err?.message || err) + "\n\n" +
+          "Fix: confirm " + nextFileName + " exists in /public AND your host rewrites are not overriding *.html routes.",
+          "red"
+        );
+      }
     }
 
     window.addEventListener('DOMContentLoaded', async function () {
@@ -183,6 +207,7 @@
       console.log("✅ Logged in user.id:", user.id);
       setStatus("Logged in user id:\n" + user.id);
 
+      // ✅ FIX: remove 'id' from select list (table has no id column)
       const { data, error } = await sb
         .from('exercise2_page28')
         .select('user_id, stakeholder, identity, ambition, role')
@@ -212,7 +237,7 @@
 
     window.saveData = async function () {
       const user = await requireUserOrRedirect();
-      if (!user) return;
+      if (!user) return false;
 
       const stakeholder = document.getElementById("stakeholder").value.trim();
       const identity = document.getElementById("identity").value.trim();
@@ -221,7 +246,7 @@
 
       if (!stakeholder) {
         setStatus("Please enter a stakeholder name/description before saving.", "red");
-        return;
+        return false;
       }
 
       setStatus("Saving...");
@@ -236,19 +261,23 @@
       if (error) {
         console.error("Save error:", error);
         setStatus("❌ Error saving data:\n" + error.message, "red");
+        return false;
       } else {
         setStatus("✅ Saved successfully!");
-      };
+        return true;
+      }
+    };
 
     window.saveAndGoNext = async function () {
-      await saveData();
-      const statusText = document.getElementById("status").textContent || "";
-      if (statusText.startsWith("❌") || statusText.startsWith("Please")) return;
-window.location.href = "/page-29.html";
+      const ok = await saveData();
+      if (!ok) return;
+
+      // ✅ Robust next-page navigation + verify host isn't rewriting to flipbook
+      await navigateToInteractivePage("page-29.html", "<title>Exercise 2 – Page 29</title>");
     };
 
     window.goBack = function () {
-      window.location.href = "./page-27.html";
+      window.location.href = "/page-27.html";
     };
   </script>
 
