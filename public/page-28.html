@@ -102,14 +102,18 @@
   <div class="header">
     <h2>Exercise 2 – Page 28</h2>
     <p>
-      Type in the boxes below a description of the stakeholder's identity (who they are at their deepest level), ambition (an aspiration or dream big or small), and role (in particular in the relationship with you.) These are important relationship and reputation insights about your stakeholders' wants and needs – from their points of view.
+      Type in the boxes below a description of the stakeholder's identity (who they are at their deepest level),
+      ambition (an aspiration or dream big or small), and role (in particular in the relationship with you.)
+      These are important relationship and reputation insights about your stakeholders' wants and needs – from
+      their points of view.
     </p>
   </div>
 
   <div class="layout">
-    <img src="/page-28.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
+    <img src="./page-28.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <form id="exercise-form" class="form-container" autocomplete="off">
+    <!-- ✅ Prevent any accidental form submission -->
+    <form id="exercise-form" class="form-container" autocomplete="off" onsubmit="return false;">
       <label>
         <strong>Stakeholder #3 (use the name/description from the last exercise)</strong>
         <input type="text" id="stakeholder" required autocomplete="off" />
@@ -135,7 +139,9 @@
         <button type="button" class="nav-button" onclick="saveData()">💾 Save</button>
         <button type="button" class="nav-button" onclick="saveAndGoNext()">➡ Save & Next</button>
         <button type="button" class="nav-button" onclick="window.print()">🖨️ Print</button>
-        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">Go to the Table of Contents</button>
+
+        <!-- ✅ Use relative paths (no leading slash) -->
+        <button type="button" class="nav-button" onclick="window.location.href='./page-3.html'">Go to the Table of Contents</button>
       </div>
 
       <div id="status"></div>
@@ -163,7 +169,8 @@
 
       const user = data?.user;
       if (!user) {
-        window.location.href = "/login.html";
+        // ✅ relative login path
+        window.location.href = "./login.html";
         return null;
       }
       return user;
@@ -176,7 +183,6 @@
       console.log("✅ Logged in user.id:", user.id);
       setStatus("Logged in user id:\n" + user.id);
 
-      // ✅ FIX: remove 'id' from select list (table has no id column)
       const { data, error } = await sb
         .from('exercise2_page28')
         .select('user_id, stakeholder, identity, ambition, role')
@@ -240,11 +246,12 @@
       const statusText = document.getElementById("status").textContent || "";
       if (statusText.startsWith("❌") || statusText.startsWith("Please")) return;
 
-      window.location.href = "/page-29.html";
+      // ✅ Use relative path so it doesn’t jump to site root
+      window.location.href = "./page-29.html";
     };
 
     window.goBack = function () {
-      window.location.href = "/page-27.html";
+      window.location.href = "./page-27.html";
     };
   </script>
 
