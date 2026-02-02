@@ -238,16 +238,13 @@
         setStatus("❌ Error saving data:\n" + error.message, "red");
       } else {
         setStatus("✅ Saved successfully!");
-      }
-    };
+      };
 
     window.saveAndGoNext = async function () {
       await saveData();
       const statusText = document.getElementById("status").textContent || "";
       if (statusText.startsWith("❌") || statusText.startsWith("Please")) return;
-
-      // ✅ Use relative path so it doesn’t jump to site root
-      window.location.href = "./page-29.html";
+window.location.href = "/page-29.html";
     };
 
     window.goBack = function () {
