@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 4 – Page 37</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
       font-family: "Avenir", "Nunito Sans", sans-serif;
@@ -48,24 +50,6 @@
       flex: 1;
     }
 
-    .form-container label {
-      display: block;
-      margin-bottom: 1rem;
-    }
-
-    .form-container strong {
-      display: block;
-      margin-bottom: 0.25rem;
-    }
-
-    input[type="text"], textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-family: inherit;
-    }
-
     .button-bar {
       margin-top: 1rem;
       display: flex;
@@ -93,6 +77,7 @@
       margin-top: 1rem;
       font-weight: 600;
       color: #084a58;
+      white-space: pre-wrap;
     }
 
     .section-block {
@@ -102,8 +87,17 @@
     .section-block p {
       margin: 0.25rem 0;
     }
+
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: inherit;
+    }
   </style>
 </head>
+
 <body>
 
   <div class="header">
@@ -114,7 +108,7 @@
   <div class="layout">
     <img src="/page-37.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <form id="exercise-form" class="form-container">
+    <form id="exercise-form" class="form-container" autocomplete="off">
 
       <div class="section-block">
         <strong>Stakeholder 2 (Exercise 2 – Page 27)</strong>
@@ -155,82 +149,132 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    // ✅ ONE shared Supabase client
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+      "https://nidxvthbowdgdfuopmzk.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
     );
+    const sb = window.supabaseClient;
 
-    let user = null;
+    function setStatus(message, color = "#084a58") {
+      const statusMsg = document.getElementById("status");
+      if (!statusMsg) return;
+      statusMsg.textContent = message;
+      statusMsg.style.color = color;
+    }
 
-    window.addEventListener('DOMContentLoaded', async function () {
-      const response = await supabase.auth.getUser();
-      user = response.data.user;
+    function setText(id, value, fallback = "—") {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = (value && String(value).trim()) ? value : fallback;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data, error } = await sb.auth.getUser();
+      if (error) console.error("Auth getUser error:", error);
+
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      const user = await requireUserOrRedirect();
       if (!user) return;
 
-      const { data: stakeholder } = await supabase
+      setStatus("Loading saved data...");
+
+      // 1) Stakeholder 2 from exercise2_page27 (may not exist yet)
+      const { data: stakeholder, error: stakeholderErr } = await sb
         .from("exercise2_page27")
         .select("identity, ambition, role")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (stakeholder) {
-        document.getElementById("stakeholder-identity").textContent = stakeholder.identity || "";
-        document.getElementById("stakeholder-ambition").textContent = stakeholder.ambition || "";
-        document.getElementById("stakeholder-role").textContent = stakeholder.role || "";
+      if (stakeholderErr) {
+        setStatus("⚠️ Could not load Stakeholder 2:\n" + stakeholderErr.message, "red");
       }
 
-      const { data: org } = await supabase
+      setText("stakeholder-identity", stakeholder?.identity);
+      setText("stakeholder-ambition", stakeholder?.ambition);
+      setText("stakeholder-role", stakeholder?.role);
+
+      // 2) Org from exercise3_page34 (may not exist yet)
+      const { data: org, error: orgErr } = await sb
         .from("exercise3_page34")
         .select("identity, ambition, role")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (org) {
-        document.getElementById("org-identity").textContent = org.identity || "";
-        document.getElementById("org-ambition").textContent = org.ambition || "";
-        document.getElementById("org-role").textContent = org.role || "";
+      if (orgErr) {
+        setStatus("⚠️ Could not load Organization:\n" + orgErr.message, "red");
       }
 
-      const { data: existing } = await supabase
+      setText("org-identity", org?.identity);
+      setText("org-ambition", org?.ambition);
+      setText("org-role", org?.role);
+
+      // 3) Existing saved intersections for page 37 (may not exist yet)
+      const { data: existing, error: existingErr } = await sb
         .from("exercise4_page37")
-        .select("*")
+        .select("identity, ambition, role")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+
+      if (existingErr) {
+        setStatus("❌ Could not load your saved intersections:\n" + existingErr.message, "red");
+        return;
+      }
 
       if (existing) {
         document.getElementById("identity").value = existing.identity || "";
         document.getElementById("ambition").value = existing.ambition || "";
         document.getElementById("role").value = existing.role || "";
+        setStatus("✅ Loaded saved data successfully.");
+      } else {
+        setStatus("ℹ️ No saved intersections yet. Fill these in and click Save.");
       }
     });
 
-    window.saveData = async function () {
+    async function saveData() {
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
       const identity = document.getElementById("identity").value.trim();
       const ambition = document.getElementById("ambition").value.trim();
       const role = document.getElementById("role").value.trim();
 
-      const { error } = await supabase.from("exercise4_page37").upsert([
-        { user_id: user.id, identity, ambition, role }
-      ], { onConflict: ['user_id'] });
+      setStatus("Saving...");
 
-      const statusMsg = document.getElementById("status");
+      const { error } = await sb
+        .from("exercise4_page37")
+        .upsert(
+          { user_id: user.id, identity, ambition, role },
+          { onConflict: "user_id" }
+        );
+
       if (error) {
-        statusMsg.textContent = "❌ Error saving data: " + error.message;
-        statusMsg.style.color = "red";
+        console.error("Save error:", error);
+        setStatus("❌ Error saving data:\n" + error.message, "red");
       } else {
-        statusMsg.textContent = "Saved successfully!";
-        statusMsg.style.color = "#084a58";
+        setStatus("✅ Saved successfully!");
       }
-    };
+    }
 
-    window.saveAndGoNext = async function () {
+    async function saveAndGoNext() {
       await saveData();
-      window.location.href = "/page-38.html";
-    };
+      const statusText = document.getElementById("status").textContent || "";
+      if (statusText.startsWith("❌")) return;
 
-    window.goBack = function () {
+      window.location.href = "/page-38.html";
+    }
+
+    function goBack() {
       window.location.href = "/#page/36";
-    };
+    }
   </script>
 
 </body>
