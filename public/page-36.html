@@ -50,27 +50,6 @@
       flex: 1;
     }
 
-    .section-block {
-      margin-bottom: 1.5rem;
-    }
-
-    .section-block p {
-      margin: 0.25rem 0;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 1rem;
-    }
-
-    textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-family: inherit;
-    }
-
     .button-bar {
       margin-top: 1rem;
       display: flex;
@@ -84,6 +63,7 @@
       border: none;
       padding: 0.5rem 1.2rem;
       font-size: 0.95rem;
+      font-family: inherit;
       box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
       cursor: pointer;
       border-radius: 4px;
@@ -99,6 +79,22 @@
       color: #084a58;
       white-space: pre-wrap;
     }
+
+    .section-block {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-block p {
+      margin: 0.25rem 0;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: inherit;
+    }
   </style>
 </head>
 
@@ -106,17 +102,13 @@
 
   <div class="header">
     <h2>Exercise 4 – Page 36</h2>
-    <p>
-      Compare your organization’s and Stakeholder 1’s Identity, Ambition, and Role.
-      Then enter where they intersect below.
-    </p>
+    <p>Compare your organization’s and Stakeholder 1’s Identity, Ambition, and Role. Then enter where they intersect below.</p>
   </div>
 
   <div class="layout">
-    <img src="/page-36.jpg" alt="Exercise Page"
-         style="max-width:45%; border-radius:8px; border:1px solid #ccc;" />
+    <img src="/page-36.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <form class="form-container" autocomplete="off">
+    <form id="exercise-form" class="form-container" autocomplete="off">
 
       <div class="section-block">
         <strong>Stakeholder 1 (Exercise 2 – Page 26)</strong>
@@ -132,18 +124,15 @@
         <p><em>Role:</em> <span id="org-role"></span></p>
       </div>
 
-      <label>
-        <strong>Intersecting Identity</strong>
+      <label><strong>Intersecting Identity</strong>
         <textarea id="identity" rows="4"></textarea>
       </label>
 
-      <label>
-        <strong>Intersecting Ambition</strong>
+      <label><strong>Intersecting Ambition</strong>
         <textarea id="ambition" rows="4"></textarea>
       </label>
 
-      <label>
-        <strong>Intersecting Role</strong>
+      <label><strong>Intersecting Role</strong>
         <textarea id="role" rows="4"></textarea>
       </label>
 
@@ -152,10 +141,7 @@
         <button type="button" class="nav-button" onclick="saveData()">💾 Save</button>
         <button type="button" class="nav-button" onclick="saveAndGoNext()">➡ Save & Next</button>
         <button type="button" class="nav-button" onclick="window.print()">🖨️ Print</button>
-        <button type="button" class="nav-button"
-                onclick="window.location.href='/page-3.html'">
-          Go to the Table of Contents
-        </button>
+        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">Go to the Table of Contents</button>
       </div>
 
       <div id="status"></div>
@@ -163,22 +149,30 @@
   </div>
 
   <script>
-    // ✅ ONE shared Supabase client
+    // ✅ ONE shared Supabase client (avoids redeclare / mismatch)
     window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       "https://nidxvthbowdgdfuopmzk.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
     );
     const sb = window.supabaseClient;
 
-    function setStatus(msg, color="#084a58") {
-      const el = document.getElementById("status");
+    function setStatus(message, color = "#084a58") {
+      const statusMsg = document.getElementById("status");
+      if (!statusMsg) return;
+      statusMsg.textContent = message;
+      statusMsg.style.color = color;
+    }
+
+    function setText(id, value, fallback = "—") {
+      const el = document.getElementById(id);
       if (!el) return;
-      el.textContent = msg;
-      el.style.color = color;
+      el.textContent = (value && String(value).trim()) ? value : fallback;
     }
 
     async function requireUserOrRedirect() {
-      const { data } = await sb.auth.getUser();
+      const { data, error } = await sb.auth.getUser();
+      if (error) console.error("Auth getUser error:", error);
+
       const user = data?.user;
       if (!user) {
         window.location.href = "/login.html";
@@ -191,46 +185,57 @@
       const user = await requireUserOrRedirect();
       if (!user) return;
 
-      // Stakeholder 1 (Exercise 2)
-      const { data: stakeholder } = await sb
+      setStatus("Loading saved data...");
+
+      // 1) Stakeholder 1 from exercise2_page26 (may or may not exist yet)
+      const { data: stakeholder, error: stakeholderErr } = await sb
         .from("exercise2_page26")
         .select("identity, ambition, role")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (stakeholder) {
-        stakeholder-identity.textContent = stakeholder.identity || "";
-        stakeholder-ambition.textContent = stakeholder.ambition || "";
-        stakeholder-role.textContent = stakeholder.role || "";
+      if (stakeholderErr) {
+        setStatus("⚠️ Could not load Stakeholder 1:\n" + stakeholderErr.message, "red");
       }
 
-      // Organization (Exercise 3)
-      const { data: org } = await sb
+      setText("stakeholder-identity", stakeholder?.identity);
+      setText("stakeholder-ambition", stakeholder?.ambition);
+      setText("stakeholder-role", stakeholder?.role);
+
+      // 2) Org from exercise3_page34 (may or may not exist yet)
+      const { data: org, error: orgErr } = await sb
         .from("exercise3_page34")
         .select("identity, ambition, role")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (org) {
-        org-identity.textContent = org.identity || "";
-        org-ambition.textContent = org.ambition || "";
-        org-role.textContent = org.role || "";
+      if (orgErr) {
+        setStatus("⚠️ Could not load Organization:\n" + orgErr.message, "red");
       }
 
-      // Existing Exercise 4 data
-      const { data: existing } = await sb
+      setText("org-identity", org?.identity);
+      setText("org-ambition", org?.ambition);
+      setText("org-role", org?.role);
+
+      // 3) Existing saved intersections for page 36 (may not exist yet)
+      const { data: existing, error: existingErr } = await sb
         .from("exercise4_page36")
         .select("identity, ambition, role")
         .eq("user_id", user.id)
         .maybeSingle();
 
+      if (existingErr) {
+        setStatus("❌ Could not load your saved intersections:\n" + existingErr.message, "red");
+        return;
+      }
+
       if (existing) {
-        identity.value = existing.identity || "";
-        ambition.value = existing.ambition || "";
-        role.value = existing.role || "";
-        setStatus("✅ Loaded saved data.");
+        document.getElementById("identity").value = existing.identity || "";
+        document.getElementById("ambition").value = existing.ambition || "";
+        document.getElementById("role").value = existing.role || "";
+        setStatus("✅ Loaded saved data successfully.");
       } else {
-        setStatus("ℹ️ No saved intersections yet.");
+        setStatus("ℹ️ No saved intersections yet. Fill these in and click Save.");
       }
     });
 
@@ -238,18 +243,21 @@
       const user = await requireUserOrRedirect();
       if (!user) return;
 
+      const identity = document.getElementById("identity").value.trim();
+      const ambition = document.getElementById("ambition").value.trim();
+      const role = document.getElementById("role").value.trim();
+
       setStatus("Saving...");
 
       const { error } = await sb
         .from("exercise4_page36")
-        .upsert({
-          user_id: user.id,
-          identity: identity.value.trim(),
-          ambition: ambition.value.trim(),
-          role: role.value.trim()
-        }, { onConflict: "user_id" });
+        .upsert(
+          { user_id: user.id, identity, ambition, role },
+          { onConflict: "user_id" }
+        );
 
       if (error) {
+        console.error("Save error:", error);
         setStatus("❌ Error saving data:\n" + error.message, "red");
       } else {
         setStatus("✅ Saved successfully!");
@@ -258,9 +266,10 @@
 
     async function saveAndGoNext() {
       await saveData();
-      if (!status.textContent.startsWith("❌")) {
-        window.location.href = "/page-37.html";
-      }
+      const statusText = document.getElementById("status").textContent || "";
+      if (statusText.startsWith("❌")) return;
+
+      window.location.href = "/page-37.html";
     }
 
     function goBack() {
