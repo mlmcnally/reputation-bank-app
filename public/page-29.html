@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 2 – Page 29</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
       font-family: "Avenir", "Nunito Sans", sans-serif;
@@ -102,33 +104,34 @@
   <div class="header">
     <h2>Exercise 2 – Page 29</h2>
     <p>
-      Type in the boxes below a description of the stakeholder's identity (who they are at their deepest level),
-      ambition (an aspiration or dream big or small), and role (in particular in the relationship with you.)
+      Type in the boxes below a description of the stakeholder's identity,
+      ambition, and role from their point of view.
     </p>
   </div>
 
   <div class="layout">
-    <img src="/page-29.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
+    <img src="/page-29.jpg" alt="Exercise Page"
+         style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <form id="exercise-form" class="form-container" autocomplete="off">
+    <form class="form-container" autocomplete="off">
       <label>
-        <strong>Stakeholder #4 (use the name/description from the last exercise)</strong>
-        <input type="text" id="stakeholder" required autocomplete="off" />
+        <strong>Stakeholder #4</strong>
+        <input type="text" id="stakeholder" required />
       </label>
 
       <label>
         <strong>Identity</strong>
-        <textarea id="identity" rows="4" autocomplete="off"></textarea>
+        <textarea id="identity" rows="4"></textarea>
       </label>
 
       <label>
         <strong>Ambition</strong>
-        <textarea id="ambition" rows="4" autocomplete="off"></textarea>
+        <textarea id="ambition" rows="4"></textarea>
       </label>
 
       <label>
         <strong>Role</strong>
-        <textarea id="role" rows="4" autocomplete="off"></textarea>
+        <textarea id="role" rows="4"></textarea>
       </label>
 
       <div class="button-bar">
@@ -136,7 +139,10 @@
         <button type="button" class="nav-button" onclick="saveData()">💾 Save</button>
         <button type="button" class="nav-button" onclick="saveAndGoNext()">➡ Save & Next</button>
         <button type="button" class="nav-button" onclick="window.print()">🖨️ Print</button>
-        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">Go to the Table of Contents</button>
+        <button type="button" class="nav-button"
+                onclick="window.location.href='/page-3.html'">
+          Go to the Table of Contents
+        </button>
       </div>
 
       <div id="status"></div>
@@ -144,37 +150,35 @@
   </div>
 
   <script>
-    // ✅ Shared Supabase client
+    // ✅ ONE shared Supabase client (safe across all pages)
     window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'YOUR_ANON_KEY'
+      "https://nidxvthbowdgdfuopmzk.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
     );
     const sb = window.supabaseClient;
 
-    function setStatus(message, color = "#084a58") {
-      const el = document.getElementById("status");
-      if (!el) return;
-      el.textContent = message;
-      el.style.color = color;
+    const statusEl = document.getElementById("status");
+
+    function setStatus(msg, color = "#084a58") {
+      statusEl.textContent = msg;
+      statusEl.style.color = color;
     }
 
-    async function requireUserOrRedirect() {
+    async function requireUser() {
       const { data } = await sb.auth.getUser();
-      const user = data?.user;
-      if (!user) {
+      if (!data?.user) {
         window.location.href = "/login.html";
         return null;
       }
-      return user;
+      return data.user;
     }
 
     window.addEventListener("DOMContentLoaded", async () => {
-      const user = await requireUserOrRedirect();
+      const user = await requireUser();
       if (!user) return;
 
-      setStatus("Logged in user id:\n" + user.id);
+      setStatus("Logged in user:\n" + user.id);
 
-      // ✅ FIX: removed `id` from select
       const { data, error } = await sb
         .from("exercise2_page29")
         .select("user_id, stakeholder, identity, ambition, role")
@@ -182,12 +186,12 @@
         .maybeSingle();
 
       if (error) {
-        setStatus("❌ Could not load saved data:\n" + error.message, "red");
+        setStatus("❌ Load error:\n" + error.message, "red");
         return;
       }
 
       if (!data) {
-        setStatus("ℹ️ No saved row found yet.\nClick Save once.");
+        setStatus("ℹ️ No saved data yet. Click Save once.");
         return;
       }
 
@@ -196,23 +200,15 @@
       ambition.value = data.ambition || "";
       role.value = data.role || "";
 
-      setStatus("✅ Loaded saved data successfully.");
+      setStatus("✅ Saved data loaded.");
     });
 
     async function saveData() {
-      const user = await requireUserOrRedirect();
+      const user = await requireUser();
       if (!user) return;
 
-      const payload = {
-        user_id: user.id,
-        stakeholder: stakeholder.value.trim(),
-        identity: identity.value.trim(),
-        ambition: ambition.value.trim(),
-        role: role.value.trim()
-      };
-
-      if (!payload.stakeholder) {
-        setStatus("Please enter a stakeholder name before saving.", "red");
+      if (!stakeholder.value.trim()) {
+        setStatus("Please enter a stakeholder name.", "red");
         return;
       }
 
@@ -220,10 +216,19 @@
 
       const { error } = await sb
         .from("exercise2_page29")
-        .upsert(payload, { onConflict: "user_id" });
+        .upsert(
+          {
+            user_id: user.id,
+            stakeholder: stakeholder.value.trim(),
+            identity: identity.value.trim(),
+            ambition: ambition.value.trim(),
+            role: role.value.trim()
+          },
+          { onConflict: "user_id" }
+        );
 
       if (error) {
-        setStatus("❌ Error saving data:\n" + error.message, "red");
+        setStatus("❌ Save error:\n" + error.message, "red");
       } else {
         setStatus("✅ Saved successfully!");
       }
@@ -231,7 +236,7 @@
 
     async function saveAndGoNext() {
       await saveData();
-      if (!status.textContent.startsWith("❌")) {
+      if (!statusEl.textContent.startsWith("❌")) {
         window.location.href = "/page-30.html";
       }
     }
@@ -240,6 +245,9 @@
       window.location.href = "/page-28.html";
     }
   </script>
+
+</body>
+</html>
 
 </body>
 </html>
