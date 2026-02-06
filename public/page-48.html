@@ -6,6 +6,7 @@
   <title>Exercise 5 – Page 48</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
       font-family: "Avenir", "Nunito Sans", sans-serif;
@@ -19,18 +20,17 @@
       text-align: center;
       color: #084a58;
     }
-
     .header h2 {
       font-size: 28px;
       font-weight: 800;
       margin-bottom: 0.5rem;
     }
-
     .header p {
       font-size: 16px;
       color: #084a58;
-      max-width: 700px;
+      max-width: 800px;
       margin: 0 auto;
+      line-height: 1.35;
     }
 
     .layout {
@@ -46,6 +46,12 @@
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       flex: 1;
+      min-width: 320px;
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #084a58;
     }
 
     textarea {
@@ -54,19 +60,30 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-family: inherit;
+      box-sizing: border-box;
     }
 
     .stakeholder-block {
-      margin-bottom: 2rem;
+      margin-bottom: 1.25rem;
       padding: 1rem;
-      border: 1px solid #ccc;
+      border: 1px solid #d1d3d4;
       border-radius: 8px;
       background: #f9f9f9;
     }
 
+    .stakeholder-block h4 {
+      margin: 0 0 0.5rem 0;
+      color: #084a58;
+    }
+
+    .stakeholder-block p {
+      margin: 0.25rem 0;
+      line-height: 1.25;
+    }
+
     .stakeholder-block label {
       display: block;
-      margin-bottom: 1rem;
+      margin-top: 0.75rem;
     }
 
     .button-bar {
@@ -96,22 +113,31 @@
       margin-top: 1rem;
       font-weight: 600;
       color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
-<body>
 
+<body>
   <div class="header">
     <h2>Exercise 5 – Page 48</h2>
-    <p>Based on the work you did in Exercises 2 and 4 on roles, complete admission ticket ideas to engage stakeholders. You can suggest up to three for each of your six stakeholders. Hint: think of these as generous contributions 
-you can make (say or do) to engage stakeholders.</p>
+    <p>
+      Based on the work you did in Exercises 2 and 4 on roles, complete admission ticket ideas to engage stakeholders.
+      You can suggest up to three for each of your six stakeholders. Hint: think of these as generous contributions
+      you can make (say or do) to engage stakeholders.
+    </p>
   </div>
 
   <div class="layout">
-    <img src="/page-48.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
+    <img
+      src="/page-48.jpg"
+      alt="Exercise Page"
+      style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;"
+    />
 
-    <form id="ticket-form" class="form-container">
+    <form id="ticket-form" class="form-container" autocomplete="off">
       <h3>Stakeholder Engagement Admission Tickets</h3>
+
       <div id="stakeholder-sections"></div>
 
       <div class="button-bar">
@@ -119,7 +145,9 @@ you can make (say or do) to engage stakeholders.</p>
         <button type="button" class="nav-button" onclick="saveAll()">💾 Save</button>
         <button type="button" class="nav-button" onclick="saveAndGoNext()">➡ Save & Next</button>
         <button type="button" class="nav-button" onclick="window.print()">🖨️ Print</button>
-        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">Go to the Table of Contents</button>
+        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">
+          Go to the Table of Contents
+        </button>
       </div>
 
       <div id="status-message"></div>
@@ -127,84 +155,163 @@ you can make (say or do) to engage stakeholders.</p>
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    // ✅ ONE shared Supabase client (same pattern as Exercises 1–4)
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+      "https://nidxvthbowdgdfuopmzk.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
     );
+    const sb = window.supabaseClient;
+
+    function setStatus(message, color = "#084a58") {
+      const el = document.getElementById("status-message");
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data, error } = await sb.auth.getUser();
+      if (error) console.error("Auth getUser error:", error);
+
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
+
+    async function maybeSingle(table, columns, userId) {
+      return sb
+        .from(table)
+        .select(columns)
+        .eq("user_id", userId)
+        .maybeSingle();
+    }
 
     async function loadStakeholderData() {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
       const container = document.getElementById("stakeholder-sections");
-      const statusMsg = document.getElementById("status-message");
+      if (!container) return;
 
-      if (userError || !user?.id) {
-        statusMsg.textContent = "You must be logged in.";
-        statusMsg.style.color = "red";
-        return;
+      container.innerHTML = "";
+      setStatus("Loading…");
+
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
+      // ✅ Prefill any saved tickets (exercise5_page48 has 6 rows keyed by user_id + stakeholder_number)
+      const { data: existingRows, error: existingErr } = await sb
+        .from("exercise5_page48")
+        .select("stakeholder_number, stakeholder_name, ticket_1, ticket_2, ticket_3")
+        .eq("user_id", user.id);
+
+      if (existingErr) {
+        console.error("Load existing tickets error:", existingErr);
+        // Don’t block rendering; still show the form.
       }
 
-      for (let i = 1; i <= 6; i++) {
-        const ex2 = await supabase.from(`exercise2_page2${5+i}`).select("stakeholder, role").eq("user_id", user.id).single();
-        const ex4 = await supabase.from(`exercise4_page3${5+i}`).select("role").eq("user_id", user.id).single();
+      const existingByNum = {};
+      (existingRows || []).forEach((r) => {
+        existingByNum[r.stakeholder_number] = r;
+      });
 
-        const stakeholder = ex2.data?.stakeholder || "";
-        const role = ex2.data?.role || "";
-        const intersectingRole = ex4.data?.role || "";
+      // ✅ Build all 6 stakeholder blocks
+      for (let i = 1; i <= 6; i++) {
+        const ex2Table = `exercise2_page${25 + i}`;  // 26..31
+        const ex4Table = `exercise4_page${35 + i}`;  // 36..41
+
+        const ex2Res = await maybeSingle(ex2Table, "user_id, stakeholder, role", user.id);
+        const ex4Res = await maybeSingle(ex4Table, "user_id, role", user.id);
+
+        if (ex2Res.error) console.warn(`Exercise2 load error (${ex2Table}):`, ex2Res.error);
+        if (ex4Res.error) console.warn(`Exercise4 load error (${ex4Table}):`, ex4Res.error);
+
+        const stakeholderName = ex2Res.data?.stakeholder || existingByNum[i]?.stakeholder_name || "";
+        const stakeholderRole = ex2Res.data?.role || "";
+        const intersectingRole = ex4Res.data?.role || "";
+
+        const saved = existingByNum[i] || {};
+        const ticket1Val = saved.ticket_1 || "";
+        const ticket2Val = saved.ticket_2 || "";
+        const ticket3Val = saved.ticket_3 || "";
 
         const section = document.createElement("div");
         section.className = "stakeholder-block";
 
         section.innerHTML = `
           <h4>Stakeholder ${i}</h4>
-          <p><strong>Name:</strong> <span id="name-${i}">${stakeholder}</span></p>
-          <p><strong>Role:</strong> ${role}</p>
-          <p><strong>Intersecting Role:</strong> ${intersectingRole}</p>
+
+          <p><strong>Name:</strong> <span id="name-${i}">${escapeHtml(stakeholderName)}</span></p>
+          <p><strong>Role (Exercise 2):</strong> ${escapeHtml(stakeholderRole)}</p>
+          <p><strong>Intersecting Role (Exercise 4):</strong> ${escapeHtml(intersectingRole)}</p>
 
           <label><strong>Admission Ticket Idea 1</strong><br/>
-            <textarea name="ticket1-${i}" rows="2"></textarea>
+            <textarea name="ticket1-${i}" rows="2" autocomplete="off">${escapeHtml(ticket1Val)}</textarea>
           </label>
 
           <label><strong>Admission Ticket Idea 2</strong><br/>
-            <textarea name="ticket2-${i}" rows="2"></textarea>
+            <textarea name="ticket2-${i}" rows="2" autocomplete="off">${escapeHtml(ticket2Val)}</textarea>
           </label>
 
           <label><strong>Admission Ticket Idea 3</strong><br/>
-            <textarea name="ticket3-${i}" rows="2"></textarea>
+            <textarea name="ticket3-${i}" rows="2" autocomplete="off">${escapeHtml(ticket3Val)}</textarea>
           </label>
         `;
 
         container.appendChild(section);
       }
+
+      setStatus("✅ Loaded. Add/edit ideas, then Save.");
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
     async function saveAll() {
-      const { data: { user } } = await supabase.auth.getUser();
-      const statusMsg = document.getElementById("status-message");
-      statusMsg.style.color = "#084a58";
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
+      setStatus("Saving…");
 
       try {
         for (let i = 1; i <= 6; i++) {
-          const ticket1 = document.querySelector(`[name='ticket1-${i}']`).value.trim();
-          const ticket2 = document.querySelector(`[name='ticket2-${i}']`).value.trim();
-          const ticket3 = document.querySelector(`[name='ticket3-${i}']`).value.trim();
-          const stakeholderName = document.querySelector(`#name-${i}`).textContent.trim();
+          const t1El = document.querySelector(`[name='ticket1-${i}']`);
+          const t2El = document.querySelector(`[name='ticket2-${i}']`);
+          const t3El = document.querySelector(`[name='ticket3-${i}']`);
+          const nameEl = document.querySelector(`#name-${i}`);
 
-          await supabase.from("exercise5_page48").upsert([
-            {
-              user_id: user.id,
-              stakeholder_number: i,
-              stakeholder_name: stakeholderName,
-              ticket_1: ticket1,
-              ticket_2: ticket2,
-              ticket_3: ticket3
-            }
-          ], { onConflict: ['user_id', 'stakeholder_number'] });
+          const ticket1 = (t1El?.value || "").trim();
+          const ticket2 = (t2El?.value || "").trim();
+          const ticket3 = (t3El?.value || "").trim();
+          const stakeholderName = (nameEl?.textContent || "").trim();
+
+          const { error } = await sb
+            .from("exercise5_page48")
+            .upsert(
+              {
+                user_id: user.id,
+                stakeholder_number: i,
+                stakeholder_name: stakeholderName,
+                ticket_1: ticket1,
+                ticket_2: ticket2,
+                ticket_3: ticket3
+              },
+              { onConflict: "user_id,stakeholder_number" }
+            );
+
+          if (error) throw error;
         }
 
-        statusMsg.textContent = "Saved successfully!";
-      } catch (error) {
-        statusMsg.textContent = "❌ Error saving data: " + error.message;
-        statusMsg.style.color = "red";
+        setStatus("✅ Saved successfully!");
+      } catch (err) {
+        console.error("SaveAll error:", err);
+        setStatus("❌ Error saving data:\n" + (err?.message || String(err)), "red");
       }
     }
 
@@ -214,11 +321,13 @@ you can make (say or do) to engage stakeholders.</p>
 
     async function saveAndGoNext() {
       await saveAll();
+      const statusText = document.getElementById("status-message")?.textContent || "";
+      if (statusText.startsWith("❌")) return;
+
       window.location.href = "/#page/49";
     }
 
     window.addEventListener("DOMContentLoaded", loadStakeholderData);
   </script>
-
 </body>
 </html>
