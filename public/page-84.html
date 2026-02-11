@@ -4,15 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 10 – Page 84</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
-      font-family: 'Avenir', 'Nunito Sans', sans-serif;
+      font-family: "Avenir", "Nunito Sans", sans-serif;
       background: #f3f4f6;
       padding: 2rem;
       margin: 0;
       color: #000;
     }
+
+    /* ✅ ensure typing font matches all other exercises */
+    textarea, input, button { font-family: inherit; }
 
     h2 { text-align: center; color: #084a58; }
 
@@ -20,9 +26,11 @@
       color: #084a58;
       text-align: center;
       margin-bottom: 1rem;
+      max-width: 980px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
-    /* Layout proportions */
     .container {
       display: flex;
       gap: 1rem;
@@ -44,7 +52,6 @@
       max-width: 55%;
     }
 
-    /* Card */
     .card {
       background: #fff;
       padding: 20px;
@@ -55,7 +62,7 @@
     h3 {
       margin: 0 0 8px;
       color: #084a58;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 1.05rem;
     }
 
@@ -68,6 +75,8 @@
       margin-top: 0.25rem;
       margin-bottom: 0.8rem;
       box-sizing: border-box;
+      color: #000;
+      background: #fff;
     }
     textarea { min-height: 60px; resize: vertical; }
 
@@ -81,7 +90,7 @@
       background: #fff;
       margin-bottom: 10px;
     }
-    .stakeholder label { font-weight: 600; }
+    .stakeholder label { font-weight: 700; color: #084a58; }
 
     .row {
       display: flex;
@@ -98,9 +107,26 @@
       flex: 1;
       min-width: 220px;
     }
-    .score-box label, .multiplier-box label { font-weight: 600; display: block; margin-bottom: 6px; }
+    .score-box label, .multiplier-box label {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 6px;
+      color: #084a58;
+    }
 
-    /* Button group (dark teal) */
+    .inline-btn {
+      flex: 0 0 auto;
+      background-color: #084a58;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 0.95rem;
+    }
+    .inline-btn:hover { opacity: 0.9; }
+
     .button-group {
       display: flex;
       flex-wrap: wrap;
@@ -128,11 +154,13 @@
     #status {
       margin-top: 1rem;
       text-align: center;
-      font-weight: bold;
-      color: #084a58; /* dark teal */
+      font-weight: 700;
+      color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
+
 <body>
   <h2>Exercise 10 – Page 84</h2>
   <div class="form-note">
@@ -152,7 +180,7 @@
         <div id="stakeholders"></div>
 
         <div class="row">
-          <button type="button" onclick="calculateScores()" style="flex:0 0 auto;">Calculate Score</button>
+          <button type="button" class="inline-btn" onclick="calculateScores()">Calculate Score</button>
           <div class="score-box">
             <label>Total Influence/Impact Score</label>
             <input type="text" id="impactScore" readonly />
@@ -164,7 +192,9 @@
           <input type="number" id="reputationMultiplier" />
         </div>
 
-        <button type="button" onclick="calculateScores()" style="margin-top:10px;">Calculate Credibility Deposits</button>
+        <button type="button" class="inline-btn" onclick="calculateScores()" style="margin-top:10px; width:100%;">
+          Calculate Credibility Deposits
+        </button>
 
         <div class="score-box" style="margin-top:10px;">
           <label>Monthly Credibility Cash Deposit</label>
@@ -191,59 +221,98 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+    // ✅ Shared Supabase client
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+      "https://nidxvthbowdgdfuopmzk.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
     );
+    const sb = window.supabaseClient;
 
     const stakeholderLabels = [1, 2, 3, 4, 5, 6];
+
+    function setStatus(msg, color="#084a58") {
+      const el = document.getElementById("status");
+      el.textContent = msg;
+      el.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data } = await sb.auth.getUser();
+      const user = data?.user;
+      if (!user) {
+        const here = window.location.pathname + window.location.search + window.location.hash;
+        window.location.href = "/login.html?redirect=" + encodeURIComponent(here);
+        return null;
+      }
+      return user;
+    }
 
     function createStakeholderSection(n) {
       return `
         <div class="stakeholder">
           <label>Stakeholder #${n} (name/description)</label>
           <input type="text" id="stakeholder${n}" />
-          <p style="margin:6px 0 8px;">
+          <p style="margin:6px 0 8px; color:#000;">
             Consider how the communication, decision or interaction above may positively influence this stakeholder.
             Check all the boxes that apply and the corresponding influence numbers will be applied to a total influence score.
           </p>
-          <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
-          <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
-          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
+          <label style="font-weight:600; color:#000;"><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
+          <label style="font-weight:600; color:#000;"><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
+          <label style="font-weight:600; color:#000;"><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
         </div>
       `;
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Render stakeholder sections
-      document.getElementById("stakeholders").innerHTML =
-        stakeholderLabels.map(createStakeholderSection).join('');
+    const SELECT_FIELDS = [
+      "interaction_description",
+      "impact_score",
+      "reputation_multiplier",
+      "monthly_deposit",
+      "annual_deposit",
+      ...stakeholderLabels.map(n => `stakeholder${n}_name`),
+      ...stakeholderLabels.map(n => `stakeholder${n}_scores`)
+    ].join(",");
 
-      // Load user + data
-      const { data: { user } } = await supabase.auth.getUser();
+    document.addEventListener("DOMContentLoaded", async () => {
+      document.getElementById("stakeholders").innerHTML =
+        stakeholderLabels.map(createStakeholderSection).join("");
+
+      const user = await requireUserOrRedirect();
       if (!user) return;
 
-      const { data } = await supabase
+      setStatus("Loading saved data...");
+
+      const { data, error } = await sb
         .from("exercise10_page84")
-        .select("*")
+        .select(SELECT_FIELDS)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (data) {
-        document.getElementById("interactionDescription").value = data.interaction_description || "";
-        document.getElementById("impactScore").value = data.impact_score ?? "";
-        document.getElementById("reputationMultiplier").value = data.reputation_multiplier ?? "";
-        document.getElementById("monthlyDeposit").value = data.monthly_deposit ?? "";
-        document.getElementById("annualDeposit").value = data.annual_deposit ?? "";
-
-        stakeholderLabels.forEach(n => {
-          document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
-          const scores = (data[`stakeholder${n}_scores`] || []);
-          document.querySelectorAll(`.score${n}`).forEach(cb => {
-            cb.checked = scores.includes(parseInt(cb.value));
-          });
-        });
+      if (error) {
+        setStatus("❌ Load error:\n" + error.message, "red");
+        return;
       }
+
+      if (!data) {
+        setStatus("ℹ️ No saved row found yet. Fill this out and click Save.");
+        return;
+      }
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score ?? "";
+      document.getElementById("reputationMultiplier").value = data.reputation_multiplier ?? "";
+      document.getElementById("monthlyDeposit").value = data.monthly_deposit ?? "";
+      document.getElementById("annualDeposit").value = data.annual_deposit ?? "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const scores = (data[`stakeholder${n}_scores`] || []);
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = scores.includes(parseInt(cb.value, 10));
+        });
+      });
+
+      setStatus("✅ Loaded saved data successfully.");
     });
 
     function calculateScores() {
@@ -255,16 +324,20 @@
       });
 
       document.getElementById("impactScore").value = total;
+
       const multiplier = parseInt(document.getElementById("reputationMultiplier").value, 10) || 0;
       const monthly = total * multiplier;
       const annual = monthly * 12;
+
       document.getElementById("monthlyDeposit").value = monthly;
       document.getElementById("annualDeposit").value = annual;
     }
 
     async function saveData() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await requireUserOrRedirect();
       if (!user) return;
+
+      setStatus("Saving...");
 
       const payload = {
         user_id: user.id,
@@ -282,23 +355,22 @@
           .map(cb => parseInt(cb.value, 10));
       });
 
-      const { error } = await supabase
+      const { error } = await sb
         .from("exercise10_page84")
-        .upsert([payload], { onConflict: ['user_id'] });
+        .upsert(payload, { onConflict: "user_id" });
 
-      const status = document.getElementById("status");
       if (error) {
-        status.textContent = "❌ Error saving data: " + error.message;
-        status.style.color = "red";
+        setStatus("❌ Error saving data:\n" + error.message, "red");
       } else {
-        status.textContent = "Saved successfully!";
-        status.style.color = "#084a58";
+        setStatus("✅ Saved successfully!");
       }
     }
 
     async function saveAndNext() {
       await saveData();
-      window.location.href = "/#page/85";
+      if (!document.getElementById("status").textContent.startsWith("❌")) {
+        window.location.href = "/#page/85";
+      }
     }
 
     function goBack() { window.location.href = "/page-83.html"; }
@@ -306,3 +378,4 @@
   </script>
 </body>
 </html>
+
