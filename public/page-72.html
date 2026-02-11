@@ -4,10 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 8 – Page 72</title>
+
+  <!-- ✅ Match other exercises: load Nunito Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
-      font-family: 'Avenir', 'Nunito Sans', sans-serif;
+      font-family: "Avenir", "Nunito Sans", sans-serif;
       background: #f3f4f6;
       margin: 0;
       padding: 2rem;
@@ -20,8 +25,12 @@
       color: #084a58;
       text-align: center;
       margin-bottom: 1rem;
+      max-width: 980px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
+    /* Layout */
     .container {
       display: flex;
       gap: 1rem;
@@ -45,6 +54,7 @@
       max-width: 55%;
     }
 
+    /* Card */
     form {
       background: white;
       padding: 20px;
@@ -53,9 +63,17 @@
     }
 
     label {
-      font-weight: bold;
+      font-weight: 700;
       display: block;
       margin-top: 1rem;
+      color: #000;
+    }
+
+    /* ✅ Force form controls to use the same font as the rest of the page */
+    textarea, input, button {
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1.4;
     }
 
     textarea {
@@ -65,8 +83,9 @@
       margin-top: 0.25rem;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 1rem;
       resize: vertical;
+      color: #000;
+      background: #fff;
     }
 
     .button-group {
@@ -96,12 +115,13 @@
     #status {
       margin-top: 1rem;
       text-align: center;
-      font-weight: bold;
+      font-weight: 700;
       color: #084a58;
       white-space: pre-wrap;
     }
   </style>
 </head>
+
 <body>
   <h2>Exercise 8 – Page 72</h2>
   <div class="form-note">
@@ -144,7 +164,7 @@
   </div>
 
   <script>
-    // ✅ ONE shared Supabase client (prevents redeclare issues and keeps sessions consistent)
+    // ✅ ONE shared Supabase client (matches your stabilized pattern)
     window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
@@ -178,8 +198,7 @@
       const user = await requireUserOrRedirect();
       if (!user) return;
 
-      setStatus("Loading saved data...");
-
+      // Load saved row (if any)
       const { data, error } = await sb
         .from("exercise8_page72")
         .select("user_id, change_description, stakeholders_affected, pros_cons_command, pros_cons_hearts, best_approach")
@@ -191,64 +210,58 @@
         return;
       }
 
-      if (!data) {
-        setStatus("ℹ️ No saved data yet. Enter your responses and click Save.");
-        return;
+      if (data) {
+        document.getElementById("change_description").value = data.change_description || "";
+        document.getElementById("stakeholders_affected").value = data.stakeholders_affected || "";
+        document.getElementById("pros_cons_command").value = data.pros_cons_command || "";
+        document.getElementById("pros_cons_hearts").value = data.pros_cons_hearts || "";
+        document.getElementById("best_approach").value = data.best_approach || "";
+        setStatus("✅ Loaded saved data successfully.");
+      } else {
+        setStatus("ℹ️ No saved row found yet. Click Save once.");
       }
 
-      document.getElementById("change_description").value = data.change_description || "";
-      document.getElementById("stakeholders_affected").value = data.stakeholders_affected || "";
-      document.getElementById("pros_cons_command").value = data.pros_cons_command || "";
-      document.getElementById("pros_cons_hearts").value = data.pros_cons_hearts || "";
-      document.getElementById("best_approach").value = data.best_approach || "";
+      window.saveData = async function () {
+        const user = await requireUserOrRedirect();
+        if (!user) return;
 
-      setStatus("✅ Loaded saved data successfully.");
-    });
+        setStatus("Saving...");
 
-    window.saveData = async function () {
-      const user = await requireUserOrRedirect();
-      if (!user) return false;
+        const payload = {
+          user_id: user.id,
+          change_description: v("change_description"),
+          stakeholders_affected: v("stakeholders_affected"),
+          pros_cons_command: v("pros_cons_command"),
+          pros_cons_hearts: v("pros_cons_hearts"),
+          best_approach: v("best_approach"),
+        };
 
-      setStatus("Saving...");
+        const { error } = await sb
+          .from("exercise8_page72")
+          .upsert(payload, { onConflict: "user_id" });
 
-      const payload = {
-        user_id: user.id,
-        change_description: v("change_description"),
-        stakeholders_affected: v("stakeholders_affected"),
-        pros_cons_command: v("pros_cons_command"),
-        pros_cons_hearts: v("pros_cons_hearts"),
-        best_approach: v("best_approach"),
+        if (error) {
+          setStatus("❌ Error saving data:\n" + error.message, "red");
+        } else {
+          setStatus("✅ Saved successfully!");
+        }
       };
 
-      const { error } = await sb
-        .from("exercise8_page72")
-        .upsert(payload, { onConflict: "user_id" });
+      window.saveAndNext = async function () {
+        await saveData();
+        const statusText = document.getElementById("status").textContent || "";
+        if (statusText.startsWith("❌")) return;
+        window.location.href = "/#page/73";
+      };
 
-      if (error) {
-        console.error("Save error:", error);
-        setStatus("❌ Error saving data:\n" + error.message, "red");
-        return false;
-      }
+      window.goBack = function () {
+        window.location.href = "/#page/71";
+      };
 
-      setStatus("✅ Saved successfully!");
-      return true;
-    };
-
-    window.saveAndNext = async function () {
-      const ok = await saveData();
-      if (!ok) return;
-
-      // ✅ next page is non-interactive
-      window.location.href = "/#page/73";
-    };
-
-    window.goBack = function () {
-      window.location.href = "/#page/71";
-    };
-
-    window.goToTOC = function () {
-      window.location.href = "/page-3.html";
-    };
+      window.goToTOC = function () {
+        window.location.href = "/page-3.html";
+      };
+    });
   </script>
 </body>
 </html>
