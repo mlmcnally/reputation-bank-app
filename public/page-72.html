@@ -22,14 +22,12 @@
       margin-bottom: 1rem;
     }
 
-    /* Layout */
     .container {
       display: flex;
-      gap: 1rem;               /* small, consistent gap */
+      gap: 1rem;
       align-items: flex-start;
     }
 
-    /* ✅ Make the LEFT pane itself 45% like page-70, and let the image fill it */
     .left-pane {
       flex: 0 0 45%;
       max-width: 45%;
@@ -43,11 +41,10 @@
     }
 
     .right-pane {
-      flex: 1 1 55%;           /* take the remaining space */
+      flex: 1 1 55%;
       max-width: 55%;
     }
 
-    /* Card */
     form {
       background: white;
       padding: 20px;
@@ -100,7 +97,8 @@
       margin-top: 1rem;
       text-align: center;
       font-weight: bold;
-      color: #084a58; /* dark teal */
+      color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -116,21 +114,21 @@
     </div>
 
     <div class="right-pane">
-      <form id="exercise-form">
+      <form id="exercise-form" autocomplete="off">
         <label for="change_description">Description of the Change Initiative</label>
-        <textarea id="change_description"></textarea>
+        <textarea id="change_description" autocomplete="off"></textarea>
 
         <label for="stakeholders_affected">Stakeholders Affected by the Change</label>
-        <textarea id="stakeholders_affected"></textarea>
+        <textarea id="stakeholders_affected" autocomplete="off"></textarea>
 
         <label for="pros_cons_command">Pros/Cons of Command &amp; Control Approach</label>
-        <textarea id="pros_cons_command"></textarea>
+        <textarea id="pros_cons_command" autocomplete="off"></textarea>
 
         <label for="pros_cons_hearts">Pros/Cons of Hearts &amp; Minds Approach</label>
-        <textarea id="pros_cons_hearts"></textarea>
+        <textarea id="pros_cons_hearts" autocomplete="off"></textarea>
 
         <label for="best_approach">Best Change Communications Approach for Your Organization</label>
-        <textarea id="best_approach"></textarea>
+        <textarea id="best_approach" autocomplete="off"></textarea>
 
         <div class="button-group">
           <button type="button" onclick="goBack()">⬅ Back One Page</button>
@@ -146,65 +144,112 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    // ✅ ONE shared Supabase client (prevents redeclare issues and keeps sessions consistent)
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
+    const sb = window.supabaseClient;
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    function setStatus(message, color = "#084a58") {
+      const el = document.getElementById("status");
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data, error } = await sb.auth.getUser();
+      if (error) console.error("Auth getUser error:", error);
+
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
+
+    function v(id) {
+      return (document.getElementById(id)?.value || "").trim();
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      const user = await requireUserOrRedirect();
       if (!user) return;
 
-      const { data } = await supabase
-        .from('exercise8_page72')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      setStatus("Loading saved data...");
 
-      if (data) {
-        document.getElementById('change_description').value = data.change_description || '';
-        document.getElementById('stakeholders_affected').value = data.stakeholders_affected || '';
-        document.getElementById('pros_cons_command').value = data.pros_cons_command || '';
-        document.getElementById('pros_cons_hearts').value = data.pros_cons_hearts || '';
-        document.getElementById('best_approach').value = data.best_approach || '';
+      const { data, error } = await sb
+        .from("exercise8_page72")
+        .select("user_id, change_description, stakeholders_affected, pros_cons_command, pros_cons_hearts, best_approach")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        setStatus("❌ Could not load saved data:\n" + error.message, "red");
+        return;
       }
 
-      window.saveData = async function () {
-        const v = id => document.getElementById(id).value.trim();
-        const { error } = await supabase
-          .from('exercise8_page72')
-          .upsert([{
-            user_id: user.id,
-            change_description: v('change_description'),
-            stakeholders_affected: v('stakeholders_affected'),
-            pros_cons_command: v('pros_cons_command'),
-            pros_cons_hearts: v('pros_cons_hearts'),
-            best_approach: v('best_approach')
-          }], { onConflict: ['user_id'] });
+      if (!data) {
+        setStatus("ℹ️ No saved data yet. Enter your responses and click Save.");
+        return;
+      }
 
-        const status = document.getElementById('status');
-        if (error) {
-          status.textContent = '❌ Error saving data: ' + error.message;
-          status.style.color = 'red';
-        } else {
-          status.textContent = 'Saved successfully!';
-          status.style.color = '#084a58';
-        }
-      };
+      document.getElementById("change_description").value = data.change_description || "";
+      document.getElementById("stakeholders_affected").value = data.stakeholders_affected || "";
+      document.getElementById("pros_cons_command").value = data.pros_cons_command || "";
+      document.getElementById("pros_cons_hearts").value = data.pros_cons_hearts || "";
+      document.getElementById("best_approach").value = data.best_approach || "";
 
-      window.saveAndNext = async function () {
-        await saveData();
-        window.location.href = '/#page/73';
-      };
-
-      window.goBack = function () {
-        window.location.href = '/#page/71';
-      };
-
-      window.goToTOC = function () {
-        window.location.href = '/page-3.html';
-      };
+      setStatus("✅ Loaded saved data successfully.");
     });
+
+    window.saveData = async function () {
+      const user = await requireUserOrRedirect();
+      if (!user) return false;
+
+      setStatus("Saving...");
+
+      const payload = {
+        user_id: user.id,
+        change_description: v("change_description"),
+        stakeholders_affected: v("stakeholders_affected"),
+        pros_cons_command: v("pros_cons_command"),
+        pros_cons_hearts: v("pros_cons_hearts"),
+        best_approach: v("best_approach"),
+      };
+
+      const { error } = await sb
+        .from("exercise8_page72")
+        .upsert(payload, { onConflict: "user_id" });
+
+      if (error) {
+        console.error("Save error:", error);
+        setStatus("❌ Error saving data:\n" + error.message, "red");
+        return false;
+      }
+
+      setStatus("✅ Saved successfully!");
+      return true;
+    };
+
+    window.saveAndNext = async function () {
+      const ok = await saveData();
+      if (!ok) return;
+
+      // ✅ next page is non-interactive
+      window.location.href = "/#page/73";
+    };
+
+    window.goBack = function () {
+      window.location.href = "/#page/71";
+    };
+
+    window.goToTOC = function () {
+      window.location.href = "/page-3.html";
+    };
   </script>
 </body>
 </html>
+
