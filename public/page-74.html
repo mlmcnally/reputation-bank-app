@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Exercise 8 – Page 72</title>
+  <title>Exercise 9 – Page 74</title>
 
-  <!-- ✅ Match other exercises: load Nunito Sans -->
+  <!-- ✅ Load correct font -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,12 +14,15 @@
     body {
       font-family: "Avenir", "Nunito Sans", sans-serif;
       background: #f3f4f6;
-      margin: 0;
       padding: 2rem;
+      margin: 0;
       color: #000;
     }
 
-    h2 { text-align: center; color: #084a58; }
+    h2 {
+      text-align: center;
+      color: #084a58;
+    }
 
     .form-note {
       color: #084a58;
@@ -60,16 +63,16 @@
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow-x: auto;
     }
 
     label {
       font-weight: 700;
       display: block;
       margin-top: 1rem;
-      color: #000;
     }
 
-    /* ✅ Force form controls to use the same font as the rest of the page */
+    /* ✅ Force SAME font everywhere */
     textarea, input, button {
       font-family: inherit;
       font-size: 1rem;
@@ -84,8 +87,24 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       resize: vertical;
-      color: #000;
       background: #fff;
+      color: #000;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 1.5rem;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      vertical-align: top;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: bold;
+      text-align: center;
     }
 
     .button-group {
@@ -104,7 +123,6 @@
       border-radius: 4px;
       cursor: pointer;
       box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-      font-size: 0.95rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -123,32 +141,76 @@
 </head>
 
 <body>
-  <h2>Exercise 8 – Page 72</h2>
+  <h2>Exercise 9 – Page 74</h2>
   <div class="form-note">
-    Write in the boxes before you change: describe the change and the stakeholders affected; then compare approaches and pick the best fit for your organization.
+    Define the initiative and your communication goals, then map leader impacts across planning, approval, and activation.
   </div>
 
   <div class="container">
     <div class="left-pane">
-      <img src="/page-72.jpg" alt="Exercise 8 Page 72" />
+      <img src="/page-74.jpg" alt="Exercise 9 Page 74" />
     </div>
 
     <div class="right-pane">
       <form id="exercise-form" autocomplete="off">
-        <label for="change_description">Description of the Change Initiative</label>
-        <textarea id="change_description" autocomplete="off"></textarea>
 
-        <label for="stakeholders_affected">Stakeholders Affected by the Change</label>
-        <textarea id="stakeholders_affected" autocomplete="off"></textarea>
+        <label>Key Strategic Initiative Description</label>
+        <textarea id="key_initiative_description"></textarea>
 
-        <label for="pros_cons_command">Pros/Cons of Command &amp; Control Approach</label>
-        <textarea id="pros_cons_command" autocomplete="off"></textarea>
+        <label>Internal Communication Goals</label>
+        <textarea id="internal_comm_goals"></textarea>
 
-        <label for="pros_cons_hearts">Pros/Cons of Hearts &amp; Minds Approach</label>
-        <textarea id="pros_cons_hearts" autocomplete="off"></textarea>
+        <label>External Communication Goals</label>
+        <textarea id="external_comm_goals"></textarea>
 
-        <label for="best_approach">Best Change Communications Approach for Your Organization</label>
-        <textarea id="best_approach" autocomplete="off"></textarea>
+        <table>
+          <thead>
+            <tr>
+              <th>Leader Impacts</th>
+              <th>Planning</th>
+              <th>Approval/Endorsement</th>
+              <th>Activation/Implementation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Inspire</td>
+              <td><textarea id="inspire_planning"></textarea></td>
+              <td><textarea id="inspire_approval"></textarea></td>
+              <td><textarea id="inspire_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Empower</td>
+              <td><textarea id="empower_planning"></textarea></td>
+              <td><textarea id="empower_approval"></textarea></td>
+              <td><textarea id="empower_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Vision/Purpose</td>
+              <td><textarea id="vision_planning"></textarea></td>
+              <td><textarea id="vision_approval"></textarea></td>
+              <td><textarea id="vision_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Strategic Direction</td>
+              <td><textarea id="strategy_planning"></textarea></td>
+              <td><textarea id="strategy_approval"></textarea></td>
+              <td><textarea id="strategy_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Set Expectations</td>
+              <td><textarea id="expectations_planning"></textarea></td>
+              <td><textarea id="expectations_approval"></textarea></td>
+              <td><textarea id="expectations_activation"></textarea></td>
+            </tr>
+            <tr>
+              <td>Role-Model Values</td>
+              <td><textarea id="values_planning"></textarea></td>
+              <td><textarea id="values_approval"></textarea></td>
+              <td><textarea id="values_activation"></textarea></td>
+            </tr>
+          </tbody>
+        </table>
 
         <div class="button-group">
           <button type="button" onclick="goBack()">⬅ Back One Page</button>
@@ -164,103 +226,91 @@
   </div>
 
   <script>
-    // ✅ ONE shared Supabase client (matches your stabilized pattern)
     window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+      "https://nidxvthbowdgdfuopmzk.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     );
     const sb = window.supabaseClient;
 
-    function setStatus(message, color = "#084a58") {
-      const el = document.getElementById("status");
-      if (!el) return;
-      el.textContent = message;
-      el.style.color = color;
+    function setStatus(msg, color="#084a58"){
+      const s=document.getElementById("status");
+      s.textContent=msg;
+      s.style.color=color;
     }
 
-    async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
-
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
+    async function requireUser(){
+      const {data:{user}}=await sb.auth.getUser();
+      if(!user){window.location.href="/login.html";return null;}
       return user;
     }
 
-    function v(id) {
-      return (document.getElementById(id)?.value || "").trim();
-    }
+    function v(id){return document.getElementById(id).value.trim();}
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+    window.addEventListener("DOMContentLoaded", async ()=>{
+      const user=await requireUser();
+      if(!user) return;
 
-      // Load saved row (if any)
-      const { data, error } = await sb
-        .from("exercise8_page72")
-        .select("user_id, change_description, stakeholders_affected, pros_cons_command, pros_cons_hearts, best_approach")
-        .eq("user_id", user.id)
+      const {data,error}=await sb
+        .from("exercise9_page74")
+        .select("*")
+        .eq("user_id",user.id)
         .maybeSingle();
 
-      if (error) {
-        setStatus("❌ Could not load saved data:\n" + error.message, "red");
-        return;
-      }
+      if(error){setStatus("Load error: "+error.message,"red");return;}
 
-      if (data) {
-        document.getElementById("change_description").value = data.change_description || "";
-        document.getElementById("stakeholders_affected").value = data.stakeholders_affected || "";
-        document.getElementById("pros_cons_command").value = data.pros_cons_command || "";
-        document.getElementById("pros_cons_hearts").value = data.pros_cons_hearts || "";
-        document.getElementById("best_approach").value = data.best_approach || "";
-        setStatus("✅ Loaded saved data successfully.");
+      if(data){
+        Object.keys(data).forEach(k=>{
+          const el=document.getElementById(k);
+          if(el) el.value=data[k]||"";
+        });
+        setStatus("Loaded saved data.");
       } else {
-        setStatus("ℹ️ No saved row found yet. Click Save once.");
+        setStatus("No saved data yet.");
       }
 
-      window.saveData = async function () {
-        const user = await requireUserOrRedirect();
-        if (!user) return;
-
+      window.saveData=async()=>{
         setStatus("Saving...");
-
-        const payload = {
-          user_id: user.id,
-          change_description: v("change_description"),
-          stakeholders_affected: v("stakeholders_affected"),
-          pros_cons_command: v("pros_cons_command"),
-          pros_cons_hearts: v("pros_cons_hearts"),
-          best_approach: v("best_approach"),
+        const payload={
+          user_id:user.id,
+          key_initiative_description:v("key_initiative_description"),
+          internal_comm_goals:v("internal_comm_goals"),
+          external_comm_goals:v("external_comm_goals"),
+          inspire_planning:v("inspire_planning"),
+          inspire_approval:v("inspire_approval"),
+          inspire_activation:v("inspire_activation"),
+          empower_planning:v("empower_planning"),
+          empower_approval:v("empower_approval"),
+          empower_activation:v("empower_activation"),
+          vision_planning:v("vision_planning"),
+          vision_approval:v("vision_approval"),
+          vision_activation:v("vision_activation"),
+          strategy_planning:v("strategy_planning"),
+          strategy_approval:v("strategy_approval"),
+          strategy_activation:v("strategy_activation"),
+          expectations_planning:v("expectations_planning"),
+          expectations_approval:v("expectations_approval"),
+          expectations_activation:v("expectations_activation"),
+          values_planning:v("values_planning"),
+          values_approval:v("values_approval"),
+          values_activation:v("values_activation")
         };
 
-        const { error } = await sb
-          .from("exercise8_page72")
-          .upsert(payload, { onConflict: "user_id" });
+        const {error}=await sb
+          .from("exercise9_page74")
+          .upsert(payload,{onConflict:"user_id"});
 
-        if (error) {
-          setStatus("❌ Error saving data:\n" + error.message, "red");
-        } else {
-          setStatus("✅ Saved successfully!");
-        }
+        if(error) setStatus("Save error: "+error.message,"red");
+        else setStatus("Saved successfully!");
       };
 
-      window.saveAndNext = async function () {
+      window.saveAndNext=async()=>{
         await saveData();
-        const statusText = document.getElementById("status").textContent || "";
-        if (statusText.startsWith("❌")) return;
-        window.location.href = "/#page/73";
+        if(!document.getElementById("status").textContent.includes("error"))
+          window.location.href="/#page/75";
       };
 
-      window.goBack = function () {
-        window.location.href = "/#page/71";
-      };
-
-      window.goToTOC = function () {
-        window.location.href = "/page-3.html";
-      };
+      window.goBack=()=>window.location.href="/#page/73";
+      window.goToTOC=()=>window.location.href="/page-3.html";
     });
   </script>
 </body>
