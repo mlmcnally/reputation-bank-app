@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 9 – Page 74</title>
 
-  <!-- ✅ Load correct font -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -19,10 +17,14 @@
       color: #000;
     }
 
-    h2 {
-      text-align: center;
-      color: #084a58;
+    /* ✅ Ensure typed text matches other exercises */
+    textarea, input, button {
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1.4;
     }
+
+    h2 { text-align: center; color: #084a58; }
 
     .form-note {
       color: #084a58;
@@ -33,13 +35,11 @@
       margin-right: auto;
     }
 
-    /* Layout */
     .container {
       display: flex;
       gap: 1rem;
       align-items: flex-start;
     }
-
     .left-pane {
       flex: 0 0 45%;
       max-width: 45%;
@@ -51,13 +51,11 @@
       border: 1px solid #ccc;
       display: block;
     }
-
     .right-pane {
       flex: 1 1 55%;
       max-width: 55%;
     }
 
-    /* Card */
     form {
       background: white;
       padding: 20px;
@@ -70,13 +68,7 @@
       font-weight: 700;
       display: block;
       margin-top: 1rem;
-    }
-
-    /* ✅ Force SAME font everywhere */
-    textarea, input, button {
-      font-family: inherit;
-      font-size: 1rem;
-      line-height: 1.4;
+      color: #084a58;
     }
 
     textarea {
@@ -87,6 +79,7 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       resize: vertical;
+      box-sizing: border-box;
       background: #fff;
       color: #000;
     }
@@ -103,8 +96,9 @@
     }
     th {
       background: #f9fafb;
-      font-weight: bold;
+      font-weight: 800;
       text-align: center;
+      color: #084a58;
     }
 
     .button-group {
@@ -123,6 +117,7 @@
       border-radius: 4px;
       cursor: pointer;
       box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 0.95rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -152,15 +147,14 @@
     </div>
 
     <div class="right-pane">
-      <form id="exercise-form" autocomplete="off">
-
-        <label>Key Strategic Initiative Description</label>
+      <form id="exercise-form">
+        <label for="key_initiative_description">Key Strategic Initiative Description</label>
         <textarea id="key_initiative_description"></textarea>
 
-        <label>Internal Communication Goals</label>
+        <label for="internal_comm_goals">Internal Communication Goals</label>
         <textarea id="internal_comm_goals"></textarea>
 
-        <label>External Communication Goals</label>
+        <label for="external_comm_goals">External Communication Goals</label>
         <textarea id="external_comm_goals"></textarea>
 
         <table>
@@ -174,37 +168,37 @@
           </thead>
           <tbody>
             <tr>
-              <td>Inspire</td>
+              <td><strong>Inspire</strong></td>
               <td><textarea id="inspire_planning"></textarea></td>
               <td><textarea id="inspire_approval"></textarea></td>
               <td><textarea id="inspire_activation"></textarea></td>
             </tr>
             <tr>
-              <td>Empower</td>
+              <td><strong>Empower</strong></td>
               <td><textarea id="empower_planning"></textarea></td>
               <td><textarea id="empower_approval"></textarea></td>
               <td><textarea id="empower_activation"></textarea></td>
             </tr>
             <tr>
-              <td>Vision/Purpose</td>
+              <td><strong>Vision/Purpose</strong></td>
               <td><textarea id="vision_planning"></textarea></td>
               <td><textarea id="vision_approval"></textarea></td>
               <td><textarea id="vision_activation"></textarea></td>
             </tr>
             <tr>
-              <td>Strategic Direction</td>
+              <td><strong>Strategic Direction</strong></td>
               <td><textarea id="strategy_planning"></textarea></td>
               <td><textarea id="strategy_approval"></textarea></td>
               <td><textarea id="strategy_activation"></textarea></td>
             </tr>
             <tr>
-              <td>Set Expectations</td>
+              <td><strong>Set Expectations</strong></td>
               <td><textarea id="expectations_planning"></textarea></td>
               <td><textarea id="expectations_approval"></textarea></td>
               <td><textarea id="expectations_activation"></textarea></td>
             </tr>
             <tr>
-              <td>Role-Model Values</td>
+              <td><strong>Role-Model Values</strong></td>
               <td><textarea id="values_planning"></textarea></td>
               <td><textarea id="values_approval"></textarea></td>
               <td><textarea id="values_activation"></textarea></td>
@@ -226,92 +220,104 @@
   </div>
 
   <script>
+    // ✅ Shared Supabase client
     window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       "https://nidxvthbowdgdfuopmzk.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
     );
     const sb = window.supabaseClient;
 
-    function setStatus(msg, color="#084a58"){
-      const s=document.getElementById("status");
-      s.textContent=msg;
-      s.style.color=color;
+    function setStatus(msg, color="#084a58") {
+      const el = document.getElementById("status");
+      el.textContent = msg;
+      el.style.color = color;
     }
 
-    async function requireUser(){
-      const {data:{user}}=await sb.auth.getUser();
-      if(!user){window.location.href="/login.html";return null;}
+    // ✅ Key fix: preserve return path so login doesn't dump user at page 1
+    async function requireUserOrRedirect() {
+      const { data } = await sb.auth.getUser();
+      const user = data?.user;
+      if (!user) {
+        const here = window.location.pathname + window.location.search + window.location.hash;
+        window.location.href = "/login.html?redirect=" + encodeURIComponent(here);
+        return null;
+      }
       return user;
     }
 
-    function v(id){return document.getElementById(id).value.trim();}
+    const FIELD_IDS = [
+      "key_initiative_description",
+      "internal_comm_goals",
+      "external_comm_goals",
+      "inspire_planning","inspire_approval","inspire_activation",
+      "empower_planning","empower_approval","empower_activation",
+      "vision_planning","vision_approval","vision_activation",
+      "strategy_planning","strategy_approval","strategy_activation",
+      "expectations_planning","expectations_approval","expectations_activation",
+      "values_planning","values_approval","values_activation"
+    ];
 
-    window.addEventListener("DOMContentLoaded", async ()=>{
-      const user=await requireUser();
-      if(!user) return;
+    document.addEventListener("DOMContentLoaded", async () => {
+      const user = await requireUserOrRedirect();
+      if (!user) return;
 
-      const {data,error}=await sb
+      setStatus("Loading saved data...");
+
+      const { data, error } = await sb
         .from("exercise9_page74")
-        .select("*")
-        .eq("user_id",user.id)
+        .select(FIELD_IDS.join(","))
+        .eq("user_id", user.id)
         .maybeSingle();
 
-      if(error){setStatus("Load error: "+error.message,"red");return;}
-
-      if(data){
-        Object.keys(data).forEach(k=>{
-          const el=document.getElementById(k);
-          if(el) el.value=data[k]||"";
-        });
-        setStatus("Loaded saved data.");
-      } else {
-        setStatus("No saved data yet.");
+      if (error) {
+        setStatus("❌ Load error:\n" + error.message, "red");
+        return;
       }
 
-      window.saveData=async()=>{
-        setStatus("Saving...");
-        const payload={
-          user_id:user.id,
-          key_initiative_description:v("key_initiative_description"),
-          internal_comm_goals:v("internal_comm_goals"),
-          external_comm_goals:v("external_comm_goals"),
-          inspire_planning:v("inspire_planning"),
-          inspire_approval:v("inspire_approval"),
-          inspire_activation:v("inspire_activation"),
-          empower_planning:v("empower_planning"),
-          empower_approval:v("empower_approval"),
-          empower_activation:v("empower_activation"),
-          vision_planning:v("vision_planning"),
-          vision_approval:v("vision_approval"),
-          vision_activation:v("vision_activation"),
-          strategy_planning:v("strategy_planning"),
-          strategy_approval:v("strategy_approval"),
-          strategy_activation:v("strategy_activation"),
-          expectations_planning:v("expectations_planning"),
-          expectations_approval:v("expectations_approval"),
-          expectations_activation:v("expectations_activation"),
-          values_planning:v("values_planning"),
-          values_approval:v("values_approval"),
-          values_activation:v("values_activation")
-        };
+      if (!data) {
+        setStatus("ℹ️ No saved row found yet. Fill this out and click Save.");
+        return;
+      }
 
-        const {error}=await sb
-          .from("exercise9_page74")
-          .upsert(payload,{onConflict:"user_id"});
+      FIELD_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = data[id] || "";
+      });
 
-        if(error) setStatus("Save error: "+error.message,"red");
-        else setStatus("Saved successfully!");
-      };
-
-      window.saveAndNext=async()=>{
-        await saveData();
-        if(!document.getElementById("status").textContent.includes("error"))
-          window.location.href="/#page/75";
-      };
-
-      window.goBack=()=>window.location.href="/#page/73";
-      window.goToTOC=()=>window.location.href="/page-3.html";
+      setStatus("✅ Loaded saved data successfully.");
     });
+
+    async function saveData() {
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
+      setStatus("Saving...");
+
+      const update = { user_id: user.id };
+      FIELD_IDS.forEach(id => {
+        update[id] = document.getElementById(id).value.trim();
+      });
+
+      const { error } = await sb
+        .from("exercise9_page74")
+        .upsert(update, { onConflict: "user_id" });
+
+      if (error) {
+        setStatus("❌ Error saving data:\n" + error.message, "red");
+      } else {
+        setStatus("✅ Saved successfully!");
+      }
+    }
+
+    async function saveAndNext() {
+      await saveData();
+      if (!document.getElementById("status").textContent.startsWith("❌")) {
+        window.location.href = "/#page/75";
+      }
+    }
+
+    function goBack() { window.location.href = "/#page/73"; }
+    function goToTOC() { window.location.href = "/page-3.html"; }
   </script>
 </body>
 </html>
