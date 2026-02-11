@@ -14,10 +14,7 @@
       color: #000;
     }
 
-    h2 {
-      text-align: center;
-      color: #084a58;
-    }
+    h2 { text-align: center; color: #084a58; }
 
     .form-note {
       color: #084a58;
@@ -25,16 +22,12 @@
       margin-bottom: 1rem;
     }
 
-    /* Layout proportions to match page-72/page-70 */
     .container {
       display: flex;
-      gap: 1rem;                 /* tighter gap */
+      gap: 1rem;
       align-items: flex-start;
     }
-    .left-pane {
-      flex: 0 0 45%;
-      max-width: 45%;
-    }
+    .left-pane { flex: 0 0 45%; max-width: 45%; }
     .left-pane img {
       width: 100%;
       height: auto;
@@ -42,12 +35,8 @@
       border: 1px solid #ccc;
       display: block;
     }
-    .right-pane {
-      flex: 1 1 55%;
-      max-width: 55%;
-    }
+    .right-pane { flex: 1 1 55%; max-width: 55%; }
 
-    /* Card */
     form {
       background: white;
       padding: 20px;
@@ -71,6 +60,7 @@
       border-radius: 4px;
       font-size: 1rem;
       resize: vertical;
+      box-sizing: border-box;
     }
 
     table {
@@ -89,7 +79,6 @@
       text-align: center;
     }
 
-    /* Button group (dark teal) */
     .button-group {
       display: flex;
       flex-wrap: wrap;
@@ -118,7 +107,8 @@
       margin-top: 1rem;
       text-align: center;
       font-weight: bold;
-      color: #084a58; /* dark teal */
+      color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -134,15 +124,15 @@
     </div>
 
     <div class="right-pane">
-      <form id="exercise-form">
+      <form id="exercise-form" autocomplete="off">
         <label for="key_initiative_description">Key Strategic Initiative Description</label>
-        <textarea id="key_initiative_description"></textarea>
+        <textarea id="key_initiative_description" autocomplete="off"></textarea>
 
         <label for="internal_comm_goals">Internal Communication Goals</label>
-        <textarea id="internal_comm_goals"></textarea>
+        <textarea id="internal_comm_goals" autocomplete="off"></textarea>
 
         <label for="external_comm_goals">External Communication Goals</label>
-        <textarea id="external_comm_goals"></textarea>
+        <textarea id="external_comm_goals" autocomplete="off"></textarea>
 
         <table>
           <thead>
@@ -156,39 +146,39 @@
           <tbody>
             <tr>
               <td>Inspire</td>
-              <td><textarea id="inspire_planning"></textarea></td>
-              <td><textarea id="inspire_approval"></textarea></td>
-              <td><textarea id="inspire_activation"></textarea></td>
+              <td><textarea id="inspire_planning" autocomplete="off"></textarea></td>
+              <td><textarea id="inspire_approval" autocomplete="off"></textarea></td>
+              <td><textarea id="inspire_activation" autocomplete="off"></textarea></td>
             </tr>
             <tr>
               <td>Empower</td>
-              <td><textarea id="empower_planning"></textarea></td>
-              <td><textarea id="empower_approval"></textarea></td>
-              <td><textarea id="empower_activation"></textarea></td>
+              <td><textarea id="empower_planning" autocomplete="off"></textarea></td>
+              <td><textarea id="empower_approval" autocomplete="off"></textarea></td>
+              <td><textarea id="empower_activation" autocomplete="off"></textarea></td>
             </tr>
             <tr>
               <td>Vision/Purpose</td>
-              <td><textarea id="vision_planning"></textarea></td>
-              <td><textarea id="vision_approval"></textarea></td>
-              <td><textarea id="vision_activation"></textarea></td>
+              <td><textarea id="vision_planning" autocomplete="off"></textarea></td>
+              <td><textarea id="vision_approval" autocomplete="off"></textarea></td>
+              <td><textarea id="vision_activation" autocomplete="off"></textarea></td>
             </tr>
             <tr>
               <td>Strategic Direction</td>
-              <td><textarea id="strategy_planning"></textarea></td>
-              <td><textarea id="strategy_approval"></textarea></td>
-              <td><textarea id="strategy_activation"></textarea></td>
+              <td><textarea id="strategy_planning" autocomplete="off"></textarea></td>
+              <td><textarea id="strategy_approval" autocomplete="off"></textarea></td>
+              <td><textarea id="strategy_activation" autocomplete="off"></textarea></td>
             </tr>
             <tr>
               <td>Set Expectations</td>
-              <td><textarea id="expectations_planning"></textarea></td>
-              <td><textarea id="expectations_approval"></textarea></td>
-              <td><textarea id="expectations_activation"></textarea></td>
+              <td><textarea id="expectations_planning" autocomplete="off"></textarea></td>
+              <td><textarea id="expectations_approval" autocomplete="off"></textarea></td>
+              <td><textarea id="expectations_activation" autocomplete="off"></textarea></td>
             </tr>
             <tr>
               <td>Role-Model Values</td>
-              <td><textarea id="values_planning"></textarea></td>
-              <td><textarea id="values_approval"></textarea></td>
-              <td><textarea id="values_activation"></textarea></td>
+              <td><textarea id="values_planning" autocomplete="off"></textarea></td>
+              <td><textarea id="values_approval" autocomplete="off"></textarea></td>
+              <td><textarea id="values_activation" autocomplete="off"></textarea></td>
             </tr>
           </tbody>
         </table>
@@ -207,85 +197,148 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    // ✅ ONE shared Supabase client
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
+    const sb = window.supabaseClient;
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    function setStatus(message, color = "#084a58") {
+      const el = document.getElementById("status");
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data, error } = await sb.auth.getUser();
+      if (error) console.error("Auth getUser error:", error);
+
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
+
+    function v(id) {
+      return (document.getElementById(id)?.value || "").trim();
+    }
+
+    function setIfExists(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.value = value || "";
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      const user = await requireUserOrRedirect();
       if (!user) return;
 
-      // Load
-      const { data } = await supabase
-        .from('exercise9_page74')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      setStatus("Loading saved data...");
 
-      if (data) {
-        for (const key in data) {
-          const el = document.getElementById(key);
-          if (el) el.value = data[key] || '';
-        }
+      const { data, error } = await sb
+        .from("exercise9_page74")
+        .select(`
+          user_id,
+          key_initiative_description,
+          internal_comm_goals,
+          external_comm_goals,
+          inspire_planning, inspire_approval, inspire_activation,
+          empower_planning, empower_approval, empower_activation,
+          vision_planning, vision_approval, vision_activation,
+          strategy_planning, strategy_approval, strategy_activation,
+          expectations_planning, expectations_approval, expectations_activation,
+          values_planning, values_approval, values_activation
+        `)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        setStatus("❌ Could not load saved data:\n" + error.message, "red");
+        return;
       }
 
-      // Save
-      window.saveData = async function () {
-        const v = id => document.getElementById(id).value.trim();
+      if (!data) {
+        setStatus("ℹ️ No saved data yet. Enter your responses and click Save.");
+        return;
+      }
 
-        const update = {
-          user_id: user.id,
-          key_initiative_description: v('key_initiative_description'),
-          internal_comm_goals: v('internal_comm_goals'),
-          external_comm_goals: v('external_comm_goals'),
-          inspire_planning: v('inspire_planning'),
-          inspire_approval: v('inspire_approval'),
-          inspire_activation: v('inspire_activation'),
-          empower_planning: v('empower_planning'),
-          empower_approval: v('empower_approval'),
-          empower_activation: v('empower_activation'),
-          vision_planning: v('vision_planning'),
-          vision_approval: v('vision_approval'),
-          vision_activation: v('vision_activation'),
-          strategy_planning: v('strategy_planning'),
-          strategy_approval: v('strategy_approval'),
-          strategy_activation: v('strategy_activation'),
-          expectations_planning: v('expectations_planning'),
-          expectations_approval: v('expectations_approval'),
-          expectations_activation: v('expectations_activation'),
-          values_planning: v('values_planning'),
-          values_approval: v('values_approval'),
-          values_activation: v('values_activation')
-        };
+      // Populate fields (only those that exist in the DOM)
+      Object.keys(data).forEach((key) => {
+        if (key === "user_id") return;
+        setIfExists(key, data[key]);
+      });
 
-        const { error } = await supabase
-          .from('exercise9_page74')
-          .upsert([update], { onConflict: ['user_id'] });
-
-        const status = document.getElementById('status');
-        if (error) {
-          status.textContent = '❌ Error saving data: ' + error.message;
-          status.style.color = 'red';
-        } else {
-          status.textContent = 'Saved successfully!';
-          status.style.color = '#084a58';
-        }
-      };
-
-      window.saveAndNext = async function () {
-        await saveData();
-        window.location.href = '/#page/75';
-      };
-
-      window.goBack = function () {
-        window.location.href = '/#page/73';
-      };
-
-      window.goToTOC = function () {
-        window.location.href = '/page-3.html';
-      };
+      setStatus("✅ Loaded saved data successfully.");
     });
+
+    window.saveData = async function () {
+      const user = await requireUserOrRedirect();
+      if (!user) return false;
+
+      setStatus("Saving...");
+
+      const update = {
+        user_id: user.id,
+        key_initiative_description: v("key_initiative_description"),
+        internal_comm_goals: v("internal_comm_goals"),
+        external_comm_goals: v("external_comm_goals"),
+
+        inspire_planning: v("inspire_planning"),
+        inspire_approval: v("inspire_approval"),
+        inspire_activation: v("inspire_activation"),
+
+        empower_planning: v("empower_planning"),
+        empower_approval: v("empower_approval"),
+        empower_activation: v("empower_activation"),
+
+        vision_planning: v("vision_planning"),
+        vision_approval: v("vision_approval"),
+        vision_activation: v("vision_activation"),
+
+        strategy_planning: v("strategy_planning"),
+        strategy_approval: v("strategy_approval"),
+        strategy_activation: v("strategy_activation"),
+
+        expectations_planning: v("expectations_planning"),
+        expectations_approval: v("expectations_approval"),
+        expectations_activation: v("expectations_activation"),
+
+        values_planning: v("values_planning"),
+        values_approval: v("values_approval"),
+        values_activation: v("values_activation"),
+      };
+
+      const { error } = await sb
+        .from("exercise9_page74")
+        .upsert(update, { onConflict: "user_id" });
+
+      if (error) {
+        console.error("Save error:", error);
+        setStatus("❌ Error saving data:\n" + error.message, "red");
+        return false;
+      }
+
+      setStatus("✅ Saved successfully!");
+      return true;
+    };
+
+    window.saveAndNext = async function () {
+      const ok = await saveData();
+      if (!ok) return;
+      window.location.href = "/#page/75";
+    };
+
+    window.goBack = function () {
+      window.location.href = "/#page/73";
+    };
+
+    window.goToTOC = function () {
+      window.location.href = "/page-3.html";
+    };
   </script>
 </body>
 </html>
+
