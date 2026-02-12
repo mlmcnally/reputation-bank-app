@@ -4,10 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 12 – Page 91</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
-      font-family: 'Avenir', 'Nunito Sans', sans-serif;
+      font-family: "Avenir", "Nunito Sans", sans-serif;
       background: #f3f4f6;
       padding: 2rem;
       margin: 0;
@@ -20,12 +23,15 @@
       color: #084a58;
       text-align: center;
       margin-bottom: 1rem;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     /* Layout proportions */
     .container {
       display: flex;
-      gap: 1rem;            /* tight, consistent gap */
+      gap: 1rem;
       align-items: flex-start;
     }
     .left-pane {
@@ -72,7 +78,12 @@
       padding-left: 1.25rem;
     }
 
-    label { font-weight: 700; color: #084a58; display: block; margin: 12px 0 6px; }
+    label {
+      font-weight: 700;
+      color: #084a58;
+      display: block;
+      margin: 12px 0 6px;
+    }
 
     textarea {
       width: 100%;
@@ -83,7 +94,13 @@
       font-size: 1rem;
       resize: vertical;
       box-sizing: border-box;
+
+      /* ✅ Critical: keep typed + autofilled text font consistent */
+      font-family: inherit;
+      color: #000;
     }
+
+    textarea::placeholder { color: #6b7280; }
 
     /* Buttons */
     .button-group {
@@ -107,6 +124,9 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+
+      /* ✅ Keep button text font consistent */
+      font-family: inherit;
     }
     .button-group button:hover { opacity: 0.9; }
 
@@ -114,10 +134,12 @@
       margin-top: 1rem;
       text-align: center;
       font-weight: bold;
-      color: #084a58; /* dark teal */
+      color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
+
 <body>
   <h2>Exercise 12 – Page 91</h2>
   <div class="form-note">
@@ -133,8 +155,18 @@
       <div class="card">
         <div class="instructions">
           <strong>Now we’re going to consider the credibility risks that can negatively impact your reputation bank.</strong>
-          <p>See below the work you did in Exercise 6 on the “Don’ts” of the Success Rules. Consider the difference between <strong>Credibility Debt</strong> (shorter-term reputation risk) and <strong>Credibility Cryptocurrency</strong> (longer-term reputation risk). Determine which of the “Don’ts” are Credibility Debt and which are Credibility Cryptocurrency and type them in the appropriate spaces below. You’ll need three of each type to move to the next exercises. If you don’t have enough of one type, it’s a good idea to go back to Exercise 6, Page 54 and re-consider your risks using this lens.</p>
-          <p><strong>Tip:</strong> You’ve completed the positive side of the Reputation Bank – Credibility Cash and Gold. Now, distinguish negative impacts based on how much repetitive harm could occur over time.</p>
+          <p>
+            See below the work you did in Exercise 6 on the “Don’ts” of the Success Rules. Consider the difference between
+            <strong>Credibility Debt</strong> (shorter-term reputation risk) and <strong>Credibility Cryptocurrency</strong>
+            (longer-term reputation risk). Determine which of the “Don’ts” are Credibility Debt and which are Credibility
+            Cryptocurrency and type them in the appropriate spaces below. You’ll need three of each type to move to the
+            next exercises. If you don’t have enough of one type, it’s a good idea to go back to Exercise 6, Page 54 and
+            re-consider your risks using this lens.
+          </p>
+          <p>
+            <strong>Tip:</strong> You’ve completed the positive side of the Reputation Bank – Credibility Cash and Gold.
+            Now, distinguish negative impacts based on how much repetitive harm could occur over time.
+          </p>
         </div>
 
         <div class="reference-list" id="referenceList">
@@ -170,23 +202,43 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    // ✅ Shared Supabase client
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
+    const sb = window.supabaseClient;
+
+    function setStatus(message, color = "#084a58") {
+      const el = document.getElementById("status");
+      el.textContent = message;
+      el.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data } = await sb.auth.getUser();
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
 
     async function loadData() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await requireUserOrRedirect();
       if (!user) return;
 
       // Load saved answers for page 91
-      const { data: savedData } = await supabase
+      const { data: savedData, error: savedErr } = await sb
         .from('exercise12_page91')
-        .select('*')
+        .select('debt1,debt2,debt3,crypto1,crypto2,crypto3')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (savedData) {
+      if (savedErr) {
+        setStatus("❌ Could not load saved data:\n" + savedErr.message, "red");
+      } else if (savedData) {
         document.getElementById('debt1').value = savedData.debt1 || '';
         document.getElementById('debt2').value = savedData.debt2 || '';
         document.getElementById('debt3').value = savedData.debt3 || '';
@@ -196,18 +248,28 @@
       }
 
       // Load Don’ts from Exercise 6 (page 54)
-      const { data: exercise6Data } = await supabase
+      const { data: ex6, error: ex6Err } = await sb
         .from('exercise6_page54')
-        .select('*')
+        .select(`
+          success_dont_1, success_dont_2, success_dont_3, success_dont_4, success_dont_5,
+          success_dont_6, success_dont_7, success_dont_8, success_dont_9, success_dont_10
+        `)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       const dontList = document.getElementById('dontList');
       dontList.innerHTML = '';
 
-      if (exercise6Data) {
+      if (ex6Err) {
+        const li = document.createElement('li');
+        li.textContent = "Could not load Exercise 6 data: " + ex6Err.message;
+        dontList.appendChild(li);
+        return;
+      }
+
+      if (ex6) {
         for (let i = 1; i <= 10; i++) {
-          const value = exercise6Data[`success_dont_${i}`];
+          const value = ex6[`success_dont_${i}`];
           if (value && value.trim() !== '') {
             const li = document.createElement('li');
             li.textContent = value;
@@ -215,53 +277,47 @@
           }
         }
       }
+
+      setStatus("✅ Loaded saved data successfully.");
     }
 
     async function saveData(goNext = false) {
-      const status = document.getElementById('status');
-      status.textContent = '';
-      status.style.color = '#084a58';
+      const user = await requireUserOrRedirect();
+      if (!user) return;
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        status.textContent = '❌ User not logged in.';
-        status.style.color = 'red';
-        return;
-      }
+      setStatus("Saving...");
+
+      const debts = ['debt1','debt2','debt3'].map(id => document.getElementById(id).value.trim());
+      const cryptos = ['crypto1','crypto2','crypto3'].map(id => document.getElementById(id).value.trim());
 
       // Enforce 3 + 3 if going next
       if (goNext) {
-        const debts = ['debt1','debt2','debt3'].map(id => document.getElementById(id).value.trim());
-        const cryptos = ['crypto1','crypto2','crypto3'].map(id => document.getElementById(id).value.trim());
         const debtFilled = debts.every(v => v.length > 0);
         const cryptoFilled = cryptos.every(v => v.length > 0);
         if (!debtFilled || !cryptoFilled) {
-          status.textContent = '❌ Please enter three Credibility Debt items and three Credibility Cryptocurrency items before continuing.';
-          status.style.color = 'red';
+          setStatus('❌ Please enter three Credibility Debt items and three Credibility Cryptocurrency items before continuing.', "red");
           return;
         }
       }
 
       const updates = {
         user_id: user.id,
-        debt1: document.getElementById('debt1').value.trim(),
-        debt2: document.getElementById('debt2').value.trim(),
-        debt3: document.getElementById('debt3').value.trim(),
-        crypto1: document.getElementById('crypto1').value.trim(),
-        crypto2: document.getElementById('crypto2').value.trim(),
-        crypto3: document.getElementById('crypto3').value.trim(),
+        debt1: debts[0],
+        debt2: debts[1],
+        debt3: debts[2],
+        crypto1: cryptos[0],
+        crypto2: cryptos[1],
+        crypto3: cryptos[2],
       };
 
-      const { error } = await supabase
+      const { error } = await sb
         .from('exercise12_page91')
-        .upsert([updates], { onConflict: ['user_id'] });
+        .upsert(updates, { onConflict: 'user_id' });
 
       if (error) {
-        status.textContent = '❌ Error saving data: ' + error.message;
-        status.style.color = 'red';
+        setStatus('❌ Error saving data:\n' + error.message, "red");
       } else {
-        status.textContent = 'Saved successfully!';
-        status.style.color = '#084a58';
+        setStatus('✅ Saved successfully!');
         if (goNext) window.location.href = '/#page/92';
       }
     }
@@ -273,3 +329,4 @@
   </script>
 </body>
 </html>
+
