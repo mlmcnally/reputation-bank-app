@@ -4,10 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 11 – Page 87</title>
+
+  <!-- ✅ Keep typography consistent with other pages -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
-      font-family: 'Avenir', 'Nunito Sans', sans-serif;
+      font-family: "Avenir", "Nunito Sans", sans-serif;
       background: #f3f4f6;
       padding: 2rem;
       margin: 0;
@@ -20,12 +24,15 @@
       color: #084a58;
       text-align: center;
       margin-bottom: 1rem;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     /* Layout proportions (match pages 70/72/74/82+) */
     .container {
       display: flex;
-      gap: 1rem;            /* tight, consistent gap */
+      gap: 1rem;
       align-items: flex-start;
     }
     .left-pane {
@@ -59,7 +66,9 @@
       font-size: 1.05rem;
     }
 
-    textarea, input[type="text"], input[type="number"] {
+    textarea,
+    input[type="text"],
+    input[type="number"] {
       width: 100%;
       padding: 8px;
       border-radius: 4px;
@@ -68,6 +77,10 @@
       margin-top: 0.25rem;
       margin-bottom: 0.8rem;
       box-sizing: border-box;
+
+      /* ✅ Font fix: match all other exercises */
+      font-family: inherit;
+      color: #000;
     }
     textarea { min-height: 60px; resize: vertical; }
 
@@ -93,6 +106,23 @@
     }
     .score-box label { font-weight: 600; display: block; margin-bottom: 6px; }
 
+    .inline-btn {
+      background-color: #084a58;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 6px 0 8px;
+    }
+    .inline-btn:hover { opacity: 0.9; }
+
     /* Button group (dark teal) */
     .button-group {
       display: flex;
@@ -115,6 +145,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      font-family: inherit;
     }
     .button-group button:hover { opacity: 0.9; }
 
@@ -122,10 +153,12 @@
       margin-top: 1rem;
       text-align: center;
       font-weight: bold;
-      color: #084a58; /* dark teal */
+      color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
+
 <body>
   <h2>Exercise 11 – Page 87</h2>
   <div class="form-note">
@@ -146,7 +179,7 @@
 
         <div class="score-box">
           <label>Total Influence/Impact Score</label>
-          <button type="button" onclick="calculateInfluence()">Calculate Total Influence/Impact Score</button>
+          <button type="button" class="inline-btn" onclick="calculateInfluence()">Calculate Total Influence/Impact Score</button>
           <input type="text" id="impactScore" readonly />
         </div>
 
@@ -158,7 +191,7 @@
 
         <div class="score-box">
           <label>Total Credibility Gold Deposit</label>
-          <button type="button" onclick="calculateGold()">Calculate Total Credibility Gold Deposit</button>
+          <button type="button" class="inline-btn" onclick="calculateGold()">Calculate Total Credibility Gold Deposit</button>
           <input type="text" id="goldDeposit" readonly />
         </div>
 
@@ -176,12 +209,31 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    // ✅ Shared Supabase client (consistent across pages)
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
+    const sb = window.supabaseClient;
 
     const stakeholderLabels = [1, 2, 3, 4, 5, 6];
+
+    function setStatus(message, color = "#084a58") {
+      const el = document.getElementById("status");
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data } = await sb.auth.getUser();
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
 
     function createStakeholderSection(n) {
       return `
@@ -195,36 +247,58 @@
         </div>`;
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Render stakeholders
+    document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("stakeholders").innerHTML =
-        stakeholderLabels.map(createStakeholderSection).join('');
+        stakeholderLabels.map(createStakeholderSection).join("");
 
-      // Load data
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await requireUserOrRedirect();
       if (!user) return;
 
-      const { data } = await supabase
+      // ✅ Explicit select (avoid id-column issues) + maybeSingle()
+      const { data, error } = await sb
         .from("exercise11_page87")
-        .select("*")
+        .select(`
+          user_id,
+          interaction_description,
+          impact_score,
+          reputation_multiplier,
+          time_horizon_multiplier,
+          credibility_gold_deposit,
+          stakeholder1_name, stakeholder1_scores,
+          stakeholder2_name, stakeholder2_scores,
+          stakeholder3_name, stakeholder3_scores,
+          stakeholder4_name, stakeholder4_scores,
+          stakeholder5_name, stakeholder5_scores,
+          stakeholder6_name, stakeholder6_scores
+        `)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (data) {
-        document.getElementById("interactionDescription").value = data.interaction_description || "";
-        document.getElementById("impactScore").value = data.impact_score ?? "";
-        document.getElementById("reputationMultiplier").value = data.reputation_multiplier ?? "";
-        document.getElementById("timeHorizonMultiplier").value = data.time_horizon_multiplier ?? "";
-        document.getElementById("goldDeposit").value = data.credibility_gold_deposit ?? "";
-
-        stakeholderLabels.forEach(n => {
-          document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
-          const scores = (data[`stakeholder${n}_scores`] || []);
-          document.querySelectorAll(`.score${n}`).forEach(cb => {
-            cb.checked = scores.includes(parseInt(cb.value, 10));
-          });
-        });
+      if (error) {
+        setStatus("❌ Could not load saved data:\n" + error.message, "red");
+        return;
       }
+
+      if (!data) {
+        setStatus("ℹ️ No saved row found yet.\nFill in your answers and click Save.");
+        return;
+      }
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score ?? "";
+      document.getElementById("reputationMultiplier").value = data.reputation_multiplier ?? "";
+      document.getElementById("timeHorizonMultiplier").value = data.time_horizon_multiplier ?? "";
+      document.getElementById("goldDeposit").value = data.credibility_gold_deposit ?? "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const scores = (data[`stakeholder${n}_scores`] || []);
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = scores.includes(parseInt(cb.value, 10));
+        });
+      });
+
+      setStatus("✅ Loaded saved data successfully.");
     });
 
     function calculateInfluence() {
@@ -235,10 +309,11 @@
         });
       });
       document.getElementById("impactScore").value = total;
+      return total;
     }
 
     function calculateGold() {
-      const impact = parseInt(document.getElementById("impactScore").value, 10) || 0;
+      const impact = calculateInfluence(); // ensure impact is current
       const rep = parseInt(document.getElementById("reputationMultiplier").value, 10) || 0;
       const time = parseInt(document.getElementById("timeHorizonMultiplier").value, 10) || 0;
       const deposit = impact * rep * time;
@@ -246,13 +321,10 @@
     }
 
     async function saveData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      const status = document.getElementById("status");
-      if (!user) {
-        status.textContent = "❌ User not authenticated.";
-        status.style.color = "red";
-        return;
-      }
+      const user = await requireUserOrRedirect();
+      if (!user) return false;
+
+      setStatus("Saving...");
 
       const payload = {
         user_id: user.id,
@@ -270,22 +342,22 @@
           .map(cb => parseInt(cb.value, 10));
       });
 
-      const { error } = await supabase
+      const { error } = await sb
         .from("exercise11_page87")
-        .upsert([payload], { onConflict: ['user_id'] });
+        .upsert(payload, { onConflict: "user_id" });
 
       if (error) {
-        status.textContent = "❌ Error saving data: " + error.message;
-        status.style.color = "red";
-      } else {
-        status.textContent = "Saved successfully!";
-        status.style.color = "#084a58";
+        setStatus("❌ Error saving data:\n" + error.message, "red");
+        return false;
       }
+
+      setStatus("✅ Saved successfully!");
+      return true;
     }
 
     async function saveAndNext() {
-      await saveData();
-      window.location.href = "/page-88.html";
+      const ok = await saveData();
+      if (ok) window.location.href = "/page-88.html";
     }
 
     function goBack() { window.location.href = "/#page/86"; }
@@ -293,3 +365,4 @@
   </script>
 </body>
 </html>
+
