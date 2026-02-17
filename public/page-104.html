@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 15 – Page 104</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
       font-family: 'Avenir','Nunito Sans',sans-serif;
@@ -14,6 +15,7 @@
       color:#000;
     }
     h2{color:#084a58;text-align:center;margin-top:0;}
+
     .container{
       display:flex;
       gap:1rem;
@@ -32,6 +34,7 @@
       border-radius:8px;
       display:block;
     }
+
     .button-bar{
       display:flex;
       flex-direction:column;
@@ -47,6 +50,7 @@
       cursor:pointer;
       font-size:0.95rem;
       box-shadow:2px 2px 4px rgba(0,0,0,0.3);
+      font-family: inherit; /* ✅ */
     }
     .button-bar button:hover{opacity:0.9;}
 
@@ -70,13 +74,27 @@
       border-radius:8px;
       overflow:hidden;
       box-shadow:0 2px 8px rgba(0,0,0,0.05);
+      font-family: inherit; /* ✅ */
     }
     th,td{
       border:1px solid #ccc;
       padding:8px;
       text-align:left;
+      font-family: inherit; /* ✅ critical for contentEditable */
+      font-size: 1rem;      /* ✅ match other pages */
+      color:#000;
     }
     th{background:#e2e8f0;}
+
+    td[contenteditable="true"]{
+      background:#fff;
+      outline:none;
+      white-space: pre-wrap;
+    }
+    td[contenteditable="true"]:focus{
+      box-shadow: inset 0 0 0 2px rgba(8,74,88,0.25);
+    }
+
     tfoot td{background:#e0f2fe;font-weight:bold;}
 
     .footer-buttons{
@@ -96,6 +114,7 @@
       cursor:pointer;
       box-shadow:2px 2px 4px rgba(0,0,0,0.3);
       font-size:0.95rem;
+      font-family: inherit; /* ✅ */
     }
     .footer-buttons button:hover{opacity:0.9;}
 
@@ -104,18 +123,20 @@
       text-align:center;
       font-weight:600;
       color:#084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="left">
       <img src="/page-104.jpg" alt="Exercise 15 Page 104"/>
       <div class="button-bar">
-        <button onclick="insertFromExercise('cash')">Insert Credibility Cash Deposits</button>
-        <button onclick="insertFromExercise('gold')">Insert Credibility Gold Deposits</button>
-        <button onclick="insertFromExercise('debt')">Insert Credibility Debt Withdrawals</button>
-        <button onclick="insertFromExercise('crypto')">Insert Credibility Cryptocurrency Withdrawals</button>
+        <button type="button" onclick="insertFromExercise('cash')">Insert Credibility Cash Deposits</button>
+        <button type="button" onclick="insertFromExercise('gold')">Insert Credibility Gold Deposits</button>
+        <button type="button" onclick="insertFromExercise('debt')">Insert Credibility Debt Withdrawals</button>
+        <button type="button" onclick="insertFromExercise('crypto')">Insert Credibility Cryptocurrency Withdrawals</button>
       </div>
     </div>
 
@@ -155,128 +176,236 @@
       </table>
 
       <div class="footer-buttons">
-        <button onclick="window.location.href='/#page/103'">⬅ Back One Page</button>
-        <button onclick="saveData()">💾 Save</button>
-        <button onclick="saveAndNext()">➡ Save & Go to Page 105</button>
-        <button onclick="window.print()">🖨️ Print</button>
-        <button onclick="goToTOC()">Go to Table of Contents</button>
+        <button type="button" onclick="window.location.href='/#page/103'">⬅ Back One Page</button>
+        <button type="button" onclick="saveData(false)">💾 Save</button>
+        <button type="button" onclick="saveData(true)">➡ Save & Go to Page 105</button>
+        <button type="button" onclick="window.print()">🖨️ Print</button>
+        <button type="button" onclick="goToTOC()">Go to Table of Contents</button>
       </div>
       <div id="statusMsg"></div>
     </div>
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    // ✅ Shared Supabase client (matches your working pages)
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
+    const sb = window.supabaseClient;
 
-    async function getCurrentUser(){
-      const { data:{ session } } = await supabase.auth.getSession();
-      if(session?.user) return session.user;
-      const { data:{ user } } = await supabase.auth.getUser();
-      return user??null;
+    function setStatus(msg, color="#084a58") {
+      const el = document.getElementById("statusMsg");
+      el.textContent = msg;
+      el.style.color = color;
     }
 
-    // Build 12 editable rows
-    document.addEventListener("DOMContentLoaded",()=>{
-      const tbody=document.getElementById('bankTableBody');
-      for(let i=0;i<12;i++){
-        const row=document.createElement('tr');
-        for(let j=0;j<5;j++){
-          const td=document.createElement('td');
-          td.contentEditable=true;
-          row.appendChild(td);
-        }
-        tbody.appendChild(row);
+    async function requireUserOrRedirect() {
+      const { data } = await sb.auth.getUser();
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
       }
-    });
+      return user;
+    }
 
-    const rowMap={
-      cash:[{row:0,table:'exercise10_page82'},{row:1,table:'exercise10_page83'},{row:2,table:'exercise10_page84'}],
-      gold:[{row:3,table:'exercise11_page87'},{row:4,table:'exercise11_page88'},{row:5,table:'exercise11_page89'}],
-      debt:[{row:6,table:'exercise13_page94'},{row:7,table:'exercise13_page95'},{row:8,table:'exercise13_page96'}],
+    // 12 fixed rows grouped by category (3 each)
+    const rowMap = {
+      cash:  [{row:0,table:'exercise10_page82'},{row:1,table:'exercise10_page83'},{row:2,table:'exercise10_page84'}],
+      gold:  [{row:3,table:'exercise11_page87'},{row:4,table:'exercise11_page88'},{row:5,table:'exercise11_page89'}],
+      debt:  [{row:6,table:'exercise13_page94'},{row:7,table:'exercise13_page95'},{row:8,table:'exercise13_page96'}],
       crypto:[{row:9,table:'exercise14_page99'},{row:10,table:'exercise14_page100'},{row:11,table:'exercise14_page101'}]
     };
-    const columnMap={
-      cash:'annual_deposit',
-      gold:'credibility_gold_deposit',
-      debt:'annual_deposit',
-      crypto:'crypto_withdrawal'
+
+    const columnMap = {
+      cash: 'annual_deposit',
+      gold: 'credibility_gold_deposit',
+      debt: 'annual_deposit',
+      crypto: 'crypto_withdrawal'
     };
 
-    async function insertFromExercise(type){
-      const user=await getCurrentUser();
-      if(!user) return alert("User not logged in");
-      const rows=document.querySelectorAll('#bankTableBody tr');
-      const targets=rowMap[type];
-      const column=columnMap[type];
-      for(const target of targets){
-        const { data,error } = await supabase
+    const colIndexByType = { cash:1, debt:2, gold:3, crypto:4 };
+
+    function buildRows() {
+      const tbody = document.getElementById('bankTableBody');
+      tbody.innerHTML = "";
+      for (let i = 0; i < 12; i++) {
+        const tr = document.createElement('tr');
+        for (let j = 0; j < 5; j++) {
+          const td = document.createElement('td');
+          td.contentEditable = "true";
+          td.setAttribute("data-row", String(i));
+          td.setAttribute("data-col", String(j));
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    function parseNum(v) {
+      if (!v) return 0;
+      // allow commas and whitespace
+      const cleaned = String(v).replace(/,/g, "").trim();
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatNum(n) {
+      // Keep it clean for your workbook scoring (usually integers)
+      if (!Number.isFinite(n)) return "";
+      if (Math.abs(n) >= 1000) return String(Math.trunc(n));
+      // show integer if it's an integer
+      if (Number.isInteger(n)) return String(n);
+      // fallback
+      return String(n);
+    }
+
+    function calculateSubtotals() {
+      let cash = 0, debt = 0, gold = 0, crypto = 0;
+      document.querySelectorAll('#bankTableBody tr').forEach(row => {
+        const c = row.children;
+        cash   += parseNum(c[1].textContent);
+        debt   += parseNum(c[2].textContent);
+        gold   += parseNum(c[3].textContent);
+        crypto += parseNum(c[4].textContent);
+      });
+
+      document.getElementById('subtotalCash').textContent = formatNum(cash);
+      document.getElementById('subtotalDebt').textContent = formatNum(debt);
+      document.getElementById('subtotalGold').textContent = formatNum(gold);
+      document.getElementById('subtotalCrypto').textContent = formatNum(crypto);
+      document.getElementById('bankBalance').textContent = formatNum(cash + gold + debt + crypto);
+    }
+
+    function wireRecalcHandlers() {
+      const tbody = document.getElementById("bankTableBody");
+      tbody.addEventListener("input", (e) => {
+        const td = e.target.closest("td");
+        if (!td) return;
+        // Recalc on any edit
+        calculateSubtotals();
+      });
+      tbody.addEventListener("blur", (e) => {
+        const td = e.target.closest("td");
+        if (!td) return;
+        calculateSubtotals();
+      }, true);
+    }
+
+    async function loadSavedStatement() {
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
+      const { data, error } = await sb
+        .from("exercise15_page104")
+        .select("row_number, interaction_description, credibility_cash_deposit, credibility_debt_withdrawal, credibility_gold_deposit, credibility_crypto_withdrawal")
+        .eq("user_id", user.id)
+        .order("row_number", { ascending: true });
+
+      if (error) {
+        setStatus("❌ Could not load saved statement:\n" + error.message, "red");
+        return;
+      }
+
+      const rows = document.querySelectorAll('#bankTableBody tr');
+      if (data && data.length) {
+        data.forEach(r => {
+          const idx = (r.row_number ?? 0) - 1;
+          if (idx < 0 || idx >= rows.length) return;
+          const c = rows[idx].children;
+          c[0].textContent = r.interaction_description ?? "";
+          c[1].textContent = formatNum(r.credibility_cash_deposit ?? 0);
+          c[2].textContent = formatNum(r.credibility_debt_withdrawal ?? 0);
+          c[3].textContent = formatNum(r.credibility_gold_deposit ?? 0);
+          c[4].textContent = formatNum(r.credibility_crypto_withdrawal ?? 0);
+        });
+      }
+
+      calculateSubtotals();
+      setStatus("✅ Loaded saved statement successfully.");
+    }
+
+    async function insertFromExercise(type) {
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
+      setStatus("Inserting…");
+
+      const rows = document.querySelectorAll('#bankTableBody tr');
+      const targets = rowMap[type];
+      const column = columnMap[type];
+      const valueColIndex = colIndexByType[type];
+
+      for (const target of targets) {
+        const { data, error } = await sb
           .from(target.table)
           .select(`interaction_description, ${column}`)
-          .eq('user_id',user.id)
+          .eq('user_id', user.id)
           .maybeSingle();
-        if(!error && data){
-          rows[target.row].children[0].textContent=data.interaction_description||'';
-          const colIndex={cash:1,debt:2,gold:3,crypto:4}[type];
-          rows[target.row].children[colIndex].textContent=data[column]??'';
+
+        if (error) {
+          setStatus(`❌ Insert error from ${target.table}:\n${error.message}`, "red");
+          continue;
         }
+        if (!data) continue;
+
+        // Only fill the intended cells for that row:
+        // - description column
+        // - the specific value column for that type
+        rows[target.row].children[0].textContent = data.interaction_description || "";
+        rows[target.row].children[valueColIndex].textContent = formatNum(data[column] ?? 0);
       }
+
       calculateSubtotals();
+      setStatus("✅ Insert complete.");
     }
 
-    function calculateSubtotals(){
-      let cash=0,debt=0,gold=0,crypto=0;
-      document.querySelectorAll('#bankTableBody tr').forEach(row=>{
-        const c=row.children;
-        cash+=parseFloat(c[1].textContent)||0;
-        debt+=parseFloat(c[2].textContent)||0;
-        gold+=parseFloat(c[3].textContent)||0;
-        crypto+=parseFloat(c[4].textContent)||0;
-      });
-      document.getElementById('subtotalCash').textContent=cash.toFixed(2);
-      document.getElementById('subtotalDebt').textContent=debt.toFixed(2);
-      document.getElementById('subtotalGold').textContent=gold.toFixed(2);
-      document.getElementById('subtotalCrypto').textContent=crypto.toFixed(2);
-      document.getElementById('bankBalance').textContent=(cash+gold+debt+crypto).toFixed(2);
-    }
+    async function saveData(goNext = false) {
+      const user = await requireUserOrRedirect();
+      if (!user) return;
 
-    async function saveData(){
-      const status=document.getElementById('statusMsg');
-      status.textContent='';
-      const user=await getCurrentUser();
-      if(!user){status.textContent='❌ User not authenticated';status.style.color='red';return;}
+      setStatus("Saving…");
 
-      const updates=[];
-      const rows=document.querySelectorAll('#bankTableBody tr');
-      rows.forEach((row,i)=>{
-        const c=row.children;
-        updates.push({
-          user_id:user.id,
-          row_number:i+1,
-          interaction_description:c[0].textContent.trim(),
-          credibility_cash_deposit:parseFloat(c[1].textContent)||0,
-          credibility_debt_withdrawal:parseFloat(c[2].textContent)||0,
-          credibility_gold_deposit:parseFloat(c[3].textContent)||0,
-          credibility_crypto_withdrawal:parseFloat(c[4].textContent)||0
+      const rows = document.querySelectorAll('#bankTableBody tr');
+      const payload = [];
+
+      rows.forEach((row, i) => {
+        const c = row.children;
+        payload.push({
+          user_id: user.id,
+          row_number: i + 1,
+          interaction_description: (c[0].textContent || "").trim(),
+          credibility_cash_deposit: parseNum(c[1].textContent),
+          credibility_debt_withdrawal: parseNum(c[2].textContent),
+          credibility_gold_deposit: parseNum(c[3].textContent),
+          credibility_crypto_withdrawal: parseNum(c[4].textContent)
         });
       });
 
-      for(const r of updates){
-        await supabase.from('exercise15_page104').upsert(r,{onConflict:['user_id','row_number']});
+      const { error } = await sb
+        .from('exercise15_page104')
+        .upsert(payload, { onConflict: 'user_id,row_number' });
+
+      if (error) {
+        setStatus("❌ Error saving statement:\n" + error.message, "red");
+        return;
       }
 
-      status.textContent='✅ Saved successfully!';
-      status.style.color='#084a58';
       calculateSubtotals();
+      setStatus("✅ Saved successfully!");
+
+      if (goNext) window.location.href = '/#page/105';
     }
 
-    async function saveAndNext(){
-      await saveData();
-      window.location.href='/#page/105';
-    }
-    function goToTOC(){window.location.href='/page-3.html';}
+    function goToTOC(){ window.location.href='/page-3.html'; }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      buildRows();
+      wireRecalcHandlers();
+      await loadSavedStatement();
+    });
   </script>
 </body>
 </html>
+
