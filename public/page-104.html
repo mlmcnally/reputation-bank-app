@@ -14,6 +14,7 @@
       color:#000;
     }
     h2{color:#084a58;text-align:center;margin-top:0;}
+
     .container{
       display:flex;
       gap:1rem;
@@ -32,6 +33,7 @@
       border-radius:8px;
       display:block;
     }
+
     .button-bar{
       display:flex;
       flex-direction:column;
@@ -166,33 +168,33 @@
         <button type="button" onclick="window.print()">🖨️ Print</button>
         <button type="button" onclick="goToTOC()">Go to Table of Contents</button>
       </div>
+
       <div id="statusMsg"></div>
     </div>
   </div>
 
   <script>
-    // ✅ Shared-ish client (safe even if other pages define it)
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+    // ✅ Use same project + anon key
+    const supabase = window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
-    const supabase = window.supabaseClient;
 
-    function setStatus(msg, color = "#084a58") {
+    function setStatus(message, color = "#084a58") {
       const el = document.getElementById("statusMsg");
-      el.textContent = msg;
+      el.textContent = message;
       el.style.color = color;
     }
 
     async function getCurrentUser(){
       const { data:{ session } } = await supabase.auth.getSession();
-      if(session?.user) return session.user;
+      if (session?.user) return session.user;
       const { data:{ user } } = await supabase.auth.getUser();
       return user ?? null;
     }
 
     // Build 12 editable rows
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
       const tbody = document.getElementById('bankTableBody');
       tbody.innerHTML = "";
 
@@ -207,8 +209,14 @@
         tbody.appendChild(row);
       }
 
-      // Optional: attempt to load saved statement if present
-      loadSavedStatement();
+      // Recalc when user edits any cell
+      tbody.addEventListener("input", () => calculateSubtotals());
+
+      // Load saved statement if it exists (so Back/Forward shows data)
+      await loadSavedStatement();
+
+      // Initialize totals
+      calculateSubtotals();
     });
 
     const rowMap = {
@@ -218,7 +226,6 @@
       crypto:[{row:9,table:'exercise14_page99'},{row:10,table:'exercise14_page100'},{row:11,table:'exercise14_page101'}]
     };
 
-    // IMPORTANT: these column names must match your source tables
     const columnMap = {
       cash:'annual_deposit',
       gold:'credibility_gold_deposit',
@@ -226,52 +233,47 @@
       crypto:'crypto_withdrawal'
     };
 
-    const colIndexMap = { cash:1, debt:2, gold:3, crypto:4 };
-
-    async function insertFromExercise(type){
-      try {
-        const user = await getCurrentUser();
-        if(!user) { alert("User not logged in"); return; }
-
-        const rows = document.querySelectorAll('#bankTableBody tr');
-        const targets = rowMap[type];
-        const column = columnMap[type];
-        const colIndex = colIndexMap[type];
-
-        setStatus(`Loading ${type}...`);
-
-        for (const target of targets) {
-          const { data, error } = await supabase
-            .from(target.table)
-            .select(`interaction_description, ${column}`)
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-          if (error) {
-            setStatus(`❌ Error loading ${type} from ${target.table}:\n${error.message}`, "red");
-            continue;
-          }
-
-          if (!data) continue;
-
-          rows[target.row].children[0].textContent = data.interaction_description || '';
-          rows[target.row].children[colIndex].textContent = (data[column] ?? '').toString();
-        }
-
-        calculateSubtotals();
-        setStatus(`✅ Inserted ${type}.`);
-      } catch (e) {
-        setStatus("❌ Unexpected error:\n" + (e?.message || String(e)), "red");
-      }
-    }
-
     function parseNum(val) {
       const n = Number(String(val ?? "").replace(/[^0-9.-]/g, ""));
       return Number.isFinite(n) ? n : 0;
     }
 
+    async function insertFromExercise(type){
+      const user = await getCurrentUser();
+      if(!user) { alert("User not logged in"); return; }
+
+      const rows = document.querySelectorAll('#bankTableBody tr');
+      const targets = rowMap[type];
+      const column = columnMap[type];
+      const colIndex = {cash:1,debt:2,gold:3,crypto:4}[type];
+
+      setStatus(`Loading ${type}...`);
+
+      for (const target of targets) {
+        const { data, error } = await supabase
+          .from(target.table)
+          .select(`interaction_description, ${column}`)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          setStatus(`❌ Error loading ${type} from ${target.table}:\n${error.message}`, "red");
+          continue;
+        }
+
+        if (!data) continue;
+
+        rows[target.row].children[0].textContent = data.interaction_description || '';
+        rows[target.row].children[colIndex].textContent = (data[column] ?? '').toString();
+      }
+
+      calculateSubtotals();
+      setStatus(`✅ Inserted ${type}.`);
+    }
+
     function calculateSubtotals(){
       let cash=0,debt=0,gold=0,crypto=0;
+
       document.querySelectorAll('#bankTableBody tr').forEach(row=>{
         const c=row.children;
         cash += parseNum(c[1].textContent);
@@ -285,24 +287,23 @@
       document.getElementById('subtotalGold').textContent = gold.toFixed(2);
       document.getElementById('subtotalCrypto').textContent = crypto.toFixed(2);
 
-      // debt + crypto are already negative numbers in your model, so add normally
+      // debt + crypto are negative already
       document.getElementById('bankBalance').textContent = (cash + gold + debt + crypto).toFixed(2);
     }
 
-    async function loadSavedStatement() {
+    async function loadSavedStatement(){
       const user = await getCurrentUser();
       if (!user) return;
 
-      // This assumes your table has: user_id, row_index, interaction_description,
-      // credibility_cash_deposit, credibility_debt_withdrawal, credibility_gold_deposit, credibility_crypto_withdrawal
+      // IMPORTANT: these columns must exist in exercise15_page104
       const { data, error } = await supabase
-        .from("exercise15_page104")
-        .select("row_index,interaction_description,credibility_cash_deposit,credibility_debt_withdrawal,credibility_gold_deposit,credibility_crypto_withdrawal")
-        .eq("user_id", user.id)
-        .order("row_index", { ascending: true });
+        .from('exercise15_page104')
+        .select('row_index,interaction_description,credibility_cash_deposit,credibility_debt_withdrawal,credibility_gold_deposit,credibility_crypto_withdrawal')
+        .eq('user_id', user.id)
+        .order('row_index', { ascending: true });
 
       if (error) {
-        // Don't block the page; just show a hint
+        // Don’t block the page — just inform quietly
         setStatus("ℹ️ Could not load saved statement:\n" + error.message, "#6b7280");
         return;
       }
@@ -327,7 +328,7 @@
 
     async function saveData(){
       const user = await getCurrentUser();
-      if (!user) {
+      if(!user){
         setStatus('❌ User not authenticated', 'red');
         return;
       }
@@ -337,12 +338,17 @@
       const rows = document.querySelectorAll('#bankTableBody tr');
       const updates = [];
 
-      rows.forEach((row, i) => {
-        const c = row.children;
+      rows.forEach((row,i)=>{
+        const c=row.children;
         updates.push({
           user_id: user.id,
-          row_index: i + 1, // ✅ MUST MATCH DB (NOT NULL)
+
+          // ✅ FIX: your table requires row_index (NOT NULL)
+          row_index: i + 1,
+
+          // ✅ FIX: must match your DB column name
           interaction_description: (c[0].textContent || "").trim(),
+
           credibility_cash_deposit: parseNum(c[1].textContent),
           credibility_debt_withdrawal: parseNum(c[2].textContent),
           credibility_gold_deposit: parseNum(c[3].textContent),
@@ -350,7 +356,7 @@
         });
       });
 
-      // Upsert all rows in one call (faster + fewer failure points)
+      // ✅ Save all rows at once
       const { error } = await supabase
         .from('exercise15_page104')
         .upsert(updates, { onConflict: 'user_id,row_index' });
@@ -369,9 +375,7 @@
       window.location.href='/#page/105';
     }
 
-    function goToTOC(){ window.location.href='/page-3.html'; }
+    function goToTOC(){window.location.href='/page-3.html';}
   </script>
 </body>
 </html>
-
-
