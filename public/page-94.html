@@ -28,7 +28,6 @@
       margin-right: auto;
     }
 
-    /* Layout proportions (match 70/72/74/82+) */
     .container {
       display: flex;
       gap: 1rem;
@@ -44,7 +43,6 @@
     }
     .right-pane { flex: 1 1 55%; max-width: 55%; }
 
-    /* Card */
     .card {
       background: #fff;
       padding: 20px;
@@ -68,8 +66,6 @@
       margin-top: 0.25rem;
       margin-bottom: 0.8rem;
       box-sizing: border-box;
-
-      /* ✅ Critical: consistent typed + autofilled font */
       font-family: inherit;
       color: #000;
     }
@@ -111,7 +107,6 @@
       color: #084a58;
     }
 
-    /* Buttons */
     .button-group {
       display: flex;
       flex-wrap: wrap;
@@ -133,13 +128,10 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-
-      /* ✅ keep button font consistent */
       font-family: inherit;
     }
     .button-group button:hover { opacity: 0.9; }
 
-    /* Small action buttons */
     .mini-btn {
       background-color: #084a58;
       color: #fff;
@@ -225,7 +217,6 @@
   </div>
 
   <script>
-    // ✅ Shared Supabase client
     window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
@@ -269,7 +260,7 @@
     function calculateWithdrawals() {
       let total = 0;
       stakeholderLabels.forEach(n => {
-        document.querySelectorAll(\`.score\${n}:checked\`).forEach(cb => {
+        document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
           total += parseInt(cb.value, 10);
         });
       });
@@ -278,7 +269,6 @@
 
       const multiplier = parseInt(document.getElementById("reputationMultiplier").value, 10) || 0;
 
-      // ✅ Withdrawals are negative
       const monthly = (total * multiplier) * -1;
       const annual = monthly * 12;
 
@@ -287,7 +277,6 @@
     }
 
     async function loadData() {
-      // Render stakeholder sections
       document.getElementById("stakeholders").innerHTML =
         stakeholderLabels.map(createStakeholderSection).join('');
 
@@ -296,7 +285,19 @@
 
       const { data, error } = await sb
         .from("exercise13_page94")
-        .select("*")
+        .select(`
+          interaction_description,
+          impact_score,
+          reputation_multiplier,
+          monthly_deposit,
+          annual_deposit,
+          stakeholder1_name, stakeholder1_scores,
+          stakeholder2_name, stakeholder2_scores,
+          stakeholder3_name, stakeholder3_scores,
+          stakeholder4_name, stakeholder4_scores,
+          stakeholder5_name, stakeholder5_scores,
+          stakeholder6_name, stakeholder6_scores
+        `)
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -313,18 +314,13 @@
       document.getElementById("interactionDescription").value = data.interaction_description || "";
       document.getElementById("impactScore").value = data.impact_score ?? "";
       document.getElementById("reputationMultiplier").value = data.reputation_multiplier ?? "";
-
-      // Support either monthly/annual columns if they exist
-      const monthlyVal = (data.monthly_deposit ?? data.monthly_withdrawal ?? "");
-      const annualVal  = (data.annual_deposit ?? data.annual_withdrawal ?? "");
-
-      document.getElementById("monthlyWithdrawal").value = monthlyVal;
-      document.getElementById("annualWithdrawal").value = annualVal;
+      document.getElementById("monthlyWithdrawal").value = data.monthly_deposit ?? "";
+      document.getElementById("annualWithdrawal").value = data.annual_deposit ?? "";
 
       stakeholderLabels.forEach(n => {
-        document.getElementById(\`stakeholder\${n}\`).value = data[\`stakeholder\${n}_name\`] || "";
-        const scores = (data[\`stakeholder\${n}_scores\`] || []);
-        document.querySelectorAll(\`.score\${n}\`).forEach(cb => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const scores = (data[`stakeholder${n}_scores`] || []);
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
           cb.checked = scores.includes(parseInt(cb.value, 10));
         });
       });
@@ -338,7 +334,7 @@
 
       setStatus("Saving...");
 
-      // Ensure calculations are up-to-date if user hasn’t clicked calculate
+      // Make sure calculation fields are up to date
       calculateWithdrawals();
 
       const payload = {
@@ -346,30 +342,30 @@
         interaction_description: document.getElementById("interactionDescription").value.trim(),
         impact_score: parseInt(document.getElementById("impactScore").value, 10) || 0,
         reputation_multiplier: parseInt(document.getElementById("reputationMultiplier").value, 10) || 0,
-
-        // ✅ Keep same column pattern as other exercises
         monthly_deposit: parseInt(document.getElementById("monthlyWithdrawal").value, 10) || 0,
         annual_deposit: parseInt(document.getElementById("annualWithdrawal").value, 10) || 0
       };
 
       stakeholderLabels.forEach(n => {
-        payload[\`stakeholder\${n}_name\`] = document.getElementById(\`stakeholder\${n}\`).value.trim();
-        payload[\`stakeholder\${n}_scores\`] = Array.from(document.querySelectorAll(\`.score\${n}\`))
+        payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value.trim();
+        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
           .filter(cb => cb.checked)
           .map(cb => parseInt(cb.value, 10));
       });
 
+      // ✅ IMPORTANT: upsert an array of rows (matches your working pages)
       const { error } = await sb
         .from("exercise13_page94")
-        .upsert(payload, { onConflict: "user_id" });
+        .upsert([payload], { onConflict: "user_id" });
 
       if (error) {
         setStatus("❌ Error saving data:\n" + error.message, "red");
-        return;
+        return false;
       }
 
       setStatus("✅ Saved successfully!");
       if (goNext) window.location.href = "/page-95.html";
+      return true;
     }
 
     function goBack() { window.location.href = "/#page/93"; }
@@ -379,3 +375,4 @@
   </script>
 </body>
 </html>
+
