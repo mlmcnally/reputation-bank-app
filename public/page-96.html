@@ -4,10 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 13 – Page 96</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
-      font-family: 'Avenir', 'Nunito Sans', sans-serif;
+      font-family: "Avenir", "Nunito Sans", sans-serif;
       background: #f3f4f6;
       padding: 2rem;
       margin: 0;
@@ -20,18 +23,18 @@
       color: #084a58;
       text-align: center;
       margin-bottom: 1rem;
+      max-width: 980px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     /* Layout proportions */
     .container {
       display: flex;
-      gap: 1rem;            /* tight, consistent gap */
+      gap: 1rem;
       align-items: flex-start;
     }
-    .left-pane {
-      flex: 0 0 45%;
-      max-width: 45%;
-    }
+    .left-pane { flex: 0 0 45%; max-width: 45%; }
     .left-pane img {
       width: 100%;
       height: auto;
@@ -39,10 +42,7 @@
       border: 1px solid #ccc;
       display: block;
     }
-    .right-pane {
-      flex: 1 1 55%;
-      max-width: 55%;
-    }
+    .right-pane { flex: 1 1 55%; max-width: 55%; }
 
     /* Card */
     .card {
@@ -68,6 +68,10 @@
       margin-top: 0.25rem;
       margin-bottom: 0.8rem;
       box-sizing: border-box;
+
+      /* ✅ Critical: consistent typed + autofilled font */
+      font-family: inherit;
+      color: #000;
     }
     textarea { min-height: 60px; resize: vertical; }
 
@@ -91,9 +95,14 @@
       border-radius: 6px;
       margin-top: 8px;
     }
-    .score-box label, .multiplier-box label { font-weight: 600; display: block; margin-bottom: 6px; color: #084a58; }
+    .score-box label, .multiplier-box label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #084a58;
+    }
 
-    /* Button group (dark teal) */
+    /* Buttons */
     .button-group {
       display: flex;
       flex-wrap: wrap;
@@ -115,17 +124,37 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+
+      /* ✅ keep button font consistent */
+      font-family: inherit;
     }
     .button-group button:hover { opacity: 0.9; }
+
+    /* Small action button */
+    .mini-btn {
+      background-color: #084a58;
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 0.95rem;
+      font-family: inherit;
+      flex: 0 0 auto;
+    }
+    .mini-btn:hover { opacity: 0.9; }
 
     #status {
       margin-top: 1rem;
       text-align: center;
       font-weight: bold;
-      color: #084a58; /* dark teal */
+      color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
+
 <body>
   <h2>Exercise 13 – Page 96</h2>
   <div class="form-note">
@@ -147,7 +176,7 @@
         <div class="score-box">
           <label>Total Influence/Impact Score</label>
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <button type="button" onclick="calculateScores()" style="flex:0 0 auto;">Calculate Score</button>
+            <button type="button" class="mini-btn" onclick="calculateScores()" style="flex:0 0 auto;">Calculate Score</button>
             <input type="text" id="impactScore" readonly style="flex:1; min-width:220px;" />
           </div>
         </div>
@@ -172,18 +201,20 @@
           <input type="number" id="repetitionMultiplier" inputmode="numeric" />
         </div>
 
-        <button type="button" onclick="calculateScores()" style="margin-top:10px;">Calculate Credibility Debt Withdrawal</button>
+        <button type="button" class="mini-btn" onclick="calculateScores()" style="margin-top:10px;">
+          Calculate Credibility Debt Withdrawal
+        </button>
 
         <div class="score-box">
-          <label>Total Credibility Debt Withdrawal</label>
+          <label>Total Credibility Debt Withdrawal (negative)</label>
           <input type="text" id="annualDeposit" readonly />
           <small>These withdrawals are subjective and theoretical scores, not actual currency numbers.</small>
         </div>
 
         <div class="button-group">
           <button type="button" onclick="goBack()">⬅ Back One Page</button>
-          <button type="button" onclick="saveData()">💾 Save</button>
-          <button type="button" onclick="saveAndNext()">➡ Save & Next</button>
+          <button type="button" onclick="saveData(false)">💾 Save</button>
+          <button type="button" onclick="saveData(true)">➡ Save & Next</button>
           <button type="button" onclick="window.print()">🖨️ Print</button>
           <button type="button" onclick="goToTOC()">Go to the Table of Contents</button>
         </div>
@@ -194,12 +225,30 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    // ✅ Shared Supabase client
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
+    const sb = window.supabaseClient;
 
     const stakeholderLabels = [1, 2, 3, 4, 5, 6];
+
+    function setStatus(message, color = "#084a58") {
+      const el = document.getElementById("status");
+      el.textContent = message;
+      el.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data } = await sb.auth.getUser();
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
 
     function createStakeholderSection(n) {
       return `
@@ -209,43 +258,11 @@
           <p style="margin:6px 0 8px;">
             Consider how the above decision or action might negatively influence this stakeholder. Check all that apply:
           </p>
-          <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
-          <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
-          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate (1)</label>
+          <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate impact (4)</label><br>
+          <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire impact (2)</label><br>
+          <label><input type="checkbox" class="score${n}" value="1" /> Opinion/Inform/Educate impact (1)</label>
         </div>`;
     }
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Render stakeholder sections
-      document.getElementById("stakeholders").innerHTML =
-        stakeholderLabels.map(createStakeholderSection).join('');
-
-      // Load any existing data
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data } = await supabase
-        .from("exercise13_page96")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (data) {
-        document.getElementById("interactionDescription").value = data.interaction_description || "";
-        document.getElementById("impactScore").value = data.impact_score ?? 0;
-        document.getElementById("rehabMultiplier").value = data.reputation_multiplier ?? 0;
-        document.getElementById("repetitionMultiplier").value = data.repetition_multiplier ?? 0;
-        document.getElementById("annualDeposit").value = data.annual_deposit ?? 0;
-
-        stakeholderLabels.forEach(n => {
-          document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
-          const scores = (data[`stakeholder${n}_scores`] || []);
-          document.querySelectorAll(`.score${n}`).forEach(cb => {
-            cb.checked = scores.includes(parseInt(cb.value, 10));
-          });
-        });
-      }
-    });
 
     function calculateScores() {
       let total = 0;
@@ -254,25 +271,77 @@
           total += parseInt(cb.value, 10);
         });
       });
+
       document.getElementById("impactScore").value = total;
 
       const rehab = parseInt(document.getElementById("rehabMultiplier").value, 10) || 0;
       const repeat = parseInt(document.getElementById("repetitionMultiplier").value, 10) || 0;
+
       const annual = total * rehab * repeat * -1; // negative withdrawal
       document.getElementById("annualDeposit").value = annual;
     }
 
-    async function saveData() {
-      const status = document.getElementById("status");
-      status.textContent = "";
-      status.style.color = "#084a58";
+    async function loadData() {
+      // Render stakeholders first
+      document.getElementById("stakeholders").innerHTML =
+        stakeholderLabels.map(createStakeholderSection).join('');
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        status.textContent = "❌ User not authenticated.";
-        status.style.color = "red";
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
+      const { data, error } = await sb
+        .from("exercise13_page96")
+        .select(`
+          interaction_description,
+          impact_score,
+          reputation_multiplier,
+          repetition_multiplier,
+          annual_deposit,
+          stakeholder1_name, stakeholder1_scores,
+          stakeholder2_name, stakeholder2_scores,
+          stakeholder3_name, stakeholder3_scores,
+          stakeholder4_name, stakeholder4_scores,
+          stakeholder5_name, stakeholder5_scores,
+          stakeholder6_name, stakeholder6_scores
+        `)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        setStatus("❌ Could not load saved data:\n" + error.message, "red");
         return;
       }
+
+      if (!data) {
+        setStatus("✅ Ready.");
+        return;
+      }
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score ?? "";
+      document.getElementById("rehabMultiplier").value = data.reputation_multiplier ?? "";
+      document.getElementById("repetitionMultiplier").value = data.repetition_multiplier ?? "";
+      document.getElementById("annualDeposit").value = data.annual_deposit ?? "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const scores = (data[`stakeholder${n}_scores`] || []);
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = scores.includes(parseInt(cb.value, 10));
+        });
+      });
+
+      setStatus("✅ Loaded saved data successfully.");
+    }
+
+    async function saveData(goNext = false) {
+      const user = await requireUserOrRedirect();
+      if (!user) return false;
+
+      setStatus("Saving...");
+
+      // Ensure calculation fields are current
+      calculateScores();
 
       const payload = {
         user_id: user.id,
@@ -290,26 +359,25 @@
           .map(cb => parseInt(cb.value, 10));
       });
 
-      const { error } = await supabase
+      const { error } = await sb
         .from("exercise13_page96")
-        .upsert([payload], { onConflict: ['user_id'] });
+        .upsert([payload], { onConflict: "user_id" });
 
       if (error) {
-        status.textContent = "❌ Error saving data: " + error.message;
-        status.style.color = "red";
-      } else {
-        status.textContent = "Saved successfully!";
-        status.style.color = "#084a58";
+        setStatus("❌ Error saving data:\n" + error.message, "red");
+        return false;
       }
-    }
 
-    async function saveAndNext() {
-      await saveData();
-      window.location.href = "/#page/97";
+      setStatus("✅ Saved successfully!");
+      if (goNext) window.location.href = "/#page/97";
+      return true;
     }
 
     function goBack() { window.location.href = "/page-95.html"; }
     function goToTOC() { window.location.href = "/page-3.html"; }
+
+    document.addEventListener("DOMContentLoaded", loadData);
   </script>
 </body>
 </html>
+
