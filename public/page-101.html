@@ -20,18 +20,18 @@
       color: #084a58;
       text-align: center;
       margin-bottom: 1rem;
+      max-width: 980px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     /* Layout proportions */
     .container {
       display: flex;
-      gap: 1rem;            /* tight, consistent gap */
+      gap: 1rem;
       align-items: flex-start;
     }
-    .left-pane {
-      flex: 0 0 45%;
-      max-width: 45%;
-    }
+    .left-pane { flex: 0 0 45%; max-width: 45%; }
     .left-pane img {
       width: 100%;
       height: auto;
@@ -39,10 +39,7 @@
       border: 1px solid #ccc;
       display: block;
     }
-    .right-pane {
-      flex: 1 1 55%;
-      max-width: 55%;
-    }
+    .right-pane { flex: 1 1 55%; max-width: 55%; }
 
     /* Card */
     .card {
@@ -68,6 +65,10 @@
       margin-top: 0.25rem;
       margin-bottom: 0.8rem;
       box-sizing: border-box;
+
+      /* ✅ keep typed + loaded font consistent */
+      font-family: inherit;
+      color: #000;
     }
     textarea { min-height: 60px; resize: vertical; }
 
@@ -91,7 +92,12 @@
       border-radius: 6px;
       margin-top: 8px;
     }
-    .score-box label, .multiplier-box label { font-weight: 600; display: block; margin-bottom: 6px; color: #084a58; }
+    .score-box label, .multiplier-box label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #084a58;
+    }
 
     /* Button group (dark teal) */
     .button-group {
@@ -115,6 +121,9 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+
+      /* ✅ keep button font consistent */
+      font-family: inherit;
     }
     .button-group button:hover { opacity: 0.9; }
 
@@ -122,10 +131,12 @@
       margin-top: 1rem;
       text-align: center;
       font-weight: bold;
-      color: #084a58; /* dark teal */
+      color: #084a58;
+      white-space: pre-wrap;
     }
   </style>
 </head>
+
 <body>
   <h2>Exercise 14 – Page 101</h2>
   <div class="form-note">
@@ -175,7 +186,9 @@
           <input type="number" id="rehabMultiplier" inputmode="numeric" />
         </div>
 
-        <button type="button" onclick="calculateScores()" style="margin-top:10px;">Calculate Total Credibility Cryptocurrency Withdrawal</button>
+        <button type="button" onclick="calculateScores()" style="margin-top:10px;">
+          Calculate Total Credibility Cryptocurrency Withdrawal
+        </button>
 
         <div class="score-box">
           <label>Total Credibility Cryptocurrency Withdrawal</label>
@@ -185,8 +198,8 @@
 
         <div class="button-group">
           <button type="button" onclick="goBack()">⬅ Back One Page</button>
-          <button type="button" onclick="saveData()">💾 Save</button>
-          <button type="button" onclick="saveAndNext()">➡ Save & Next</button>
+          <button type="button" onclick="saveData(false)">💾 Save</button>
+          <button type="button" onclick="saveData(true)">➡ Save & Next</button>
           <button type="button" onclick="window.print()">🖨️ Print</button>
           <button type="button" onclick="goToTOC()">Go to the Table of Contents</button>
         </div>
@@ -197,21 +210,30 @@
   </div>
 
   <script>
-    // Create the client (same pattern used elsewhere)
-    const supabase = window.supabase.createClient(
+    // ✅ Shared Supabase client (matches working pages)
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
       'https://nidxvthbowdgdfuopmzk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
     );
-
-    // More robust user fetch: prefer getSession(), fall back to getUser()
-    async function getCurrentUser() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) return session.user;
-      const { data: { user } } = await supabase.auth.getUser();
-      return user ?? null;
-    }
+    const sb = window.supabaseClient;
 
     const stakeholderLabels = [1, 2, 3, 4, 5, 6];
+
+    function setStatus(message, color = "#084a58") {
+      const el = document.getElementById("status");
+      el.textContent = message;
+      el.style.color = color;
+    }
+
+    async function requireUserOrRedirect() {
+      const { data } = await sb.auth.getUser();
+      const user = data?.user;
+      if (!user) {
+        window.location.href = "/login.html";
+        return null;
+      }
+      return user;
+    }
 
     function createStakeholderSection(n) {
       return `
@@ -227,38 +249,6 @@
         </div>`;
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Render stakeholder sections
-      document.getElementById("stakeholders").innerHTML =
-        stakeholderLabels.map(createStakeholderSection).join('');
-
-      // Load any existing data
-      const user = await getCurrentUser();
-      if (!user) return;
-
-      const { data } = await supabase
-        .from("exercise14_page101")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (data) {
-        document.getElementById("interactionDescription").value = data.interaction_description || "";
-        document.getElementById("impactScore").value = data.impact_score ?? "";
-        document.getElementById("damageMultiplier").value = String(data.damage_multiplier ?? "500");
-        document.getElementById("rehabMultiplier").value = data.rehab_multiplier ?? "";
-        document.getElementById("cryptoWithdrawal").value = data.crypto_withdrawal ?? "";
-
-        stakeholderLabels.forEach(n => {
-          document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
-          const scores = (data[`stakeholder${n}_scores`] || []);
-          document.querySelectorAll(`.score${n}`).forEach(cb => {
-            cb.checked = scores.includes(parseInt(cb.value, 10));
-          });
-        });
-      }
-    });
-
     function calculateScores() {
       let total = 0;
       stakeholderLabels.forEach(n => {
@@ -270,21 +260,61 @@
 
       const damage = parseInt(document.getElementById("damageMultiplier").value, 10) || 0;
       const rehab = parseInt(document.getElementById("rehabMultiplier").value, 10) || 0;
-      const cryptoTotal = total * damage * rehab * -1; // negative withdrawal
+
+      // ✅ negative withdrawal
+      const cryptoTotal = total * damage * rehab * -1;
       document.getElementById("cryptoWithdrawal").value = cryptoTotal;
     }
 
-    async function saveData() {
-      const status = document.getElementById("status");
-      status.textContent = "";
-      status.style.color = "#084a58";
+    async function loadData() {
+      // Render stakeholders
+      document.getElementById("stakeholders").innerHTML =
+        stakeholderLabels.map(createStakeholderSection).join('');
 
-      const user = await getCurrentUser();
-      if (!user) {
-        status.textContent = "❌ User not authenticated.";
-        status.style.color = "red";
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
+      const { data, error } = await sb
+        .from("exercise14_page101")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        setStatus("❌ Could not load saved data:\n" + error.message, "red");
         return;
       }
+
+      if (!data) {
+        setStatus("✅ Ready.");
+        return;
+      }
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score ?? "";
+      document.getElementById("damageMultiplier").value = String(data.damage_multiplier ?? "500");
+      document.getElementById("rehabMultiplier").value = data.rehab_multiplier ?? "";
+      document.getElementById("cryptoWithdrawal").value = data.crypto_withdrawal ?? "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        const scores = (data[`stakeholder${n}_scores`] || []);
+        document.querySelectorAll(`.score${n}`).forEach(cb => {
+          cb.checked = scores.includes(parseInt(cb.value, 10));
+        });
+      });
+
+      setStatus("✅ Loaded saved data successfully.");
+    }
+
+    async function saveData(goNext = false) {
+      const user = await requireUserOrRedirect();
+      if (!user) return;
+
+      setStatus("Saving...");
+
+      // Ensure calculations are current
+      calculateScores();
 
       const payload = {
         user_id: user.id,
@@ -302,26 +332,24 @@
           .map(cb => parseInt(cb.value, 10));
       });
 
-      const { error } = await supabase
+      const { error } = await sb
         .from("exercise14_page101")
-        .upsert([payload], { onConflict: ['user_id'] });
+        .upsert(payload, { onConflict: "user_id" });
 
       if (error) {
-        status.textContent = "❌ Error saving data: " + error.message;
-        status.style.color = "red";
-      } else {
-        status.textContent = "Saved successfully!";
-        status.style.color = "#084a58";
+        setStatus("❌ Error saving data:\n" + error.message, "red");
+        return;
       }
-    }
 
-    async function saveAndNext() {
-      await saveData();
-      window.location.href = "/#page/102";
+      setStatus("✅ Saved successfully!");
+      if (goNext) window.location.href = "/#page/102";
     }
 
     function goBack() { window.location.href = "/page-100.html"; }
     function goToTOC() { window.location.href = "/page-3.html"; }
+
+    document.addEventListener("DOMContentLoaded", loadData);
   </script>
 </body>
 </html>
+
