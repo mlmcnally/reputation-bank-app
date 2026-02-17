@@ -50,7 +50,7 @@
       cursor:pointer;
       font-size:0.95rem;
       box-shadow:2px 2px 4px rgba(0,0,0,0.3);
-      font-family: inherit; /* ✅ */
+      font-family: inherit;
     }
     .button-bar button:hover{opacity:0.9;}
 
@@ -74,14 +74,14 @@
       border-radius:8px;
       overflow:hidden;
       box-shadow:0 2px 8px rgba(0,0,0,0.05);
-      font-family: inherit; /* ✅ */
+      font-family: inherit;
     }
     th,td{
       border:1px solid #ccc;
       padding:8px;
       text-align:left;
-      font-family: inherit; /* ✅ critical for contentEditable */
-      font-size: 1rem;      /* ✅ match other pages */
+      font-family: inherit;
+      font-size: 1rem;
       color:#000;
     }
     th{background:#e2e8f0;}
@@ -114,7 +114,7 @@
       cursor:pointer;
       box-shadow:2px 2px 4px rgba(0,0,0,0.3);
       font-size:0.95rem;
-      font-family: inherit; /* ✅ */
+      font-family: inherit;
     }
     .footer-buttons button:hover{opacity:0.9;}
 
@@ -201,6 +201,11 @@
     }
 
     async function requireUserOrRedirect() {
+      // ✅ more robust (session first, then getUser)
+      const { data: { session } } = await sb.auth.getSession();
+      const sessionUser = session?.user;
+      if (sessionUser) return sessionUser;
+
       const { data } = await sb.auth.getUser();
       const user = data?.user;
       if (!user) {
@@ -235,8 +240,6 @@
         for (let j = 0; j < 5; j++) {
           const td = document.createElement('td');
           td.contentEditable = "true";
-          td.setAttribute("data-row", String(i));
-          td.setAttribute("data-col", String(j));
           tr.appendChild(td);
         }
         tbody.appendChild(tr);
@@ -245,19 +248,14 @@
 
     function parseNum(v) {
       if (!v) return 0;
-      // allow commas and whitespace
       const cleaned = String(v).replace(/,/g, "").trim();
       const n = Number(cleaned);
       return Number.isFinite(n) ? n : 0;
     }
 
     function formatNum(n) {
-      // Keep it clean for your workbook scoring (usually integers)
       if (!Number.isFinite(n)) return "";
-      if (Math.abs(n) >= 1000) return String(Math.trunc(n));
-      // show integer if it's an integer
       if (Number.isInteger(n)) return String(n);
-      // fallback
       return String(n);
     }
 
@@ -280,28 +278,20 @@
 
     function wireRecalcHandlers() {
       const tbody = document.getElementById("bankTableBody");
-      tbody.addEventListener("input", (e) => {
-        const td = e.target.closest("td");
-        if (!td) return;
-        // Recalc on any edit
-        calculateSubtotals();
-      });
-      tbody.addEventListener("blur", (e) => {
-        const td = e.target.closest("td");
-        if (!td) return;
-        calculateSubtotals();
-      }, true);
+      tbody.addEventListener("input", () => calculateSubtotals());
+      tbody.addEventListener("blur", () => calculateSubtotals(), true);
     }
 
     async function loadSavedStatement() {
       const user = await requireUserOrRedirect();
       if (!user) return;
 
+      // ✅ FIX: row_index (not row_number)
       const { data, error } = await sb
         .from("exercise15_page104")
-        .select("row_number, interaction_description, credibility_cash_deposit, credibility_debt_withdrawal, credibility_gold_deposit, credibility_crypto_withdrawal")
+        .select("row_index, interaction_description, credibility_cash_deposit, credibility_debt_withdrawal, credibility_gold_deposit, credibility_crypto_withdrawal")
         .eq("user_id", user.id)
-        .order("row_number", { ascending: true });
+        .order("row_index", { ascending: true });
 
       if (error) {
         setStatus("❌ Could not load saved statement:\n" + error.message, "red");
@@ -311,7 +301,7 @@
       const rows = document.querySelectorAll('#bankTableBody tr');
       if (data && data.length) {
         data.forEach(r => {
-          const idx = (r.row_number ?? 0) - 1;
+          const idx = (r.row_index ?? 0) - 1;
           if (idx < 0 || idx >= rows.length) return;
           const c = rows[idx].children;
           c[0].textContent = r.interaction_description ?? "";
@@ -350,9 +340,6 @@
         }
         if (!data) continue;
 
-        // Only fill the intended cells for that row:
-        // - description column
-        // - the specific value column for that type
         rows[target.row].children[0].textContent = data.interaction_description || "";
         rows[target.row].children[valueColIndex].textContent = formatNum(data[column] ?? 0);
       }
@@ -374,7 +361,10 @@
         const c = row.children;
         payload.push({
           user_id: user.id,
-          row_number: i + 1,
+
+          // ✅ FIX: row_index required NOT NULL
+          row_index: i + 1,
+
           interaction_description: (c[0].textContent || "").trim(),
           credibility_cash_deposit: parseNum(c[1].textContent),
           credibility_debt_withdrawal: parseNum(c[2].textContent),
@@ -383,9 +373,10 @@
         });
       });
 
+      // ✅ FIX: conflict target must match unique constraint
       const { error } = await sb
         .from('exercise15_page104')
-        .upsert(payload, { onConflict: 'user_id,row_number' });
+        .upsert(payload, { onConflict: 'user_id,row_index' });
 
       if (error) {
         setStatus("❌ Error saving statement:\n" + error.message, "red");
@@ -404,6 +395,7 @@
       buildRows();
       wireRecalcHandlers();
       await loadSavedStatement();
+      calculateSubtotals();
     });
   </script>
 </body>
