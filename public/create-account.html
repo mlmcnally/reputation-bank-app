@@ -61,7 +61,6 @@
 
     <form id="form" autocomplete="off">
       <label for="email">Email</label>
-      <!-- We intentionally defeat browser autofill and disable until verified -->
       <input
         id="email"
         name="rb_email_new"
@@ -103,14 +102,13 @@
     window.addEventListener('DOMContentLoaded', async () => {
       const supabase = window.supabase.createClient(
         'https://nidxvthbowdgdfuopmzk.supabase.co',
-        'PASTE_YOUR_ANON_KEY_FROM_LOGIN_HTML_HERE'
+        'PASTE_YOUR_REAL_SUPABASE_ANON_KEY_HERE'
       );
 
-      // STEP 0 (critical): ensure no existing dev/test session hijacks this page
       try { await supabase.auth.signOut(); } catch (_) {}
 
       const params = new URLSearchParams(location.search);
-      const sessionId = params.get('session_id');
+      const sessionId = params.get('session_id') || sessionStorage.getItem('checkout_session_id');
 
       const emailEl = document.getElementById('email');
       const emailHint = document.getElementById('emailHint');
@@ -127,13 +125,13 @@
         return;
       }
 
-      // STEP 1: verify purchase and pull the correct email from Stripe session
       try {
+        sessionStorage.setItem('checkout_session_id', sessionId);
+
         setStatus('Verifying purchase…', true);
         const res = await fetch(`/api/checkout-status?session_id=${encodeURIComponent(sessionId)}`);
         const data = await res.json();
 
-        // Expecting something like: { ok: true, state: 'complete', email: 'buyer@email.com' }
         if (!data?.ok || data?.state !== 'complete') {
           fallback.style.display = 'block';
           setStatus('We could not verify this checkout session yet. If your payment is still processing, refresh in 10–20 seconds.', false);
@@ -150,7 +148,6 @@
           return;
         }
 
-        // STEP 2: lock in the verified email
         emailEl.value = String(data.email).trim().toLowerCase();
         emailEl.disabled = true;
         emailEl.placeholder = '';
@@ -164,7 +161,6 @@
         return;
       }
 
-      // STEP 3: set password via secure server route (creates the Supabase user)
       document.getElementById('form').addEventListener('submit', async (e) => {
         e.preventDefault();
         setStatus('');
@@ -200,7 +196,6 @@
             return setStatus(out?.error || 'Could not create account.');
           }
 
-          // STEP 4: sign in and continue
           setStatus('Signing you in…', true);
           const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
           if (error) {
@@ -208,7 +203,7 @@
             return setStatus(error.message);
           }
 
-          // Go to app root
+          sessionStorage.removeItem('checkout_session_id');
           window.location.replace(`${location.origin}/`);
         } catch (err) {
           console.error(err);
