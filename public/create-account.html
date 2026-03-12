@@ -102,7 +102,7 @@
     window.addEventListener('DOMContentLoaded', async () => {
       const supabase = window.supabase.createClient(
         'https://nidxvthbowdgdfuopmzk.supabase.co',
-        'PASTE_YOUR_REAL_SUPABASE_ANON_KEY_HERE'
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
       );
 
       try { await supabase.auth.signOut(); } catch (_) {}
