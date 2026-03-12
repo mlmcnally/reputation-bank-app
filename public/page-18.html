@@ -141,108 +141,101 @@
   </div>
 
   <script>
-    // ✅ Use ONE shared client stored on window
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-    );
+  window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+    'https://nidxvthbowdgdfuopmzk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+  );
 
-    const sb = window.supabaseClient;
+  const sb = window.supabaseClient;
 
-    function setStatus(message, color = "#084a58") {
-      const statusMsg = document.getElementById("status");
-      if (!statusMsg) return;
-      statusMsg.textContent = message;
-      statusMsg.style.color = color;
+  function setStatus(message = "", color = "#084a58") {
+    const statusMsg = document.getElementById("status");
+    if (!statusMsg) return;
+    statusMsg.textContent = message;
+    statusMsg.style.color = color;
+  }
+
+  async function requireUserOrRedirect() {
+    const { data, error } = await sb.auth.getUser();
+    if (error) {
+      console.error("Auth getUser error:", error);
+    }
+    const user = data?.user;
+    if (!user) {
+      window.location.href = "/login.html";
+      return null;
+    }
+    return user;
+  }
+
+  window.addEventListener("DOMContentLoaded", async function () {
+    const user = await requireUserOrRedirect();
+    if (!user) return;
+
+    const { data, error } = await sb
+      .from("exercise1_page18")
+      .select("id, user_id, stakeholder, opinion, advocacy, action")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      setStatus("Could not load saved data. Please refresh and try again.", "red");
+      return;
     }
 
-    async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
-
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
+    if (!data) {
+      return;
     }
 
-    window.addEventListener('DOMContentLoaded', async function () {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+    document.getElementById("stakeholder").value = data.stakeholder || "";
+    document.getElementById("opinion").value = data.opinion || "";
+    document.getElementById("advocacy").value = data.advocacy || "";
+    document.getElementById("action").value = data.action || "";
+  });
 
-      console.log("✅ Logged in user.id:", user.id);
-      setStatus("Logged in user id:\n" + user.id);
+  async function saveData() {
+    const user = await requireUserOrRedirect();
+    if (!user) return false;
 
-      const { data, error } = await sb
-        .from('exercise1_page18')
-        .select('id, user_id, stakeholder, opinion, advocacy, action')
-        .eq('user_id', user.id)
-        .maybeSingle();
+    const stakeholder = document.getElementById("stakeholder").value.trim();
+    const opinion = document.getElementById("opinion").value.trim();
+    const advocacy = document.getElementById("advocacy").value.trim();
+    const action = document.getElementById("action").value.trim();
 
-      console.log("📦 Load result data:", data);
-      console.log("⚠️ Load result error:", error);
-
-      if (error) {
-        setStatus("❌ Could not load saved data:\n" + error.message, "red");
-        return;
-      }
-
-      if (!data) {
-  // No saved data yet — normal for a new user
-  return;
-}
-      document.getElementById("stakeholder").value = data.stakeholder || "";
-      document.getElementById("opinion").value = data.opinion || "";
-      document.getElementById("advocacy").value = data.advocacy || "";
-      document.getElementById("action").value = data.action || "";
-
-      setStatus("✅ Loaded saved data successfully.");
-    });
-
-    async function saveData() {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
-
-      const stakeholder = document.getElementById("stakeholder").value.trim();
-      const opinion = document.getElementById("opinion").value.trim();
-      const advocacy = document.getElementById("advocacy").value.trim();
-      const action = document.getElementById("action").value.trim();
-
-      if (!stakeholder) {
-        setStatus("Please enter a stakeholder name/description before saving.", "red");
-        return;
-      }
-
-      setStatus("Saving...");
-
-      const { error } = await sb
-        .from("exercise1_page18")
-        .upsert(
-          { user_id: user.id, stakeholder, opinion, advocacy, action },
-          { onConflict: "user_id" }
-        );
-
-      if (error) {
-        console.error("Save error:", error);
-        setStatus("❌ Error saving data:\n" + error.message, "red");
-      } else {
-        setStatus("✅ Saved successfully!");
-      }
+    if (!stakeholder) {
+      setStatus("Please enter a stakeholder name or description before saving.", "red");
+      return false;
     }
 
-    async function saveAndGoNext() {
-      await saveData();
-      const statusText = document.getElementById("status").textContent || "";
-      if (statusText.startsWith("❌") || statusText.startsWith("Please")) return;
-      window.location.href = "/page-19.html";
-    }
+    setStatus("Saving...");
 
-    function goBack() {
-      window.location.href = "/page-17.html";
+    const { error } = await sb
+      .from("exercise1_page18")
+      .upsert(
+        { user_id: user.id, stakeholder, opinion, advocacy, action },
+        { onConflict: "user_id" }
+      );
+
+    if (error) {
+      console.error("Save error:", error);
+      setStatus("Save failed. Please try again.", "red");
+      return false;
+    } else {
+      setStatus("Saved successfully!");
+      return true;
     }
-  </script>
+  }
+
+  async function saveAndGoNext() {
+    const saved = await saveData();
+    if (!saved) return;
+    window.location.href = "/page-19.html";
+  }
+
+  function goBack() {
+    window.location.href = "/page-17.html";
+  }
+</script>
 
 </body>
 </html>
