@@ -190,10 +190,9 @@
       }
 
       if (!data) {
-        setStatus("ℹ️ No saved row found yet for this login.\nClick Save once.");
-        return;
-      }
-
+  // No saved data yet — normal for a new user
+  return;
+}
       document.getElementById("stakeholder").value = data.stakeholder || "";
       document.getElementById("opinion").value = data.opinion || "";
       document.getElementById("advocacy").value = data.advocacy || "";
