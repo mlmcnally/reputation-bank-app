@@ -143,143 +143,107 @@
   </div>
 
   <script>
-    // ✅ Use ONE shared client stored on window (prevents "already declared" issues)
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-    );
-    const sb = window.supabaseClient;
+  // ONE shared client stored on window
+  window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+    'https://nidxvthbowdgdfuopmzk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+  );
 
-    function setStatus(message, color = "#084a58") {
-      const statusMsg = document.getElementById("status");
-      if (!statusMsg) return;
-      statusMsg.textContent = message;
-      statusMsg.style.color = color;
+  const sb = window.supabaseClient;
+
+  function setStatus(message = "", color = "#084a58") {
+    const el = document.getElementById("status");
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = color;
+  }
+
+  async function getActiveUser() {
+    const sessionRes = await sb.auth.getSession();
+    const sessionUser = sessionRes?.data?.session?.user;
+    if (sessionUser) return sessionUser;
+
+    const userRes = await sb.auth.getUser();
+    return userRes?.data?.user || null;
+  }
+
+  async function requireUserOrRedirect() {
+    const user = await getActiveUser();
+    if (!user) {
+      window.location.href = "/login.html";
+      return null;
+    }
+    return user;
+  }
+
+  window.addEventListener("DOMContentLoaded", async function () {
+    const user = await requireUserOrRedirect();
+    if (!user) return;
+
+    const { data, error } = await sb
+      .from("exercise2_page28")
+      .select("user_id, stakeholder, identity, ambition, role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      setStatus("Could not load saved data. Please refresh and try again.", "red");
+      return;
     }
 
-    async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
-
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
+    if (!data) {
+      return;
     }
 
-    // ✅ Helper: navigate to next interactive HTML page, and confirm it's not being rewritten to the flipbook/index
-    async function navigateToInteractivePage(nextFileName, expectedTitleText) {
-      const nextUrl = new URL(nextFileName, window.location.href).href;
-      console.log("➡️ Attempting navigation to:", nextUrl);
+    document.getElementById("stakeholder").value = data.stakeholder || "";
+    document.getElementById("identity").value = data.identity || "";
+    document.getElementById("ambition").value = data.ambition || "";
+    document.getElementById("role").value = data.role || "";
+  });
 
-      try {
-        const res = await fetch(nextUrl, { cache: "no-store" });
-        const html = await res.text();
+  window.saveData = async function () {
+    const user = await requireUserOrRedirect();
+    if (!user) return false;
 
-        // If your host is rewriting unknown routes to the flipbook, this check catches it.
-        if (!html.includes(expectedTitleText)) {
-          throw new Error(
-            "Next page request did not return the expected HTML title. " +
-            "This usually means the host/router is serving the flipbook/index page instead of " + nextFileName + "."
-          );
-        }
+    const stakeholder = document.getElementById("stakeholder").value.trim();
+    const identity = document.getElementById("identity").value.trim();
+    const ambition = document.getElementById("ambition").value.trim();
+    const role = document.getElementById("role").value.trim();
 
-        // All good — navigate
-        window.location.href = nextUrl;
-      } catch (err) {
-        console.error("❌ Navigation check failed:", err);
-        setStatus(
-          "❌ Could not navigate to the next page.\n\n" +
-          "Tried: " + nextUrl + "\n\n" +
-          "Reason: " + (err?.message || err) + "\n\n" +
-          "Fix: confirm " + nextFileName + " exists in /public AND your host rewrites are not overriding *.html routes.",
-          "red"
-        );
-      }
+    if (!stakeholder) {
+      setStatus("Please enter a stakeholder name or description before saving.", "red");
+      return false;
     }
 
-    window.addEventListener('DOMContentLoaded', async function () {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+    setStatus("Saving...");
 
-      console.log("✅ Logged in user.id:", user.id);
-      setStatus("Logged in user id:\n" + user.id);
+    const { error } = await sb
+      .from("exercise2_page28")
+      .upsert(
+        { user_id: user.id, stakeholder, identity, ambition, role },
+        { onConflict: "user_id" }
+      );
 
-      // ✅ FIX: remove 'id' from select list (table has no id column)
-      const { data, error } = await sb
-        .from('exercise2_page28')
-        .select('user_id, stakeholder, identity, ambition, role')
-        .eq('user_id', user.id)
-        .maybeSingle();
+    if (error) {
+      console.error("Save error:", error);
+      setStatus("Save failed. Please try again.", "red");
+      return false;
+    }
 
-      console.log("📦 Load result data:", data);
-      console.log("⚠️ Load result error:", error);
+    setStatus("Saved successfully!");
+    return true;
+  };
 
-      if (error) {
-        setStatus("❌ Could not load saved data:\n" + error.message, "red");
-        return;
-      }
+  window.saveAndGoNext = async function () {
+    const saved = await window.saveData();
+    if (!saved) return;
+    window.location.href = "/page-29.html";
+  };
 
-      if (!data) {
-        setStatus("ℹ️ No saved row found yet for this login.\nClick Save once.");
-        return;
-      }
-
-      document.getElementById("stakeholder").value = data.stakeholder || "";
-      document.getElementById("identity").value = data.identity || "";
-      document.getElementById("ambition").value = data.ambition || "";
-      document.getElementById("role").value = data.role || "";
-
-      setStatus("✅ Loaded saved data successfully.");
-    });
-
-    window.saveData = async function () {
-      const user = await requireUserOrRedirect();
-      if (!user) return false;
-
-      const stakeholder = document.getElementById("stakeholder").value.trim();
-      const identity = document.getElementById("identity").value.trim();
-      const ambition = document.getElementById("ambition").value.trim();
-      const role = document.getElementById("role").value.trim();
-
-      if (!stakeholder) {
-        setStatus("Please enter a stakeholder name/description before saving.", "red");
-        return false;
-      }
-
-      setStatus("Saving...");
-
-      const { error } = await sb
-        .from("exercise2_page28")
-        .upsert(
-          { user_id: user.id, stakeholder, identity, ambition, role },
-          { onConflict: "user_id" }
-        );
-
-      if (error) {
-        console.error("Save error:", error);
-        setStatus("❌ Error saving data:\n" + error.message, "red");
-        return false;
-      } else {
-        setStatus("✅ Saved successfully!");
-        return true;
-      }
-    };
-
-    window.saveAndGoNext = async function () {
-      const ok = await saveData();
-      if (!ok) return;
-
-      // ✅ Robust next-page navigation + verify host isn't rewriting to flipbook
-      await navigateToInteractivePage("page-29.html", "<title>Exercise 2 – Page 29</title>");
-    };
-
-    window.goBack = function () {
-      window.location.href = "/page-27.html";
-    };
-  </script>
+  window.goBack = function () {
+    window.location.href = "/page-27.html";
+  };
+</script>
 
 </body>
 </html>
