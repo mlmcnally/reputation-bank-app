@@ -140,104 +140,98 @@
     </form>
   </div>
 
-  <script>
-    // ✅ ONE shared Supabase client (prevents redeclare issues across pages)
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      "https://nidxvthbowdgdfuopmzk.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-    );
-    const sb = window.supabaseClient;
+ <script>
+  // ONE shared Supabase client
+  window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+    "https://nidxvthbowdgdfuopmzk.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
+  );
 
-    function setStatus(message, color = "#084a58") {
-      const el = document.getElementById("status");
-      if (!el) return;
-      el.textContent = message;
-      el.style.color = color;
+  const sb = window.supabaseClient;
+
+  function setStatus(message = "", color = "#084a58") {
+    const el = document.getElementById("status");
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = color;
+  }
+
+  async function requireUserOrRedirect() {
+    const { data, error } = await sb.auth.getUser();
+    if (error) {
+      console.error("Auth getUser error:", error);
     }
 
-    async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
+    const user = data?.user;
+    if (!user) {
+      window.location.href = "/login.html";
+      return null;
+    }
+    return user;
+  }
 
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
+  window.addEventListener("DOMContentLoaded", async () => {
+    const user = await requireUserOrRedirect();
+    if (!user) return;
+
+    const { data, error } = await sb
+      .from("exercise3_page34")
+      .select("user_id, identity, ambition, role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      setStatus("Could not load saved data. Please refresh and try again.", "red");
+      return;
     }
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
-
-      console.log("✅ Logged in user.id:", user.id);
-      setStatus("Logged in user id:\n" + user.id);
-
-      const { data, error } = await sb
-        .from("exercise3_page34")
-        .select("user_id, identity, ambition, role")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      console.log("📦 Load result data:", data);
-      console.log("⚠️ Load result error:", error);
-
-      if (error) {
-        setStatus("❌ Could not load saved data:\n" + error.message, "red");
-        return;
-      }
-
-      if (!data) {
-        setStatus("ℹ️ No saved row found yet for this login.\nClick Save once.");
-        return;
-      }
-
-      document.getElementById("identity").value = data.identity || "";
-      document.getElementById("ambition").value = data.ambition || "";
-      document.getElementById("role").value = data.role || "";
-
-      setStatus("✅ Loaded saved data successfully.");
-    });
-
-    async function saveData() {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
-
-      const identity = document.getElementById("identity").value.trim();
-      const ambition = document.getElementById("ambition").value.trim();
-      const role = document.getElementById("role").value.trim();
-
-      setStatus("Saving...");
-
-      const { error } = await sb
-        .from("exercise3_page34")
-        .upsert(
-          { user_id: user.id, identity, ambition, role },
-          { onConflict: "user_id" }
-        );
-
-      if (error) {
-        console.error("Save error:", error);
-        setStatus("❌ Error saving data:\n" + error.message, "red");
-      } else {
-        setStatus("✅ Saved successfully!");
-      }
+    if (!data) {
+      return;
     }
 
-    async function saveAndGoNext() {
-      await saveData();
-      const statusText = document.getElementById("status").textContent || "";
-      if (statusText.startsWith("❌")) return;
+    document.getElementById("identity").value = data.identity || "";
+    document.getElementById("ambition").value = data.ambition || "";
+    document.getElementById("role").value = data.role || "";
+  });
 
-      // ✅ Next page is NOT interactive
-      window.location.href = "/#page/35";
+  async function saveData() {
+    const user = await requireUserOrRedirect();
+    if (!user) return false;
+
+    const identity = document.getElementById("identity").value.trim();
+    const ambition = document.getElementById("ambition").value.trim();
+    const role = document.getElementById("role").value.trim();
+
+    setStatus("Saving...");
+
+    const { error } = await sb
+      .from("exercise3_page34")
+      .upsert(
+        { user_id: user.id, identity, ambition, role },
+        { onConflict: "user_id" }
+      );
+
+    if (error) {
+      console.error("Save error:", error);
+      setStatus("Save failed. Please try again.", "red");
+      return false;
     }
 
-    function goBack() {
-      window.location.href = "/#page/33";
-    }
-  </script>
+    setStatus("Saved successfully!");
+    return true;
+  }
+
+  async function saveAndGoNext() {
+    const saved = await saveData();
+    if (!saved) return;
+
+    window.location.href = "/#page/35";
+  }
+
+  function goBack() {
+    window.location.href = "/#page/33";
+  }
+</script>
 
 </body>
 </html>
