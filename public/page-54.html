@@ -144,113 +144,141 @@
       <div id="status"></div>
     </form>
   </div>
+<script>
 
-  <script>
-    // ✅ ONE shared Supabase client (prevents redeclare issues across pages)
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      "https://nidxvthbowdgdfuopmzk.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-    );
-    const sb = window.supabaseClient;
+window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+"https://nidxvthbowdgdfuopmzk.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
+);
 
-    function setStatus(message, color = "#084a58") {
-      const el = document.getElementById("status");
-      if (!el) return;
-      el.textContent = message;
-      el.style.color = color;
-    }
+const sb = window.supabaseClient;
 
-    async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
+function setStatus(message="",color="#084a58"){
+const el=document.getElementById("status");
+if(!el)return;
+el.textContent=message;
+el.style.color=color;
+}
 
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
-    }
+async function requireUserOrRedirect(){
 
-    async function loadData() {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+const {data,error}=await sb.auth.getUser();
 
-      const { data, error } = await sb
-        .from("exercise6_page54")
-        .select("user_id, success_dont_1, success_dont_2, success_dont_3, success_dont_4, success_dont_5, success_dont_6, success_dont_7, success_dont_8, success_dont_9, success_dont_10")
-        .eq("user_id", user.id)
-        .maybeSingle();
+if(error){
+console.error(error);
+}
 
-      if (error) {
-        setStatus("❌ Could not load saved data:\n" + error.message, "red");
-        return;
-      }
+const user=data?.user;
 
-      if (!data) {
-        setStatus("ℹ️ No saved row found yet.\nEnter at least 5 examples and click Save.");
-        return;
-      }
+if(!user){
+window.location.href="/login.html";
+return null;
+}
 
-      for (let i = 1; i <= 10; i++) {
-        const field = document.getElementById(`success_dont_${i}`);
-        if (field) field.value = data[`success_dont_${i}`] || "";
-      }
+return user;
 
-      setStatus("✅ Loaded saved data successfully.");
-    }
+}
 
-    window.saveData = async function () {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+async function loadData(){
 
-      const updates = { user_id: user.id };
-      let filledCount = 0;
+const user=await requireUserOrRedirect();
+if(!user)return;
 
-      for (let i = 1; i <= 10; i++) {
-        const value = (document.getElementById(`success_dont_${i}`)?.value || "").trim();
-        updates[`success_dont_${i}`] = value;
-        if (value) filledCount++;
-      }
+const {data,error}=await sb
+.from("exercise6_page54")
+.select("user_id,success_dont_1,success_dont_2,success_dont_3,success_dont_4,success_dont_5,success_dont_6,success_dont_7,success_dont_8,success_dont_9,success_dont_10")
+.eq("user_id",user.id)
+.maybeSingle();
 
-      if (filledCount < 5) {
-        setStatus("❌ Please provide at least 5 examples.", "red");
-        return;
-      }
+if(error){
+console.error(error);
+setStatus("Could not load saved data. Please refresh.","red");
+return;
+}
 
-      setStatus("Saving...");
+if(!data)return;
 
-      const { error } = await sb
-        .from("exercise6_page54")
-        .upsert(updates, { onConflict: "user_id" });
+for(let i=1;i<=10;i++){
 
-      if (error) {
-        console.error("Save error:", error);
-        setStatus("❌ Error saving data:\n" + error.message, "red");
-      } else {
-        setStatus("✅ Saved successfully!");
-      }
-    };
+const field=document.getElementById(`success_dont_${i}`);
 
-    window.saveAndGoNext = async function () {
-      await saveData();
-      const statusText = document.getElementById("status")?.textContent || "";
-      if (statusText.startsWith("❌")) return;
+if(field){
+field.value=data[`success_dont_${i}`]||"";
+}
 
-      // ✅ Next page is NOT interactive (flipbook)
-      window.location.href = "/#page/55";
-    };
+}
 
-    window.goBack = function () {
-      // ✅ Back to interactive page-53
-      window.location.href = "/page-53.html";
-    };
+}
 
-    window.goToTOC = function () {
-      window.location.href = "/page-3.html";
-    };
+window.saveData=async function(){
 
-    window.addEventListener("DOMContentLoaded", loadData);
-  </script>
+const user=await requireUserOrRedirect();
+if(!user)return false;
+
+const updates={user_id:user.id};
+
+let filledCount=0;
+
+for(let i=1;i<=10;i++){
+
+const value=(document.getElementById(`success_dont_${i}`)?.value||"").trim();
+
+updates[`success_dont_${i}`]=value;
+
+if(value)filledCount++;
+
+}
+
+if(filledCount<5){
+
+setStatus("Please provide at least 5 examples before saving.","red");
+return false;
+
+}
+
+setStatus("Saving...");
+
+const {error}=await sb
+.from("exercise6_page54")
+.upsert(updates,{onConflict:"user_id"});
+
+if(error){
+
+console.error(error);
+setStatus("Save failed. Please try again.","red");
+return false;
+
+}
+
+setStatus("Saved successfully!");
+return true;
+
+};
+
+window.saveAndGoNext=async function(){
+
+const saved=await window.saveData();
+
+if(!saved)return;
+
+window.location.href="/#page/55";
+
+};
+
+window.goBack=function(){
+
+window.location.href="/page-53.html";
+
+};
+
+window.goToTOC=function(){
+
+window.location.href="/page-3.html";
+
+};
+
+window.addEventListener("DOMContentLoaded",loadData);
+
+</script>
 </body>
 </html>
