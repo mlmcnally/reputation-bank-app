@@ -154,180 +154,193 @@
     </form>
   </div>
 
-  <script>
-    // ✅ ONE shared Supabase client (same pattern as Exercises 1–4)
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      "https://nidxvthbowdgdfuopmzk.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-    );
-    const sb = window.supabaseClient;
+<script>
 
-    function setStatus(message, color = "#084a58") {
-      const el = document.getElementById("status-message");
-      if (!el) return;
-      el.textContent = message;
-      el.style.color = color;
-    }
+window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+  "https://nidxvthbowdgdfuopmzk.supabase.co",
+  "YOUR_ANON_KEY"
+);
 
-    async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
+const sb = window.supabaseClient;
 
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
-    }
+function setStatus(message="", color="#084a58"){
+  const el = document.getElementById("status-message");
+  if(!el) return;
+  el.textContent = message;
+  el.style.color = color;
+}
 
-    async function maybeSingle(table, columns, userId) {
-      return sb
-        .from(table)
-        .select(columns)
-        .eq("user_id", userId)
-        .maybeSingle();
-    }
+function escapeHtml(text){
+  return String(text || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 
-    async function loadStakeholderData() {
-      const container = document.getElementById("stakeholder-sections");
-      if (!container) return;
+async function requireUserOrRedirect(){
 
-      container.innerHTML = "";
-      setStatus("Loading…");
+  const { data, error } = await sb.auth.getUser();
 
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+  if(error){
+    console.error(error);
+  }
 
-      // ✅ Prefill any saved tickets (exercise5_page48 has 6 rows keyed by user_id + stakeholder_number)
-      const { data: existingRows, error: existingErr } = await sb
+  const user = data?.user;
+
+  if(!user){
+    window.location.href="/login.html";
+    return null;
+  }
+
+  return user;
+}
+
+async function maybeSingle(table, columns, userId){
+
+  return sb
+    .from(table)
+    .select(columns)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+}
+
+async function loadStakeholderData(){
+
+  const container = document.getElementById("stakeholder-sections");
+  container.innerHTML="";
+
+  const user = await requireUserOrRedirect();
+  if(!user) return;
+
+  const { data:existingRows } = await sb
+    .from("exercise5_page48")
+    .select("stakeholder_number, stakeholder_name, ticket_1, ticket_2, ticket_3")
+    .eq("user_id", user.id);
+
+  const existingByNum = {};
+  (existingRows || []).forEach(row=>{
+    existingByNum[row.stakeholder_number] = row;
+  });
+
+  for(let i=1;i<=6;i++){
+
+    const ex2Table = `exercise2_page${25+i}`;
+    const ex4Table = `exercise4_page${35+i}`;
+
+    const ex2Res = await maybeSingle(ex2Table,"stakeholder, role",user.id);
+    const ex4Res = await maybeSingle(ex4Table,"role",user.id);
+
+    const stakeholderName =
+      ex2Res.data?.stakeholder ||
+      existingByNum[i]?.stakeholder_name ||
+      "";
+
+    const stakeholderRole = ex2Res.data?.role || "";
+    const intersectingRole = ex4Res.data?.role || "";
+
+    const saved = existingByNum[i] || {};
+
+    const section = document.createElement("div");
+    section.className="stakeholder-block";
+
+    section.innerHTML = `
+      <h4>Stakeholder ${i} — ${escapeHtml(stakeholderName)}</h4>
+
+      <p><strong>Role (Exercise 2):</strong> ${escapeHtml(stakeholderRole)}</p>
+      <p><strong>Intersecting Role (Exercise 4):</strong> ${escapeHtml(intersectingRole)}</p>
+
+      <label><strong>Admission Ticket Idea 1</strong><br>
+      <textarea name="ticket1-${i}" rows="2">${escapeHtml(saved.ticket_1)}</textarea></label>
+
+      <label><strong>Admission Ticket Idea 2</strong><br>
+      <textarea name="ticket2-${i}" rows="2">${escapeHtml(saved.ticket_2)}</textarea></label>
+
+      <label><strong>Admission Ticket Idea 3</strong><br>
+      <textarea name="ticket3-${i}" rows="2">${escapeHtml(saved.ticket_3)}</textarea></label>
+    `;
+
+    container.appendChild(section);
+
+  }
+
+}
+
+async function saveAll(){
+
+  const user = await requireUserOrRedirect();
+  if(!user) return false;
+
+  setStatus("Saving...");
+
+  try{
+
+    for(let i=1;i<=6;i++){
+
+      const ticket1 =
+        document.querySelector(`[name='ticket1-${i}']`)?.value.trim() || "";
+
+      const ticket2 =
+        document.querySelector(`[name='ticket2-${i}']`)?.value.trim() || "";
+
+      const ticket3 =
+        document.querySelector(`[name='ticket3-${i}']`)?.value.trim() || "";
+
+      const stakeholderName =
+        document.querySelector(`#name-${i}`)?.textContent || "";
+
+      const { error } = await sb
         .from("exercise5_page48")
-        .select("stakeholder_number, stakeholder_name, ticket_1, ticket_2, ticket_3")
-        .eq("user_id", user.id);
+        .upsert({
+          user_id:user.id,
+          stakeholder_number:i,
+          stakeholder_name:stakeholderName,
+          ticket_1:ticket1,
+          ticket_2:ticket2,
+          ticket_3:ticket3
+        },{
+          onConflict:"user_id,stakeholder_number"
+        });
 
-      if (existingErr) {
-        console.error("Load existing tickets error:", existingErr);
-        // Don’t block rendering; still show the form.
-      }
+      if(error) throw error;
 
-      const existingByNum = {};
-      (existingRows || []).forEach((r) => {
-        existingByNum[r.stakeholder_number] = r;
-      });
-
-      // ✅ Build all 6 stakeholder blocks
-      for (let i = 1; i <= 6; i++) {
-        const ex2Table = `exercise2_page${25 + i}`;  // 26..31
-        const ex4Table = `exercise4_page${35 + i}`;  // 36..41
-
-        const ex2Res = await maybeSingle(ex2Table, "user_id, stakeholder, role", user.id);
-        const ex4Res = await maybeSingle(ex4Table, "user_id, role", user.id);
-
-        if (ex2Res.error) console.warn(`Exercise2 load error (${ex2Table}):`, ex2Res.error);
-        if (ex4Res.error) console.warn(`Exercise4 load error (${ex4Table}):`, ex4Res.error);
-
-        const stakeholderName = ex2Res.data?.stakeholder || existingByNum[i]?.stakeholder_name || "";
-        const stakeholderRole = ex2Res.data?.role || "";
-        const intersectingRole = ex4Res.data?.role || "";
-
-        const saved = existingByNum[i] || {};
-        const ticket1Val = saved.ticket_1 || "";
-        const ticket2Val = saved.ticket_2 || "";
-        const ticket3Val = saved.ticket_3 || "";
-
-        const section = document.createElement("div");
-        section.className = "stakeholder-block";
-
-        section.innerHTML = `
-          <h4>Stakeholder ${i}</h4>
-
-          <p><strong>Name:</strong> <span id="name-${i}">${escapeHtml(stakeholderName)}</span></p>
-          <p><strong>Role (Exercise 2):</strong> ${escapeHtml(stakeholderRole)}</p>
-          <p><strong>Intersecting Role (Exercise 4):</strong> ${escapeHtml(intersectingRole)}</p>
-
-          <label><strong>Admission Ticket Idea 1</strong><br/>
-            <textarea name="ticket1-${i}" rows="2" autocomplete="off">${escapeHtml(ticket1Val)}</textarea>
-          </label>
-
-          <label><strong>Admission Ticket Idea 2</strong><br/>
-            <textarea name="ticket2-${i}" rows="2" autocomplete="off">${escapeHtml(ticket2Val)}</textarea>
-          </label>
-
-          <label><strong>Admission Ticket Idea 3</strong><br/>
-            <textarea name="ticket3-${i}" rows="2" autocomplete="off">${escapeHtml(ticket3Val)}</textarea>
-          </label>
-        `;
-
-        container.appendChild(section);
-      }
-
-      setStatus("✅ Loaded. Add/edit ideas, then Save.");
     }
 
-    function escapeHtml(value) {
-      return String(value || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
+    setStatus("Saved successfully!");
 
-    async function saveAll() {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+    return true;
 
-      setStatus("Saving…");
+  }catch(err){
 
-      try {
-        for (let i = 1; i <= 6; i++) {
-          const t1El = document.querySelector(`[name='ticket1-${i}']`);
-          const t2El = document.querySelector(`[name='ticket2-${i}']`);
-          const t3El = document.querySelector(`[name='ticket3-${i}']`);
-          const nameEl = document.querySelector(`#name-${i}`);
+    console.error(err);
+    setStatus("Save failed. Please try again.","red");
 
-          const ticket1 = (t1El?.value || "").trim();
-          const ticket2 = (t2El?.value || "").trim();
-          const ticket3 = (t3El?.value || "").trim();
-          const stakeholderName = (nameEl?.textContent || "").trim();
+    return false;
 
-          const { error } = await sb
-            .from("exercise5_page48")
-            .upsert(
-              {
-                user_id: user.id,
-                stakeholder_number: i,
-                stakeholder_name: stakeholderName,
-                ticket_1: ticket1,
-                ticket_2: ticket2,
-                ticket_3: ticket3
-              },
-              { onConflict: "user_id,stakeholder_number" }
-            );
+  }
 
-          if (error) throw error;
-        }
+}
 
-        setStatus("✅ Saved successfully!");
-      } catch (err) {
-        console.error("SaveAll error:", err);
-        setStatus("❌ Error saving data:\n" + (err?.message || String(err)), "red");
-      }
-    }
+function goBack(){
 
-    function goBack() {
-      window.location.href = "/#page/47";
-    }
+  window.location.href="/#page/47";
 
-    async function saveAndGoNext() {
-      await saveAll();
-      const statusText = document.getElementById("status-message")?.textContent || "";
-      if (statusText.startsWith("❌")) return;
+}
 
-      window.location.href = "/#page/49";
-    }
+async function saveAndGoNext(){
 
-    window.addEventListener("DOMContentLoaded", loadStakeholderData);
-  </script>
+  const saved = await saveAll();
+
+  if(!saved) return;
+
+  window.location.href="/#page/49";
+
+}
+
+window.addEventListener("DOMContentLoaded",loadStakeholderData);
+
+</script>
 </body>
 </html>
