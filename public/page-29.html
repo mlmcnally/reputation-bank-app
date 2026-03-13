@@ -150,104 +150,107 @@
   </div>
 
   <script>
-    // ✅ ONE shared Supabase client (safe across all pages)
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      "https://nidxvthbowdgdfuopmzk.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-    );
-    const sb = window.supabaseClient;
+  // ONE shared client stored on window
+  window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+    'https://nidxvthbowdgdfuopmzk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
+  );
 
-    const statusEl = document.getElementById("status");
+  const sb = window.supabaseClient;
 
-    function setStatus(msg, color = "#084a58") {
-      statusEl.textContent = msg;
-      statusEl.style.color = color;
+  function setStatus(message = "", color = "#084a58") {
+    const el = document.getElementById("status");
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = color;
+  }
+
+  async function getActiveUser() {
+    const sessionRes = await sb.auth.getSession();
+    const sessionUser = sessionRes?.data?.session?.user;
+    if (sessionUser) return sessionUser;
+
+    const userRes = await sb.auth.getUser();
+    return userRes?.data?.user || null;
+  }
+
+  async function requireUserOrRedirect() {
+    const user = await getActiveUser();
+    if (!user) {
+      window.location.href = "/login.html";
+      return null;
+    }
+    return user;
+  }
+
+  window.addEventListener("DOMContentLoaded", async function () {
+    const user = await requireUserOrRedirect();
+    if (!user) return;
+
+    const { data, error } = await sb
+      .from("exercise2_page29")
+      .select("user_id, stakeholder, identity, ambition, role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      setStatus("Could not load saved data. Please refresh and try again.", "red");
+      return;
     }
 
-    async function requireUser() {
-      const { data } = await sb.auth.getUser();
-      if (!data?.user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return data.user;
+    if (!data) {
+      return;
     }
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      const user = await requireUser();
-      if (!user) return;
+    document.getElementById("stakeholder").value = data.stakeholder || "";
+    document.getElementById("identity").value = data.identity || "";
+    document.getElementById("ambition").value = data.ambition || "";
+    document.getElementById("role").value = data.role || "";
+  });
 
-      setStatus("Logged in user:\n" + user.id);
+  window.saveData = async function () {
+    const user = await requireUserOrRedirect();
+    if (!user) return false;
 
-      const { data, error } = await sb
-        .from("exercise2_page29")
-        .select("user_id, stakeholder, identity, ambition, role")
-        .eq("user_id", user.id)
-        .maybeSingle();
+    const stakeholder = document.getElementById("stakeholder").value.trim();
+    const identity = document.getElementById("identity").value.trim();
+    const ambition = document.getElementById("ambition").value.trim();
+    const role = document.getElementById("role").value.trim();
 
-      if (error) {
-        setStatus("❌ Load error:\n" + error.message, "red");
-        return;
-      }
-
-      if (!data) {
-        setStatus("ℹ️ No saved data yet. Click Save once.");
-        return;
-      }
-
-      stakeholder.value = data.stakeholder || "";
-      identity.value = data.identity || "";
-      ambition.value = data.ambition || "";
-      role.value = data.role || "";
-
-      setStatus("✅ Saved data loaded.");
-    });
-
-    async function saveData() {
-      const user = await requireUser();
-      if (!user) return;
-
-      if (!stakeholder.value.trim()) {
-        setStatus("Please enter a stakeholder name.", "red");
-        return;
-      }
-
-      setStatus("Saving...");
-
-      const { error } = await sb
-        .from("exercise2_page29")
-        .upsert(
-          {
-            user_id: user.id,
-            stakeholder: stakeholder.value.trim(),
-            identity: identity.value.trim(),
-            ambition: ambition.value.trim(),
-            role: role.value.trim()
-          },
-          { onConflict: "user_id" }
-        );
-
-      if (error) {
-        setStatus("❌ Save error:\n" + error.message, "red");
-      } else {
-        setStatus("✅ Saved successfully!");
-      }
+    if (!stakeholder) {
+      setStatus("Please enter a stakeholder name or description before saving.", "red");
+      return false;
     }
 
-    async function saveAndGoNext() {
-      await saveData();
-      if (!statusEl.textContent.startsWith("❌")) {
-        window.location.href = "/page-30.html";
-      }
+    setStatus("Saving...");
+
+    const { error } = await sb
+      .from("exercise2_page29")
+      .upsert(
+        { user_id: user.id, stakeholder, identity, ambition, role },
+        { onConflict: "user_id" }
+      );
+
+    if (error) {
+      console.error("Save error:", error);
+      setStatus("Save failed. Please try again.", "red");
+      return false;
     }
 
-    function goBack() {
-      window.location.href = "/page-28.html";
-    }
-  </script>
+    setStatus("Saved successfully!");
+    return true;
+  };
 
-</body>
-</html>
+  window.saveAndGoNext = async function () {
+    const saved = await window.saveData();
+    if (!saved) return;
+    window.location.href = "/page-30.html";
+  };
+
+  window.goBack = function () {
+    window.location.href = "/page-28.html";
+  };
+</script>
 
 </body>
 </html>
