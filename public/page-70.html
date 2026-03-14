@@ -105,7 +105,7 @@
 
     <form id="exercise-form" autocomplete="off">
       <label><strong>Stakeholder Name</strong><br/>
-        <input id="stakeholder" type="text" autocomplete="off" />
+        <input id="stakeholder" type="text" readonly />
       </label>
 
       <label><strong>Insight 1</strong><br/><textarea id="insight_1" autocomplete="off"></textarea></label>
@@ -134,131 +134,182 @@
   </div>
 
   <script>
-    // ✅ ONE shared Supabase client
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      "https://nidxvthbowdgdfuopmzk.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-    );
-    const sb = window.supabaseClient;
+  const PAGE_TABLE = "exercise7_page70";
+  const SOURCE_TABLE = "exercise2_page31";
+  const NEXT_PAGE = "/#page/71";
+  const BACK_PAGE = "/page-69.html";
 
-    function setStatus(message, color="#084a58"){
-      const el = document.getElementById("status");
-      if(!el) return;
-      el.textContent = message;
-      el.style.color = color;
+  window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+    "https://nidxvthbowdgdfuopmzk.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
+  );
+
+  const sb = window.supabaseClient;
+
+  function setStatus(message = "", color = "#084a58") {
+    const el = document.getElementById("status");
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = color;
+  }
+
+  async function requireUserOrRedirect() {
+    const { data, error } = await sb.auth.getUser();
+
+    if (error) {
+      console.error("Auth getUser error:", error);
     }
 
-    async function requireUserOrRedirect(){
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
+    const user = data?.user;
 
-      const user = data?.user;
-      if(!user){
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
-    }
-
-    function getValue(id){
-      return (document.getElementById(id)?.value || "").trim();
-    }
-
-    function validateAllFields(payload){
-      if(!payload.stakeholder) return "Please enter the Stakeholder Name.";
-      for(let i=1;i<=5;i++){
-        if(!payload[`insight_${i}`]) return `Please complete Insight ${i}.`;
-      }
-      const purposes = ["inform","educate","inspire","advocate","motivate"];
-      for(const p of purposes){
-        if(!payload[p]) return `Please complete Purpose: ${p.charAt(0).toUpperCase()+p.slice(1)}.`;
-      }
+    if (!user) {
+      window.location.href = "/login.html";
       return null;
     }
 
-    async function loadData(){
-      const user = await requireUserOrRedirect();
-      if(!user) return;
+    return user;
+  }
 
-      const { data, error } = await sb
-        .from("exercise7_page70")
-        .select("user_id, stakeholder, insight_1, insight_2, insight_3, insight_4, insight_5, inform, educate, inspire, advocate, motivate")
-        .eq("user_id", user.id)
-        .maybeSingle();
+  function getValue(id) {
+    return (document.getElementById(id)?.value || "").trim();
+  }
 
-      if(error){
-        setStatus("❌ Could not load saved data:\n" + error.message, "red");
-        return;
-      }
-
-      if(!data){
-        setStatus("ℹ️ No saved row found yet.\nFill out the fields and click Save.");
-        return;
-      }
-
-      document.getElementById("stakeholder").value = data.stakeholder || "";
-      for(let i=1;i<=5;i++){
-        document.getElementById(`insight_${i}`).value = data[`insight_${i}`] || "";
-      }
-      ["inform","educate","inspire","advocate","motivate"].forEach(k=>{
-        document.getElementById(k).value = data[k] || "";
-      });
-
-      setStatus("✅ Loaded saved data successfully.");
+  function validate(payload) {
+    if (!payload.stakeholder) {
+      return "Stakeholder could not be loaded from Exercise 2.";
     }
 
-    window.saveData = async function(){
-      const user = await requireUserOrRedirect();
-      if(!user) return;
-
-      const payload = {
-        user_id: user.id,
-        stakeholder: getValue("stakeholder")
-      };
-      for(let i=1;i<=5;i++) payload[`insight_${i}`] = getValue(`insight_${i}`);
-      ["inform","educate","inspire","advocate","motivate"].forEach(k=>{
-        payload[k] = getValue(k);
-      });
-
-      const validationError = validateAllFields(payload);
-      if(validationError){
-        setStatus("❌ " + validationError, "red");
-        return;
+    for (let i = 1; i <= 5; i++) {
+      if (!payload[`insight_${i}`]) {
+        return `Please complete Insight ${i}.`;
       }
+    }
 
-      setStatus("Saving...");
+    const purposes = ["inform", "educate", "inspire", "advocate", "motivate"];
 
-      const { error } = await sb
-        .from("exercise7_page70")
-        .upsert(payload, { onConflict: "user_id" });
-
-      if(error){
-        console.error("Save error:", error);
-        setStatus("❌ Error saving data:\n" + error.message, "red");
-      } else {
-        setStatus("✅ Saved successfully!");
+    for (const p of purposes) {
+      if (!payload[`purpose_${p}`]) {
+        return `Please complete Purpose: ${p.charAt(0).toUpperCase() + p.slice(1)}.`;
       }
+    }
+
+    return null;
+  }
+
+  async function loadData() {
+    const user = await requireUserOrRedirect();
+    if (!user) return;
+
+    const { data: saved, error: savedError } = await sb
+      .from(PAGE_TABLE)
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (savedError) {
+      console.error("Load saved data error:", savedError);
+      setStatus("Could not load saved data. Please refresh and try again.", "red");
+      return;
+    }
+
+    const { data: stakeholderRow, error: stakeholderError } = await sb
+      .from(SOURCE_TABLE)
+      .select("stakeholder")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (stakeholderError) {
+      console.error("Load stakeholder error:", stakeholderError);
+    }
+
+    const stakeholderName =
+      stakeholderRow?.stakeholder ||
+      saved?.stakeholder ||
+      "";
+
+    const stakeholderField = document.getElementById("stakeholder");
+    if (stakeholderField) {
+      stakeholderField.value = stakeholderName;
+    }
+
+    if (!saved) return;
+
+    for (let i = 1; i <= 5; i++) {
+      const field = document.getElementById(`insight_${i}`);
+      if (field) {
+        field.value = saved[`insight_${i}`] || "";
+      }
+    }
+
+    const purposes = ["inform", "educate", "inspire", "advocate", "motivate"];
+
+    for (const p of purposes) {
+      const field = document.getElementById(`purpose_${p}`);
+      if (field) {
+        field.value = saved[`purpose_${p}`] || "";
+      }
+    }
+  }
+
+  window.saveData = async function () {
+    const user = await requireUserOrRedirect();
+    if (!user) return false;
+
+    const payload = {
+      user_id: user.id,
+      stakeholder: getValue("stakeholder")
     };
 
-    window.saveAndGoNext = async function(){
-      await saveData();
-      const statusText = document.getElementById("status")?.textContent || "";
-      if(statusText.startsWith("❌")) return;
+    for (let i = 1; i <= 5; i++) {
+      payload[`insight_${i}`] = getValue(`insight_${i}`);
+    }
 
-      // ✅ Next page after 70 is NOT interactive
-      window.location.href = "/#page/71";
-    };
+    const purposes = ["inform", "educate", "inspire", "advocate", "motivate"];
 
-    window.goBack = function(){
-      window.location.href = "/page-69.html";
-    };
+    for (const p of purposes) {
+      payload[`purpose_${p}`] = getValue(`purpose_${p}`);
+    }
 
-    window.goToTOC = function(){
-      window.location.href = "/page-3.html";
-    };
+    const validationError = validate(payload);
 
-    window.addEventListener("DOMContentLoaded", loadData);
-  </script>
+    if (validationError) {
+      setStatus(validationError, "red");
+      return false;
+    }
+
+    setStatus("Saving...");
+
+    const { error } = await sb
+      .from(PAGE_TABLE)
+      .upsert(payload, { onConflict: "user_id" });
+
+    if (error) {
+      console.error("Save error:", error);
+      setStatus("Save failed. Please try again.", "red");
+      return false;
+    }
+
+    setStatus("Saved successfully!");
+    return true;
+  };
+
+  window.saveAndGoNext = async function () {
+    const saved = await window.saveData();
+    if (!saved) return;
+
+    window.location.href = NEXT_PAGE;
+  };
+
+  window.goBack = function () {
+    window.location.href = BACK_PAGE;
+  };
+
+  window.goToTOC = function () {
+    window.location.href = "/page-3.html";
+  };
+
+  window.addEventListener("DOMContentLoaded", loadData);
+</script>
 </body>
 </html>
 
