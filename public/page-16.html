@@ -6,6 +6,7 @@
   <title>Exercise 1 – Page 16</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
   <style>
     body {
       font-family: "Avenir", "Nunito Sans", sans-serif;
@@ -13,6 +14,12 @@
       padding: 2rem;
       margin: 0;
       color: #000;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
     }
 
     .header {
@@ -64,6 +71,7 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-family: inherit;
+      box-sizing: border-box;
     }
 
     .button-bar {
@@ -89,15 +97,38 @@
       background-color: #0a5c6a;
     }
 
+    .secondary-button {
+      background-color: #d1d3d4;
+      color: #084a58;
+    }
+
+    .secondary-button:hover {
+      background-color: #c4c7c9;
+    }
+
     #status {
       margin-top: 1rem;
       font-weight: 600;
       color: #084a58;
       white-space: pre-wrap;
     }
+
+    @media (max-width: 900px) {
+      .layout {
+        flex-direction: column;
+      }
+
+      .layout img {
+        max-width: 100% !important;
+      }
+    }
   </style>
 </head>
 <body>
+
+  <div class="top-bar">
+    <button type="button" class="nav-button secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
 
   <div class="header">
     <h2>Exercise 1 – Page 16</h2>
@@ -129,114 +160,99 @@
       </label>
 
       <div class="button-bar">
-  <button type="button" class="nav-button" onclick="goBack()">⬅ Back One Page</button>
-  <button type="button" class="nav-button" onclick="saveData()">💾 Save</button>
-  <button type="button" class="nav-button" onclick="saveAndGoNext()">➡ Save & Next</button>
-  <button type="button" class="nav-button" onclick="window.print()">🖨️ Print</button>
-  <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">Go to the Table of Contents</button>
-  <button type="button" class="nav-button" onclick="signOutUser()">Sign Out</button>
-</div>
+        <button type="button" class="nav-button" onclick="goBack()">⬅ Back One Page</button>
+        <button type="button" class="nav-button" onclick="saveData()">💾 Save</button>
+        <button type="button" class="nav-button" onclick="saveAndGoNext()">➡ Save & Next</button>
+        <button type="button" class="nav-button" onclick="window.print()">🖨️ Print</button>
+        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">Go to the Table of Contents</button>
+      </div>
 
       <div id="status"></div>
     </form>
   </div>
 
   <script>
-  window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-    'https://nidxvthbowdgdfuopmzk.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-  );
+    const sb = window.RBAuth.sb;
+    let currentUser = null;
 
-  const sb = window.supabaseClient;
-
-  function setStatus(message = "", color = "#084a58") {
-    const statusMsg = document.getElementById("status");
-    if (!statusMsg) return;
-    statusMsg.textContent = message;
-    statusMsg.style.color = color;
-  }
-
-  async function requireUserOrRedirect() {
-    const { data, error } = await sb.auth.getUser();
-    if (error) {
-      console.error("Auth getUser error:", error);
-    }
-    const user = data?.user;
-    if (!user) {
-      window.location.href = "/login.html";
-      return null;
-    }
-    return user;
-  }
-
-  window.addEventListener("DOMContentLoaded", async function () {
-    const user = await requireUserOrRedirect();
-    if (!user) return;
-
-    const { data, error } = await sb
-      .from("exercise1_page16")
-      .select("id, user_id, stakeholder, opinion, advocacy, action")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (error) {
-      setStatus("Could not load saved data. Please refresh and try again.", "red");
-      return;
+    function setStatus(message = "", color = "#084a58") {
+      const statusMsg = document.getElementById("status");
+      if (!statusMsg) return;
+      statusMsg.textContent = message;
+      statusMsg.style.color = color;
     }
 
-    if (!data) {
-      return;
-    }
+    window.addEventListener("DOMContentLoaded", async function () {
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return;
 
-    document.getElementById("stakeholder").value = data.stakeholder || "";
-    document.getElementById("opinion").value = data.opinion || "";
-    document.getElementById("advocacy").value = data.advocacy || "";
-    document.getElementById("action").value = data.action || "";
-  });
+      window.RBAuth.watchAuthState();
 
-  async function saveData() {
-    const user = await requireUserOrRedirect();
-    if (!user) return false;
+      const { data, error } = await sb
+        .from("exercise1_page16")
+        .select("user_id, stakeholder, opinion, advocacy, action")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
 
-    const stakeholder = document.getElementById("stakeholder").value.trim();
-    const opinion = document.getElementById("opinion").value.trim();
-    const advocacy = document.getElementById("advocacy").value.trim();
-    const action = document.getElementById("action").value.trim();
+      if (error) {
+        console.error("Load error:", error);
+        setStatus("Could not load saved data. Please refresh and try again.", "red");
+        return;
+      }
 
-    if (!stakeholder) {
-      setStatus("Please enter a stakeholder name or description before saving.", "red");
-      return false;
-    }
+      if (!data) return;
 
-    setStatus("Saving...");
+      document.getElementById("stakeholder").value = data.stakeholder || "";
+      document.getElementById("opinion").value = data.opinion || "";
+      document.getElementById("advocacy").value = data.advocacy || "";
+      document.getElementById("action").value = data.action || "";
+    });
 
-    const { error } = await sb
-      .from("exercise1_page16")
-      .upsert(
-        { user_id: user.id, stakeholder, opinion, advocacy, action },
-        { onConflict: "user_id" }
-      );
+    async function saveData() {
+      if (!currentUser) {
+        currentUser = await window.RBAuth.requireUserOrRedirect();
+        if (!currentUser) return false;
+      }
 
-    if (error) {
-      console.error("Save error:", error);
-      setStatus("Save failed. Please try again.", "red");
-      return false;
-    } else {
+      const stakeholder = document.getElementById("stakeholder").value.trim();
+      const opinion = document.getElementById("opinion").value.trim();
+      const advocacy = document.getElementById("advocacy").value.trim();
+      const action = document.getElementById("action").value.trim();
+
+      if (!stakeholder) {
+        setStatus("Please enter a stakeholder name or description before saving.", "red");
+        return false;
+      }
+
+      setStatus("Saving...");
+
+      const { error } = await sb
+        .from("exercise1_page16")
+        .upsert(
+          { user_id: currentUser.id, stakeholder, opinion, advocacy, action },
+          { onConflict: "user_id" }
+        );
+
+      if (error) {
+        console.error("Save error:", error);
+        setStatus("Save failed. Please try again.", "red");
+        return false;
+      }
+
       setStatus("Saved successfully!");
       return true;
     }
-  }
 
-  async function saveAndGoNext() {
-    const saved = await saveData();
-    if (!saved) return;
-    window.location.href = "/page-17.html";
-  }
+    async function saveAndGoNext() {
+      const saved = await saveData();
+      if (!saved) return;
+      window.location.href = "/page-17.html";
+    }
 
-  function goBack() {
-    window.location.href = "/#page/15";
-  }
-</script>
+    function goBack() {
+      window.location.href = "/#page/15";
+    }
+  </script>
 
 </body>
 </html>
