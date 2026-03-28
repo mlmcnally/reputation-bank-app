@@ -6,6 +6,7 @@
   <title>Exercise 5 – Page 48</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
 
   <style>
     body {
@@ -16,15 +17,23 @@
       color: #000;
     }
 
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
     .header {
       text-align: center;
       color: #084a58;
     }
+
     .header h2 {
       font-size: 28px;
       font-weight: 800;
       margin-bottom: 0.5rem;
     }
+
     .header p {
       font-size: 16px;
       color: #084a58;
@@ -109,16 +118,40 @@
       background-color: #0a5c6a;
     }
 
+    .secondary-button {
+      background-color: #d1d3d4;
+      color: #084a58;
+    }
+
+    .secondary-button:hover {
+      background-color: #c4c7c9;
+    }
+
     #status-message {
       margin-top: 1rem;
       font-weight: 600;
       color: #084a58;
       white-space: pre-wrap;
     }
+
+    @media (max-width: 900px) {
+      .layout {
+        flex-direction: column;
+      }
+
+      .layout img {
+        max-width: 100% !important;
+      }
+    }
   </style>
 </head>
 
 <body>
+
+  <div class="top-bar">
+    <button type="button" class="nav-button secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
+
   <div class="header">
     <h2>Exercise 5 – Page 48</h2>
     <p>
@@ -155,12 +188,8 @@
   </div>
 
   <script>
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      "https://nidxvthbowdgdfuopmzk.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-    );
-
-    const sb = window.supabaseClient;
+    const sb = window.RBAuth.sb;
+    let currentUser = null;
 
     function setStatus(message = "", color = "#084a58") {
       const el = document.getElementById("status-message");
@@ -178,23 +207,6 @@
         .replaceAll("'", "&#039;");
     }
 
-    async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-
-      if (error) {
-        console.error(error);
-      }
-
-      const user = data?.user;
-
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-
-      return user;
-    }
-
     async function maybeSingle(table, columns, userId) {
       return sb
         .from(table)
@@ -209,13 +221,15 @@
 
       container.innerHTML = "";
 
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return;
+
+      window.RBAuth.watchAuthState();
 
       const { data: existingRows, error: existingErr } = await sb
         .from("exercise5_page48")
         .select("stakeholder_number, stakeholder_name, ticket_1, ticket_2, ticket_3")
-        .eq("user_id", user.id);
+        .eq("user_id", currentUser.id);
 
       if (existingErr) {
         console.error("Load existing tickets error:", existingErr);
@@ -231,8 +245,8 @@
         const ex2Table = `exercise2_page${25 + i}`;
         const ex4Table = `exercise4_page${35 + i}`;
 
-        const ex2Res = await maybeSingle(ex2Table, "stakeholder, role", user.id);
-        const ex4Res = await maybeSingle(ex4Table, "role", user.id);
+        const ex2Res = await maybeSingle(ex2Table, "stakeholder, role", currentUser.id);
+        const ex4Res = await maybeSingle(ex4Table, "role", currentUser.id);
 
         if (ex2Res.error) {
           console.warn(`Exercise 2 load error (${ex2Table}):`, ex2Res.error);
@@ -279,8 +293,10 @@
     }
 
     async function saveAll() {
-      const user = await requireUserOrRedirect();
-      if (!user) return false;
+      if (!currentUser) {
+        currentUser = await window.RBAuth.requireUserOrRedirect();
+        if (!currentUser) return false;
+      }
 
       setStatus("Saving...");
 
@@ -302,7 +318,7 @@
             .from("exercise5_page48")
             .upsert(
               {
-                user_id: user.id,
+                user_id: currentUser.id,
                 stakeholder_number: i,
                 stakeholder_name: stakeholderName,
                 ticket_1: ticket1,
