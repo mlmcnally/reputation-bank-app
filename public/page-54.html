@@ -7,6 +7,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
 
   <style>
     body {
@@ -15,6 +16,12 @@
       padding: 2rem;
       margin: 0;
       color: #000;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
     }
 
     h2 {
@@ -95,6 +102,15 @@
       opacity: 0.92;
     }
 
+    .secondary-button {
+      background-color: #d1d3d4 !important;
+      color: #084a58 !important;
+    }
+
+    .secondary-button:hover {
+      background-color: #c4c7c9 !important;
+    }
+
     #status {
       margin-top: 1rem;
       text-align: center;
@@ -106,6 +122,12 @@
 </head>
 
 <body>
+
+  <!-- SIGN OUT -->
+  <div class="top-bar">
+    <button type="button" class="secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
+
   <h2>Exercise 6 – Page 54</h2>
 
   <div class="form-note">
@@ -115,23 +137,21 @@
   </div>
 
   <div class="layout">
-    <img
-      src="/page-54.jpg"
-      alt="Exercise Page 54"
-      style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;"
-    />
+    <img src="/page-54.jpg"
+         alt="Exercise Page 54"
+         style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
     <form id="exercise-form" autocomplete="off">
-      <label><strong>Example 1</strong><br/><textarea id="success_dont_1" autocomplete="off" required></textarea></label>
-      <label><strong>Example 2</strong><br/><textarea id="success_dont_2" autocomplete="off" required></textarea></label>
-      <label><strong>Example 3</strong><br/><textarea id="success_dont_3" autocomplete="off" required></textarea></label>
-      <label><strong>Example 4</strong><br/><textarea id="success_dont_4" autocomplete="off" required></textarea></label>
-      <label><strong>Example 5</strong><br/><textarea id="success_dont_5" autocomplete="off" required></textarea></label>
-      <label><strong>Example 6 (Optional)</strong><br/><textarea id="success_dont_6" autocomplete="off"></textarea></label>
-      <label><strong>Example 7 (Optional)</strong><br/><textarea id="success_dont_7" autocomplete="off"></textarea></label>
-      <label><strong>Example 8 (Optional)</strong><br/><textarea id="success_dont_8" autocomplete="off"></textarea></label>
-      <label><strong>Example 9 (Optional)</strong><br/><textarea id="success_dont_9" autocomplete="off"></textarea></label>
-      <label><strong>Example 10 (Optional)</strong><br/><textarea id="success_dont_10" autocomplete="off"></textarea></label>
+      <label><strong>Example 1</strong><br/><textarea id="success_dont_1" required></textarea></label>
+      <label><strong>Example 2</strong><br/><textarea id="success_dont_2" required></textarea></label>
+      <label><strong>Example 3</strong><br/><textarea id="success_dont_3" required></textarea></label>
+      <label><strong>Example 4</strong><br/><textarea id="success_dont_4" required></textarea></label>
+      <label><strong>Example 5</strong><br/><textarea id="success_dont_5" required></textarea></label>
+      <label><strong>Example 6 (Optional)</strong><br/><textarea id="success_dont_6"></textarea></label>
+      <label><strong>Example 7 (Optional)</strong><br/><textarea id="success_dont_7"></textarea></label>
+      <label><strong>Example 8 (Optional)</strong><br/><textarea id="success_dont_8"></textarea></label>
+      <label><strong>Example 9 (Optional)</strong><br/><textarea id="success_dont_9"></textarea></label>
+      <label><strong>Example 10 (Optional)</strong><br/><textarea id="success_dont_10"></textarea></label>
 
       <div class="button-group">
         <button type="button" onclick="goBack()">⬅ Back One Page</button>
@@ -144,141 +164,98 @@
       <div id="status"></div>
     </form>
   </div>
+
 <script>
+  const sb = window.RBAuth.sb;
+  let currentUser = null;
 
-window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-"https://nidxvthbowdgdfuopmzk.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-);
+  function setStatus(message="", color="#084a58"){
+    const el=document.getElementById("status");
+    if(!el) return;
+    el.textContent=message;
+    el.style.color=color;
+  }
 
-const sb = window.supabaseClient;
+  async function loadData(){
+    currentUser = await window.RBAuth.requireUserOrRedirect();
+    if(!currentUser) return;
 
-function setStatus(message="",color="#084a58"){
-const el=document.getElementById("status");
-if(!el)return;
-el.textContent=message;
-el.style.color=color;
-}
+    window.RBAuth.watchAuthState();
 
-async function requireUserOrRedirect(){
+    const {data,error} = await sb
+      .from("exercise6_page54")
+      .select("user_id,success_dont_1,success_dont_2,success_dont_3,success_dont_4,success_dont_5,success_dont_6,success_dont_7,success_dont_8,success_dont_9,success_dont_10")
+      .eq("user_id",currentUser.id)
+      .maybeSingle();
 
-const {data,error}=await sb.auth.getUser();
+    if(error){
+      console.error(error);
+      setStatus("Could not load saved data. Please refresh.","red");
+      return;
+    }
 
-if(error){
-console.error(error);
-}
+    if(!data) return;
 
-const user=data?.user;
+    for(let i=1;i<=10;i++){
+      const field=document.getElementById(`success_dont_${i}`);
+      if(field){
+        field.value=data[`success_dont_${i}`]||"";
+      }
+    }
+  }
 
-if(!user){
-window.location.href="/login.html";
-return null;
-}
+  async function saveData(){
+    if(!currentUser){
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if(!currentUser) return false;
+    }
 
-return user;
+    const updates={user_id:currentUser.id};
+    let filledCount=0;
 
-}
+    for(let i=1;i<=10;i++){
+      const value=(document.getElementById(`success_dont_${i}`)?.value||"").trim();
+      updates[`success_dont_${i}`]=value;
+      if(value) filledCount++;
+    }
 
-async function loadData(){
+    if(filledCount<5){
+      setStatus("Please provide at least 5 examples before saving.","red");
+      return false;
+    }
 
-const user=await requireUserOrRedirect();
-if(!user)return;
+    setStatus("Saving...");
 
-const {data,error}=await sb
-.from("exercise6_page54")
-.select("user_id,success_dont_1,success_dont_2,success_dont_3,success_dont_4,success_dont_5,success_dont_6,success_dont_7,success_dont_8,success_dont_9,success_dont_10")
-.eq("user_id",user.id)
-.maybeSingle();
+    const {error} = await sb
+      .from("exercise6_page54")
+      .upsert(updates,{onConflict:"user_id"});
 
-if(error){
-console.error(error);
-setStatus("Could not load saved data. Please refresh.","red");
-return;
-}
+    if(error){
+      console.error(error);
+      setStatus("Save failed. Please try again.","red");
+      return false;
+    }
 
-if(!data)return;
+    setStatus("Saved successfully!");
+    return true;
+  }
 
-for(let i=1;i<=10;i++){
+  async function saveAndGoNext(){
+    const saved = await saveData();
+    if(!saved) return;
+    window.location.href="/#page/55";
+  }
 
-const field=document.getElementById(`success_dont_${i}`);
+  function goBack(){
+    window.location.href="/page-53.html";
+  }
 
-if(field){
-field.value=data[`success_dont_${i}`]||"";
-}
+  function goToTOC(){
+    window.location.href="/page-3.html";
+  }
 
-}
-
-}
-
-window.saveData=async function(){
-
-const user=await requireUserOrRedirect();
-if(!user)return false;
-
-const updates={user_id:user.id};
-
-let filledCount=0;
-
-for(let i=1;i<=10;i++){
-
-const value=(document.getElementById(`success_dont_${i}`)?.value||"").trim();
-
-updates[`success_dont_${i}`]=value;
-
-if(value)filledCount++;
-
-}
-
-if(filledCount<5){
-
-setStatus("Please provide at least 5 examples before saving.","red");
-return false;
-
-}
-
-setStatus("Saving...");
-
-const {error}=await sb
-.from("exercise6_page54")
-.upsert(updates,{onConflict:"user_id"});
-
-if(error){
-
-console.error(error);
-setStatus("Save failed. Please try again.","red");
-return false;
-
-}
-
-setStatus("Saved successfully!");
-return true;
-
-};
-
-window.saveAndGoNext=async function(){
-
-const saved=await window.saveData();
-
-if(!saved)return;
-
-window.location.href="/#page/55";
-
-};
-
-window.goBack=function(){
-
-window.location.href="/page-53.html";
-
-};
-
-window.goToTOC=function(){
-
-window.location.href="/page-3.html";
-
-};
-
-window.addEventListener("DOMContentLoaded",loadData);
-
+  window.addEventListener("DOMContentLoaded", loadData);
 </script>
+
 </body>
 </html>
