@@ -7,6 +7,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
 
   <style>
     body {
@@ -15,6 +16,12 @@
       padding: 2rem;
       margin: 0;
       color: #000;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
     }
 
     .header {
@@ -66,6 +73,7 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-family: inherit;
+      box-sizing: border-box;
     }
 
     .button-bar {
@@ -91,15 +99,35 @@
       background-color: #0a5c6a;
     }
 
+    .secondary-button {
+      background-color: #d1d3d4;
+      color: #084a58;
+    }
+
+    .secondary-button:hover {
+      background-color: #c4c7c9;
+    }
+
     #status {
       margin-top: 1rem;
       font-weight: 600;
       color: #084a58;
       white-space: pre-wrap;
     }
+
+    @media (max-width: 900px) {
+      .layout { flex-direction: column; }
+      .layout img { max-width: 100% !important; }
+    }
   </style>
 </head>
+
 <body>
+
+  <!-- SIGN OUT -->
+  <div class="top-bar">
+    <button class="nav-button secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
 
   <div class="header">
     <h2>Exercise 3 – Page 34</h2>
@@ -110,22 +138,24 @@
   </div>
 
   <div class="layout">
-    <img src="/page-34.jpg" alt="Exercise Page" style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
+    <img src="/page-34.jpg" alt="Exercise Page"
+         style="max-width: 45%; border-radius: 8px; border: 1px solid #ccc;" />
 
-    <form id="exercise-form" class="form-container" autocomplete="off">
+    <form class="form-container" autocomplete="off">
+
       <label>
         <strong>Identity</strong>
-        <textarea id="identity" rows="4" autocomplete="off"></textarea>
+        <textarea id="identity" rows="4"></textarea>
       </label>
 
       <label>
         <strong>Ambition</strong>
-        <textarea id="ambition" rows="4" autocomplete="off"></textarea>
+        <textarea id="ambition" rows="4"></textarea>
       </label>
 
       <label>
         <strong>Role</strong>
-        <textarea id="role" rows="4" autocomplete="off"></textarea>
+        <textarea id="role" rows="4"></textarea>
       </label>
 
       <div class="button-bar">
@@ -133,21 +163,16 @@
         <button type="button" class="nav-button" onclick="saveData()">💾 Save</button>
         <button type="button" class="nav-button" onclick="saveAndGoNext()">➡ Save & Next</button>
         <button type="button" class="nav-button" onclick="window.print()">🖨️ Print</button>
-        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">Go to the Table of Contents</button>
+        <button type="button" class="nav-button" onclick="window.location.href='/page-3.html'">TOC</button>
       </div>
 
       <div id="status"></div>
     </form>
   </div>
 
- <script>
-  // ONE shared Supabase client
-  window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-    "https://nidxvthbowdgdfuopmzk.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-  );
-
-  const sb = window.supabaseClient;
+<script>
+  const sb = window.RBAuth.sb;
+  let currentUser = null;
 
   function setStatus(message = "", color = "#084a58") {
     const el = document.getElementById("status");
@@ -156,64 +181,49 @@
     el.style.color = color;
   }
 
-  async function requireUserOrRedirect() {
-    const { data, error } = await sb.auth.getUser();
-    if (error) {
-      console.error("Auth getUser error:", error);
-    }
-
-    const user = data?.user;
-    if (!user) {
-      window.location.href = "/login.html";
-      return null;
-    }
-    return user;
-  }
-
   window.addEventListener("DOMContentLoaded", async () => {
-    const user = await requireUserOrRedirect();
-    if (!user) return;
+    currentUser = await window.RBAuth.requireUserOrRedirect();
+    if (!currentUser) return;
+
+    window.RBAuth.watchAuthState();
 
     const { data, error } = await sb
       .from("exercise3_page34")
       .select("user_id, identity, ambition, role")
-      .eq("user_id", user.id)
+      .eq("user_id", currentUser.id)
       .maybeSingle();
 
     if (error) {
-      setStatus("Could not load saved data. Please refresh and try again.", "red");
+      setStatus("Load failed", "red");
       return;
     }
 
-    if (!data) {
-      return;
-    }
+    if (!data) return;
 
-    document.getElementById("identity").value = data.identity || "";
-    document.getElementById("ambition").value = data.ambition || "";
-    document.getElementById("role").value = data.role || "";
+    identity.value = data.identity || "";
+    ambition.value = data.ambition || "";
+    role.value = data.role || "";
   });
 
   async function saveData() {
-    const user = await requireUserOrRedirect();
-    if (!user) return false;
-
-    const identity = document.getElementById("identity").value.trim();
-    const ambition = document.getElementById("ambition").value.trim();
-    const role = document.getElementById("role").value.trim();
+    if (!currentUser) {
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return false;
+    }
 
     setStatus("Saving...");
 
     const { error } = await sb
       .from("exercise3_page34")
-      .upsert(
-        { user_id: user.id, identity, ambition, role },
-        { onConflict: "user_id" }
-      );
+      .upsert({
+        user_id: currentUser.id,
+        identity: identity.value.trim(),
+        ambition: ambition.value.trim(),
+        role: role.value.trim()
+      }, { onConflict: "user_id" });
 
     if (error) {
-      console.error("Save error:", error);
-      setStatus("Save failed. Please try again.", "red");
+      setStatus("Save failed", "red");
       return false;
     }
 
@@ -222,9 +232,8 @@
   }
 
   async function saveAndGoNext() {
-    const saved = await saveData();
-    if (!saved) return;
-
+    const ok = await saveData();
+    if (!ok) return;
     window.location.href = "/#page/35";
   }
 
