@@ -7,6 +7,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
 
   <style>
     body {
@@ -15,6 +16,12 @@
       padding: 2rem;
       margin: 0;
       color: #000;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
     }
 
     h2 {
@@ -62,6 +69,7 @@
       border-radius: 4px;
       font-family: inherit;
       resize: vertical;
+      box-sizing: border-box;
     }
 
     .button-group {
@@ -93,6 +101,15 @@
       background-color: #0a5c6a;
     }
 
+    .secondary-button {
+      background-color: #d1d3d4 !important;
+      color: #084a58 !important;
+    }
+
+    .secondary-button:hover {
+      background-color: #c4c7c9 !important;
+    }
+
     #status {
       margin-top: 1rem;
       text-align: center;
@@ -100,10 +117,29 @@
       color: #084a58;
       white-space: pre-wrap;
     }
+
+    @media (max-width: 900px) {
+      .layout {
+        flex-direction: column;
+      }
+
+      .layout img {
+        max-width: 100% !important;
+      }
+
+      .button-group button {
+        min-width: 100%;
+      }
+    }
   </style>
 </head>
 
 <body>
+
+  <div class="top-bar">
+    <button type="button" class="secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
+
   <h2>Exercise 6 – Page 53</h2>
 
   <div class="form-note">
@@ -141,112 +177,95 @@
   </div>
 
   <script>
-  // ONE shared Supabase client
-  window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-    "https://nidxvthbowdgdfuopmzk.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-  );
-  const sb = window.supabaseClient;
+    const sb = window.RBAuth.sb;
+    let currentUser = null;
 
-  function setStatus(message = "", color = "#084a58") {
-    const el = document.getElementById("status");
-    if (!el) return;
-    el.textContent = message;
-    el.style.color = color;
-  }
-
-  async function requireUserOrRedirect() {
-    const { data, error } = await sb.auth.getUser();
-    if (error) {
-      console.error("Auth getUser error:", error);
+    function setStatus(message = "", color = "#084a58") {
+      const el = document.getElementById("status");
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = color;
     }
 
-    const user = data?.user;
-    if (!user) {
-      window.location.href = "/login.html";
-      return null;
-    }
-    return user;
-  }
+    async function loadData() {
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return;
 
-  async function loadData() {
-    const user = await requireUserOrRedirect();
-    if (!user) return;
+      window.RBAuth.watchAuthState();
 
-    const { data, error } = await sb
-      .from("exercise6_page53")
-      .select("user_id, success_dos_1, success_dos_2, success_dos_3, success_dos_4, success_dos_5, success_dos_6, success_dos_7, success_dos_8, success_dos_9, success_dos_10")
-      .eq("user_id", user.id)
-      .maybeSingle();
+      const { data, error } = await sb
+        .from("exercise6_page53")
+        .select("user_id, success_dos_1, success_dos_2, success_dos_3, success_dos_4, success_dos_5, success_dos_6, success_dos_7, success_dos_8, success_dos_9, success_dos_10")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
 
-    if (error) {
-      console.error("Load error:", error);
-      setStatus("Could not load saved data. Please refresh and try again.", "red");
-      return;
-    }
+      if (error) {
+        console.error("Load error:", error);
+        setStatus("Could not load saved data. Please refresh and try again.", "red");
+        return;
+      }
 
-    if (!data) {
-      return;
-    }
+      if (!data) return;
 
-    for (let i = 1; i <= 10; i++) {
-      const field = document.getElementById(`success_dos_${i}`);
-      if (field) {
-        field.value = data[`success_dos_${i}`] || "";
+      for (let i = 1; i <= 10; i++) {
+        const field = document.getElementById(`success_dos_${i}`);
+        if (field) {
+          field.value = data[`success_dos_${i}`] || "";
+        }
       }
     }
-  }
 
-  window.saveData = async function () {
-    const user = await requireUserOrRedirect();
-    if (!user) return false;
+    async function saveData() {
+      if (!currentUser) {
+        currentUser = await window.RBAuth.requireUserOrRedirect();
+        if (!currentUser) return false;
+      }
 
-    const payload = { user_id: user.id };
-    let filledCount = 0;
+      const payload = { user_id: currentUser.id };
+      let filledCount = 0;
 
-    for (let i = 1; i <= 10; i++) {
-      const val = (document.getElementById(`success_dos_${i}`)?.value || "").trim();
-      payload[`success_dos_${i}`] = val;
-      if (val) filledCount++;
+      for (let i = 1; i <= 10; i++) {
+        const val = (document.getElementById(`success_dos_${i}`)?.value || "").trim();
+        payload[`success_dos_${i}`] = val;
+        if (val) filledCount++;
+      }
+
+      if (filledCount < 5) {
+        setStatus("Please provide at least 5 examples before saving.", "red");
+        return false;
+      }
+
+      setStatus("Saving...");
+
+      const { error } = await sb
+        .from("exercise6_page53")
+        .upsert(payload, { onConflict: "user_id" });
+
+      if (error) {
+        console.error("Save error:", error);
+        setStatus("Save failed. Please try again.", "red");
+        return false;
+      }
+
+      setStatus("Saved successfully!");
+      return true;
     }
 
-    if (filledCount < 5) {
-      setStatus("Please provide at least 5 examples before saving.", "red");
-      return false;
+    async function saveAndGoNext() {
+      const saved = await saveData();
+      if (!saved) return;
+      window.location.href = "/page-54.html";
     }
 
-    setStatus("Saving...");
-
-    const { error } = await sb
-      .from("exercise6_page53")
-      .upsert(payload, { onConflict: "user_id" });
-
-    if (error) {
-      console.error("Save error:", error);
-      setStatus("Save failed. Please try again.", "red");
-      return false;
+    function goBack() {
+      window.location.assign("/#page/52");
     }
 
-    setStatus("Saved successfully!");
-    return true;
-  };
+    function goToTOC() {
+      window.location.href = "/page-3.html";
+    }
 
-  window.saveAndGoNext = async function () {
-    const saved = await window.saveData();
-    if (!saved) return;
-    window.location.href = "/page-54.html";
-  };
-
-  window.goBack = function () {
-    window.location.assign("/#page/52");
-  };
-
-  window.goToTOC = function () {
-    window.location.href = "/page-3.html";
-  };
-
-  window.addEventListener("DOMContentLoaded", loadData);
-</script>
+    window.addEventListener("DOMContentLoaded", loadData);
+  </script>
 </body>
 </html>
-
