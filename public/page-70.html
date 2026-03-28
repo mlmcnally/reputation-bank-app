@@ -7,6 +7,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
 
   <style>
     body{
@@ -16,6 +17,13 @@
       margin:0;
       color:#000;
     }
+
+    .top-bar{
+      display:flex;
+      justify-content:flex-end;
+      margin-bottom:1rem;
+    }
+
     h2{
       text-align:center;
       color:#084a58;
@@ -23,6 +31,7 @@
       font-weight:800;
       margin-bottom:.5rem;
     }
+
     .form-note{
       color:#084a58;
       text-align:center;
@@ -31,12 +40,14 @@
       font-size:16px;
       line-height:1.35;
     }
+
     .layout{
       display:flex;
       gap:2rem;
       align-items:flex-start;
       margin-top:1.25rem;
     }
+
     form{
       background:#fff;
       padding:20px;
@@ -44,6 +55,7 @@
       box-shadow:0 2px 10px rgba(0,0,0,.1);
       flex:1;
     }
+
     input,textarea{
       width:100%;
       margin-bottom:1rem;
@@ -53,18 +65,22 @@
       font-family:inherit;
       box-sizing:border-box;
     }
+
     textarea{height:60px;}
+
     label strong{
       display:inline-block;
       margin-bottom:6px;
       color:#000;
     }
+
     .button-group{
       display:flex;
       flex-wrap:wrap;
       gap:10px;
       margin-top:1rem;
     }
+
     .button-group button{
       flex:1;
       min-width:160px;
@@ -82,7 +98,18 @@
       gap:6px;
       font-family:inherit;
     }
+
     .button-group button:hover{opacity:.92;}
+
+    .secondary-button{
+      background-color:#d1d3d4 !important;
+      color:#084a58 !important;
+    }
+
+    .secondary-button:hover{
+      background-color:#c4c7c9 !important;
+    }
+
     #status{
       margin-top:1rem;
       text-align:center;
@@ -90,11 +117,31 @@
       color:#084a58;
       white-space:pre-wrap;
     }
+
+    @media (max-width: 900px) {
+      .layout {
+        flex-direction: column;
+      }
+
+      .layout img {
+        max-width: 100% !important;
+      }
+
+      .button-group button {
+        min-width: 100%;
+      }
+    }
   </style>
 </head>
 
 <body>
+
+  <div class="top-bar">
+    <button type="button" class="secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
+
   <h2>Exercise 7 – Page 70</h2>
+
   <div class="form-note">
     Capture stakeholder insights and define the purposes of your communication.
     Please complete all five insights and five purposes.
@@ -138,35 +185,14 @@
     const NEXT_PAGE = "/#page/71";
     const BACK_PAGE = "/page-69.html";
 
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      "https://nidxvthbowdgdfuopmzk.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-    );
-
-    const sb = window.supabaseClient;
+    const sb = window.RBAuth.sb;
+    let currentUser = null;
 
     function setStatus(message = "", color = "#084a58") {
       const el = document.getElementById("status");
       if (!el) return;
       el.textContent = message;
       el.style.color = color;
-    }
-
-    async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-
-      if (error) {
-        console.error("Auth getUser error:", error);
-      }
-
-      const user = data?.user;
-
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-
-      return user;
     }
 
     function getValue(id) {
@@ -196,13 +222,15 @@
     }
 
     async function loadData() {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return;
+
+      window.RBAuth.watchAuthState();
 
       const { data: saved, error: savedError } = await sb
         .from(PAGE_TABLE)
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", currentUser.id)
         .maybeSingle();
 
       if (savedError) {
@@ -214,7 +242,7 @@
       const { data: stakeholderRow, error: stakeholderError } = await sb
         .from(SOURCE_TABLE)
         .select("stakeholder")
-        .eq("user_id", user.id)
+        .eq("user_id", currentUser.id)
         .maybeSingle();
 
       if (stakeholderError) {
@@ -250,12 +278,14 @@
       }
     }
 
-    window.saveData = async function () {
-      const user = await requireUserOrRedirect();
-      if (!user) return false;
+    async function saveData() {
+      if (!currentUser) {
+        currentUser = await window.RBAuth.requireUserOrRedirect();
+        if (!currentUser) return false;
+      }
 
       const payload = {
-        user_id: user.id,
+        user_id: currentUser.id,
         stakeholder: getValue("stakeholder")
       };
 
@@ -290,22 +320,22 @@
 
       setStatus("Saved successfully!");
       return true;
-    };
+    }
 
-    window.saveAndGoNext = async function () {
-      const saved = await window.saveData();
+    async function saveAndGoNext() {
+      const saved = await saveData();
       if (!saved) return;
 
       window.location.href = NEXT_PAGE;
-    };
+    }
 
-    window.goBack = function () {
+    function goBack() {
       window.location.href = BACK_PAGE;
-    };
+    }
 
-    window.goToTOC = function () {
+    function goToTOC() {
       window.location.href = "/page-3.html";
-    };
+    }
 
     window.addEventListener("DOMContentLoaded", loadData);
   </script>
