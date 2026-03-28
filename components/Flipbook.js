@@ -1,10 +1,17 @@
 // components/Flipbook.js
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import { createClient } from '@supabase/supabase-js';
 
 export default function Flipbook() {
   const router = useRouter();
   const totalPages = 109;
+
+  // ✅ Supabase client (same project as your HTML pages)
+  const supabase = createClient(
+    'https://nidxvthbowdgdfuopmzk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4' // ← use same anon key as auth.js
+  );
 
   const interactivePages = useMemo(
     () =>
@@ -25,6 +32,18 @@ export default function Flipbook() {
 
   const [page, setPage] = useState(getInitialPage);
 
+  // ✅ ENFORCE LOGIN-FIRST (important)
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!data?.user) {
+        window.location.href = '/login.html';
+      }
+    };
+
+    checkUser();
+  }, []);
+
   useEffect(() => {
     if (interactivePages.has(page)) {
       router.push(`/page-${page}.html`);
@@ -42,6 +61,7 @@ export default function Flipbook() {
   const goBack = () => setPage(p => Math.max(p - 1, 1));
 
   const imageUrl = `/page-${page}.jpg`;
+
   const baseBtn = {
     padding: '0.6rem 1.2rem',
     backgroundColor: '#084a58',
@@ -58,15 +78,58 @@ export default function Flipbook() {
     justifyContent: 'center'
   };
 
+  // ✅ SIGN OUT FUNCTION
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login.html';
+  };
+
   return (
     <div style={{ textAlign: 'center', padding: '1rem', fontFamily: 'Avenir, "Nunito Sans", sans-serif', color: '#000' }}>
-      <img src={imageUrl} alt={`Page ${page}`} style={{ maxHeight: '88vh', width: 'auto', height: 'auto', maxWidth: '100%', objectFit: 'contain', borderRadius: '12px', border: '1px solid #ccc' }} />
+
+      {/* ✅ SIGN OUT BUTTON */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+        <button
+          onClick={handleSignOut}
+          style={{
+            ...baseBtn,
+            backgroundColor: '#d1d3d4',
+            color: '#084a58'
+          }}
+        >
+          Sign Out
+        </button>
+      </div>
+
+      <img
+        src={imageUrl}
+        alt={`Page ${page}`}
+        style={{
+          maxHeight: '88vh',
+          width: 'auto',
+          height: 'auto',
+          maxWidth: '100%',
+          objectFit: 'contain',
+          borderRadius: '12px',
+          border: '1px solid #ccc'
+        }}
+      />
+
       <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
         <div>
-          <button onClick={goBack} disabled={page === 1} style={{ ...baseBtn, marginRight: '0.5rem', opacity: page === 1 ? 0.6 : 1 }}>⬅ Back</button>
-          <span style={{ margin: '0 1rem' }}>Page {page} of {totalPages}</span>
-          <button onClick={goNext} disabled={page === totalPages} style={{ ...baseBtn, marginLeft: '0.5rem', opacity: page === totalPages ? 0.6 : 1 }}>Next ➡</button>
+          <button onClick={goBack} disabled={page === 1} style={{ ...baseBtn, marginRight: '0.5rem', opacity: page === 1 ? 0.6 : 1 }}>
+            ⬅ Back
+          </button>
+
+          <span style={{ margin: '0 1rem' }}>
+            Page {page} of {totalPages}
+          </span>
+
+          <button onClick={goNext} disabled={page === totalPages} style={{ ...baseBtn, marginLeft: '0.5rem', opacity: page === totalPages ? 0.6 : 1 }}>
+            Next ➡
+          </button>
         </div>
+
         <a href="/page-3.html" role="button" tabIndex={0} style={{ ...baseBtn, marginTop: '1rem' }}>
           Go to the Table of Contents
         </a>
