@@ -6,6 +6,8 @@
   <title>Exercise 2 – Page 27</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
+
   <style>
     body {
       font-family: "Avenir", "Nunito Sans", sans-serif;
@@ -13,6 +15,12 @@
       padding: 2rem;
       margin: 0;
       color: #000;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
     }
 
     .header {
@@ -64,6 +72,7 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-family: inherit;
+      box-sizing: border-box;
     }
 
     .button-bar {
@@ -89,15 +98,38 @@
       background-color: #0a5c6a;
     }
 
+    .secondary-button {
+      background-color: #d1d3d4;
+      color: #084a58;
+    }
+
+    .secondary-button:hover {
+      background-color: #c4c7c9;
+    }
+
     #status {
       margin-top: 1rem;
       font-weight: 600;
       color: #084a58;
       white-space: pre-wrap;
     }
+
+    @media (max-width: 900px) {
+      .layout {
+        flex-direction: column;
+      }
+
+      .layout img {
+        max-width: 100% !important;
+      }
+    }
   </style>
 </head>
 <body>
+
+  <div class="top-bar">
+    <button type="button" class="nav-button secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
 
   <div class="header">
     <h2>Exercise 2 – Page 27</h2>
@@ -143,13 +175,8 @@
   </div>
 
 <script>
-  // ONE shared client stored on window
-  window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-    'https://nidxvthbowdgdfuopmzk.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-  );
-
-  const sb = window.supabaseClient;
+  const sb = window.RBAuth.sb;
+  let currentUser = null;
 
   function setStatus(message = "", color = "#084a58") {
     const el = document.getElementById("status");
@@ -158,42 +185,25 @@
     el.style.color = color;
   }
 
-  async function getActiveUser() {
-    const sessionRes = await sb.auth.getSession();
-    const sessionUser = sessionRes?.data?.session?.user;
-    if (sessionUser) return sessionUser;
-
-    const userRes = await sb.auth.getUser();
-    return userRes?.data?.user || null;
-  }
-
-  async function requireUserOrRedirect() {
-    const user = await getActiveUser();
-    if (!user) {
-      window.location.href = "/login.html";
-      return null;
-    }
-    return user;
-  }
-
   window.addEventListener("DOMContentLoaded", async function () {
-    const user = await requireUserOrRedirect();
-    if (!user) return;
+    currentUser = await window.RBAuth.requireUserOrRedirect();
+    if (!currentUser) return;
+
+    window.RBAuth.watchAuthState();
 
     const { data, error } = await sb
       .from("exercise2_page27")
       .select("user_id, stakeholder, identity, ambition, role")
-      .eq("user_id", user.id)
+      .eq("user_id", currentUser.id)
       .maybeSingle();
 
     if (error) {
+      console.error("Load error:", error);
       setStatus("Could not load saved data. Please refresh and try again.", "red");
       return;
     }
 
-    if (!data) {
-      return;
-    }
+    if (!data) return;
 
     document.getElementById("stakeholder").value = data.stakeholder || "";
     document.getElementById("identity").value = data.identity || "";
@@ -201,9 +211,11 @@
     document.getElementById("role").value = data.role || "";
   });
 
-  window.saveData = async function () {
-    const user = await requireUserOrRedirect();
-    if (!user) return false;
+  async function saveData() {
+    if (!currentUser) {
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return false;
+    }
 
     const stakeholder = document.getElementById("stakeholder").value.trim();
     const identity = document.getElementById("identity").value.trim();
@@ -220,7 +232,7 @@
     const { error } = await sb
       .from("exercise2_page27")
       .upsert(
-        { user_id: user.id, stakeholder, identity, ambition, role },
+        { user_id: currentUser.id, stakeholder, identity, ambition, role },
         { onConflict: "user_id" }
       );
 
@@ -232,17 +244,17 @@
 
     setStatus("Saved successfully!");
     return true;
-  };
+  }
 
-  window.saveAndGoNext = async function () {
-    const saved = await window.saveData();
+  async function saveAndGoNext() {
+    const saved = await saveData();
     if (!saved) return;
     window.location.href = "/page-28.html";
-  };
+  }
 
-  window.goBack = function () {
+  function goBack() {
     window.location.href = "/page-26.html";
-  };
+  }
 </script>
 
 </body>
