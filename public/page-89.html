@@ -7,6 +7,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
 
   <style>
     body {
@@ -17,7 +18,35 @@
       color: #000;
     }
 
-    h2 { text-align: center; color: #084a58; }
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .secondary-button {
+      background-color: #d1d3d4;
+      color: #084a58;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      font-family: inherit;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .secondary-button:hover {
+      background-color: #c4c7c9;
+    }
+
+    h2 {
+      text-align: center;
+      color: #084a58;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
 
     .form-note {
       color: #084a58;
@@ -26,18 +55,20 @@
       max-width: 900px;
       margin-left: auto;
       margin-right: auto;
+      line-height: 1.35;
     }
 
-    /* Layout proportions */
     .container {
       display: flex;
       gap: 1rem;
       align-items: flex-start;
     }
+
     .left-pane {
       flex: 0 0 45%;
       max-width: 45%;
     }
+
     .left-pane img {
       width: 100%;
       height: auto;
@@ -45,12 +76,12 @@
       border: 1px solid #ccc;
       display: block;
     }
+
     .right-pane {
       flex: 1 1 55%;
       max-width: 55%;
     }
 
-    /* Card */
     .card {
       background: #fff;
       padding: 20px;
@@ -76,16 +107,25 @@
       margin-top: 0.25rem;
       margin-bottom: 0.8rem;
       box-sizing: border-box;
-
-      /* ✅ Keep typed font consistent across the app */
       font-family: inherit;
       color: #000;
+      background: #fff;
     }
-    textarea { min-height: 60px; resize: vertical; }
+
+    textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
 
     input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
 
     .stakeholder {
       padding: 12px;
@@ -94,7 +134,11 @@
       background: #fff;
       margin-bottom: 10px;
     }
-    .stakeholder label { font-weight: 600; }
+
+    .stakeholder label {
+      font-weight: 600;
+      color: #084a58;
+    }
 
     .score-box {
       padding: 10px;
@@ -103,7 +147,13 @@
       border-radius: 6px;
       margin-top: 8px;
     }
-    .score-box label { font-weight: 600; display: block; margin-bottom: 6px; }
+
+    .score-box label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #084a58;
+    }
 
     .inline-btn {
       background-color: #084a58;
@@ -121,15 +171,18 @@
       margin: 6px 0 8px;
       font-family: inherit;
     }
-    .inline-btn:hover { opacity: 0.9; }
 
-    /* Button group (dark teal) */
+    .inline-btn:hover {
+      opacity: 0.9;
+    }
+
     .button-group {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-top: 1rem;
     }
+
     .button-group button {
       flex: 1;
       min-width: 160px;
@@ -147,20 +200,44 @@
       gap: 6px;
       font-family: inherit;
     }
-    .button-group button:hover { opacity: 0.9; }
+
+    .button-group button:hover {
+      opacity: 0.9;
+    }
 
     #status {
       margin-top: 1rem;
       text-align: center;
-      font-weight: bold;
+      font-weight: 700;
       color: #084a58;
       white-space: pre-wrap;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .left-pane,
+      .right-pane {
+        max-width: 100%;
+      }
+
+      .button-group button,
+      .inline-btn {
+        min-width: 100%;
+      }
     }
   </style>
 </head>
 
 <body>
+  <div class="top-bar">
+    <button type="button" class="secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
+
   <h2>Exercise 11 – Page 89</h2>
+
   <div class="form-note">
     Describe the program/interaction, select stakeholder influence effects, then compute your Credibility Gold Deposit.
   </div>
@@ -173,7 +250,7 @@
     <div class="right-pane">
       <div class="card">
         <h3>Communication Program / Multi-Faceted Interaction #3 (Describe the program or interaction)</h3>
-        <textarea id="interactionDescription" rows="3"></textarea>
+        <textarea id="interactionDescription" rows="3" autocomplete="off"></textarea>
 
         <div id="stakeholders"></div>
 
@@ -209,37 +286,26 @@
   </div>
 
   <script>
-    // ✅ Shared Supabase client
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-    );
-    const sb = window.supabaseClient;
+    const PAGE_TABLE = "exercise11_page89";
+    const NEXT_PAGE = "/#page/90";
+    const BACK_PAGE = "/page-88.html";
 
+    const sb = window.RBAuth.sb;
+    let currentUser = null;
     const stakeholderLabels = [1, 2, 3, 4, 5, 6];
 
-    function setStatus(message, color = "#084a58") {
+    function setStatus(message = "", color = "#084a58") {
       const el = document.getElementById("status");
       if (!el) return;
       el.textContent = message;
       el.style.color = color;
     }
 
-    async function requireUserOrRedirect() {
-      const { data } = await sb.auth.getUser();
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
-    }
-
     function createStakeholderSection(n) {
       return `
         <div class="stakeholder">
           <label>Stakeholder #${n} (name/description)</label>
-          <input type="text" id="stakeholder${n}" />
+          <input type="text" id="stakeholder${n}" autocomplete="off" />
           <p style="margin:6px 0 8px;">Check all that apply:</p>
           <label><input type="checkbox" class="score${n}" value="4" /> Action/Motivate (4)</label><br>
           <label><input type="checkbox" class="score${n}" value="2" /> Advocacy/Inspire (2)</label><br>
@@ -247,15 +313,49 @@
         </div>`;
     }
 
-    document.addEventListener("DOMContentLoaded", async () => {
+    function getCheckedScores(n) {
+      return Array.from(document.querySelectorAll(`.score${n}`))
+        .filter(cb => cb.checked)
+        .map(cb => parseInt(cb.value, 10));
+    }
+
+    function setCheckedScores(n, scoresArray) {
+      const scores = Array.isArray(scoresArray) ? scoresArray : [];
+      document.querySelectorAll(`.score${n}`).forEach(cb => {
+        cb.checked = scores.includes(parseInt(cb.value, 10));
+      });
+    }
+
+    function calculateInfluence() {
+      let total = 0;
+      stakeholderLabels.forEach(n => {
+        getCheckedScores(n).forEach(val => {
+          total += val;
+        });
+      });
+      document.getElementById("impactScore").value = total;
+      return total;
+    }
+
+    function calculateGold() {
+      const impact = calculateInfluence();
+      const rep = parseInt(document.getElementById("reputationMultiplier").value, 10) || 0;
+      const time = parseInt(document.getElementById("timeHorizonMultiplier").value, 10) || 0;
+      const deposit = impact * rep * time;
+      document.getElementById("goldDeposit").value = deposit;
+    }
+
+    async function loadData() {
       document.getElementById("stakeholders").innerHTML =
         stakeholderLabels.map(createStakeholderSection).join("");
 
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return;
+
+      window.RBAuth.watchAuthState();
 
       const { data, error } = await sb
-        .from("exercise11_page89")
+        .from(PAGE_TABLE)
         .select(`
           user_id,
           interaction_description,
@@ -270,18 +370,16 @@
           stakeholder5_name, stakeholder5_scores,
           stakeholder6_name, stakeholder6_scores
         `)
-        .eq("user_id", user.id)
+        .eq("user_id", currentUser.id)
         .maybeSingle();
 
       if (error) {
-        setStatus("❌ Could not load saved data:\n" + error.message, "red");
+        console.error("Load error:", error);
+        setStatus("Could not load saved data. Please refresh and try again.", "red");
         return;
       }
 
-      if (!data) {
-        setStatus("ℹ️ No saved row found yet.\nFill in your answers and click Save.");
-        return;
-      }
+      if (!data) return;
 
       document.getElementById("interactionDescription").value = data.interaction_description || "";
       document.getElementById("impactScore").value = data.impact_score ?? "";
@@ -291,42 +389,20 @@
 
       stakeholderLabels.forEach(n => {
         document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
-        const scores = (data[`stakeholder${n}_scores`] || []);
-        document.querySelectorAll(`.score${n}`).forEach(cb => {
-          cb.checked = scores.includes(parseInt(cb.value, 10));
-        });
+        setCheckedScores(n, data[`stakeholder${n}_scores`]);
       });
-
-      setStatus("✅ Loaded saved data successfully.");
-    });
-
-    function calculateInfluence() {
-      let total = 0;
-      stakeholderLabels.forEach(n => {
-        document.querySelectorAll(`.score${n}:checked`).forEach(cb => {
-          total += parseInt(cb.value, 10);
-        });
-      });
-      document.getElementById("impactScore").value = total;
-      return total;
-    }
-
-    function calculateGold() {
-      const impact = calculateInfluence(); // keep impact current
-      const rep = parseInt(document.getElementById("reputationMultiplier").value, 10) || 0;
-      const time = parseInt(document.getElementById("timeHorizonMultiplier").value, 10) || 0;
-      const deposit = impact * rep * time;
-      document.getElementById("goldDeposit").value = deposit;
     }
 
     async function saveData() {
-      const user = await requireUserOrRedirect();
-      if (!user) return false;
+      if (!currentUser) {
+        currentUser = await window.RBAuth.requireUserOrRedirect();
+        if (!currentUser) return false;
+      }
 
       setStatus("Saving...");
 
       const payload = {
-        user_id: user.id,
+        user_id: currentUser.id,
         interaction_description: document.getElementById("interactionDescription").value.trim(),
         impact_score: parseInt(document.getElementById("impactScore").value, 10) || 0,
         reputation_multiplier: parseInt(document.getElementById("reputationMultiplier").value, 10) || 0,
@@ -336,31 +412,38 @@
 
       stakeholderLabels.forEach(n => {
         payload[`stakeholder${n}_name`] = document.getElementById(`stakeholder${n}`).value.trim();
-        payload[`stakeholder${n}_scores`] = Array.from(document.querySelectorAll(`.score${n}`))
-          .filter(cb => cb.checked)
-          .map(cb => parseInt(cb.value, 10));
+        payload[`stakeholder${n}_scores`] = getCheckedScores(n);
       });
 
       const { error } = await sb
-        .from("exercise11_page89")
+        .from(PAGE_TABLE)
         .upsert(payload, { onConflict: "user_id" });
 
       if (error) {
-        setStatus("❌ Error saving data:\n" + error.message, "red");
+        console.error("Save error:", error);
+        setStatus("Save failed. Please try again.", "red");
         return false;
       }
 
-      setStatus("✅ Saved successfully!");
+      setStatus("Saved successfully!");
       return true;
     }
 
     async function saveAndNext() {
       const ok = await saveData();
-      if (ok) window.location.href = "/#page/90";
+      if (!ok) return;
+      window.location.href = NEXT_PAGE;
     }
 
-    function goBack() { window.location.href = "/page-88.html"; }
-    function goToTOC() { window.location.href = "/page-3.html"; }
+    function goBack() {
+      window.location.href = BACK_PAGE;
+    }
+
+    function goToTOC() {
+      window.location.href = "/page-3.html";
+    }
+
+    window.addEventListener("DOMContentLoaded", loadData);
   </script>
 </body>
 </html>
