@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 10 – Page 82</title>
 
-  <!-- ✅ Match font everywhere -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
 
   <style>
     body {
@@ -19,7 +18,35 @@
       color: #000;
     }
 
-    h2 { text-align: center; color: #084a58; }
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .secondary-button {
+      background-color: #d1d3d4;
+      color: #084a58;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      font-family: inherit;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .secondary-button:hover {
+      background-color: #c4c7c9;
+    }
+
+    h2 {
+      text-align: center;
+      color: #084a58;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
 
     .form-note {
       color: #084a58;
@@ -28,6 +55,7 @@
       max-width: 980px;
       margin-left: auto;
       margin-right: auto;
+      line-height: 1.35;
     }
 
     .container {
@@ -35,10 +63,12 @@
       gap: 1rem;
       align-items: flex-start;
     }
+
     .left-pane {
       flex: 0 0 45%;
       max-width: 45%;
     }
+
     .left-pane img {
       width: 100%;
       height: auto;
@@ -46,6 +76,7 @@
       border: 1px solid #ccc;
       display: block;
     }
+
     .right-pane {
       flex: 1 1 55%;
       max-width: 55%;
@@ -65,28 +96,36 @@
       font-size: 1.05rem;
     }
 
-    /* ✅ Critical: force typed font to match site */
     textarea, input, button {
       font-family: inherit;
       font-size: 1rem;
       line-height: 1.4;
+      box-sizing: border-box;
     }
 
-    textarea, input[type="text"], input[type="number"] {
+    textarea,
+    input[type="text"],
+    input[type="number"] {
       width: 100%;
       padding: 8px;
       border-radius: 4px;
       border: 1px solid #ccc;
       margin-top: 0.25rem;
       margin-bottom: 0.8rem;
-      box-sizing: border-box;
       background: #fff;
       color: #000;
     }
-    textarea { min-height: 60px; resize: vertical; }
+
+    textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
 
     input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
 
     .stakeholder {
       padding: 12px;
@@ -95,7 +134,10 @@
       background: #fff;
       margin-bottom: 10px;
     }
-    .stakeholder label { font-weight: 700; }
+
+    .stakeholder label {
+      font-weight: 700;
+    }
 
     .row {
       display: flex;
@@ -104,7 +146,8 @@
       flex-wrap: wrap;
     }
 
-    .score-box, .multiplier-box {
+    .score-box,
+    .multiplier-box {
       padding: 10px;
       background: #fff;
       border: 1px solid #ccc;
@@ -112,7 +155,9 @@
       flex: 1;
       min-width: 220px;
     }
-    .score-box label, .multiplier-box label {
+
+    .score-box label,
+    .multiplier-box label {
       font-weight: 700;
       display: block;
       margin-bottom: 6px;
@@ -125,6 +170,7 @@
       gap: 10px;
       margin-top: 1rem;
     }
+
     .button-group button,
     .mini-button {
       flex: 1;
@@ -142,11 +188,16 @@
       justify-content: center;
       gap: 6px;
     }
-    .button-group button:hover,
-    .mini-button:hover { opacity: 0.9; }
 
-    /* the "Calculate" button in the row */
-    .mini-button { flex: 0 0 auto; min-width: 180px; }
+    .button-group button:hover,
+    .mini-button:hover {
+      opacity: 0.9;
+    }
+
+    .mini-button {
+      flex: 0 0 auto;
+      min-width: 180px;
+    }
 
     #status {
       margin-top: 1rem;
@@ -155,13 +206,34 @@
       color: #084a58;
       white-space: pre-wrap;
     }
+
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .left-pane,
+      .right-pane {
+        max-width: 100%;
+      }
+
+      .button-group button,
+      .mini-button {
+        min-width: 100%;
+      }
+    }
   </style>
 </head>
 
 <body>
+  <div class="top-bar">
+    <button type="button" class="secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
+
   <h2>Exercise 10 – Page 82</h2>
+
   <div class="form-note">
-    Describe a high-impact communication/decision/interaction, assess influence across stakeholders, and calculate monthly/annual credibility deposits.
+    Describe a high-impact communication, decision, or interaction, assess influence across stakeholders, and calculate monthly and annual credibility deposits.
   </div>
 
   <div class="container">
@@ -218,30 +290,20 @@
   </div>
 
   <script>
-    // ✅ Shared Supabase client (consistent across all exercises)
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      "https://nidxvthbowdgdfuopmzk.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4"
-    );
-    const sb = window.supabaseClient;
+    const PAGE_TABLE = "exercise10_page82";
+    const NEXT_PAGE = "/page-83.html";
+    const BACK_PAGE = "/#page/81";
+
+    const sb = window.RBAuth.sb;
+    let currentUser = null;
 
     const stakeholderLabels = [1, 2, 3, 4, 5, 6];
 
-    function setStatus(msg, color="#084a58") {
+    function setStatus(message = "", color = "#084a58") {
       const el = document.getElementById("status");
       if (!el) return;
-      el.textContent = msg;
+      el.textContent = message;
       el.style.color = color;
-    }
-
-    async function requireUserOrRedirect() {
-      const { data } = await sb.auth.getUser();
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
     }
 
     function createStakeholderSection(n) {
@@ -273,51 +335,13 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      // Render stakeholder sections FIRST
-      document.getElementById("stakeholders").innerHTML =
-        stakeholderLabels.map(createStakeholderSection).join("");
-
-      const user = await requireUserOrRedirect();
-      if (!user) return;
-
-      setStatus("Loading saved data...");
-
-      const { data, error } = await sb
-        .from("exercise10_page82")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        setStatus("❌ Load error:\n" + error.message, "red");
-        return;
-      }
-
-      if (!data) {
-        setStatus("ℹ️ No saved row found yet. Fill this out and click Save.");
-        return;
-      }
-
-      document.getElementById("interactionDescription").value = data.interaction_description || "";
-      document.getElementById("impactScore").value = data.impact_score ?? "";
-      document.getElementById("reputationMultiplier").value = data.reputation_multiplier ?? "";
-      document.getElementById("monthlyDeposit").value = data.monthly_deposit ?? "";
-      document.getElementById("annualDeposit").value = data.annual_deposit ?? "";
-
-      stakeholderLabels.forEach(n => {
-        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
-        setCheckedScores(n, data[`stakeholder${n}_scores`]);
-      });
-
-      setStatus("✅ Loaded saved data successfully.");
-    });
-
     function calculateScores() {
       let total = 0;
 
       stakeholderLabels.forEach(n => {
-        getCheckedScores(n).forEach(val => total += val);
+        getCheckedScores(n).forEach(val => {
+          total += val;
+        });
       });
 
       document.getElementById("impactScore").value = total;
@@ -330,14 +354,51 @@
       document.getElementById("annualDeposit").value = annual;
     }
 
+    async function loadData() {
+      document.getElementById("stakeholders").innerHTML =
+        stakeholderLabels.map(createStakeholderSection).join("");
+
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return;
+
+      window.RBAuth.watchAuthState();
+
+      const { data, error } = await sb
+        .from(PAGE_TABLE)
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Load error:", error);
+        setStatus("Could not load saved data. Please refresh and try again.", "red");
+        return;
+      }
+
+      if (!data) return;
+
+      document.getElementById("interactionDescription").value = data.interaction_description || "";
+      document.getElementById("impactScore").value = data.impact_score ?? "";
+      document.getElementById("reputationMultiplier").value = data.reputation_multiplier ?? "";
+      document.getElementById("monthlyDeposit").value = data.monthly_deposit ?? "";
+      document.getElementById("annualDeposit").value = data.annual_deposit ?? "";
+
+      stakeholderLabels.forEach(n => {
+        document.getElementById(`stakeholder${n}`).value = data[`stakeholder${n}_name`] || "";
+        setCheckedScores(n, data[`stakeholder${n}_scores`]);
+      });
+    }
+
     async function saveData() {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+      if (!currentUser) {
+        currentUser = await window.RBAuth.requireUserOrRedirect();
+        if (!currentUser) return false;
+      }
 
       setStatus("Saving...");
 
       const payload = {
-        user_id: user.id,
+        user_id: currentUser.id,
         interaction_description: document.getElementById("interactionDescription").value.trim(),
         impact_score: parseInt(document.getElementById("impactScore").value, 10) || 0,
         reputation_multiplier: parseInt(document.getElementById("reputationMultiplier").value, 10) || 0,
@@ -351,27 +412,34 @@
       });
 
       const { error } = await sb
-        .from("exercise10_page82")
+        .from(PAGE_TABLE)
         .upsert(payload, { onConflict: "user_id" });
 
       if (error) {
-        setStatus("❌ Error saving data:\n" + error.message, "red");
-      } else {
-        setStatus("✅ Saved successfully!");
+        console.error("Save error:", error);
+        setStatus("Save failed. Please try again.", "red");
+        return false;
       }
+
+      setStatus("Saved successfully!");
+      return true;
     }
 
     async function saveAndNext() {
-      await saveData();
-      // only navigate if last status is not an error
-      if (!document.getElementById("status").textContent.startsWith("❌")) {
-        window.location.href = "/page-83.html";
-      }
+      const saved = await saveData();
+      if (!saved) return;
+      window.location.href = NEXT_PAGE;
     }
 
-    function goBack() { window.location.href = "/#page/81"; }
-    function goToTOC() { window.location.href = "/page-3.html"; }
+    function goBack() {
+      window.location.href = BACK_PAGE;
+    }
+
+    function goToTOC() {
+      window.location.href = "/page-3.html";
+    }
+
+    window.addEventListener("DOMContentLoaded", loadData);
   </script>
 </body>
 </html>
-
