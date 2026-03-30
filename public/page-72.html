@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 8 – Page 72</title>
 
-  <!-- ✅ Match other exercises: load Nunito Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
 
   <style>
     body {
@@ -19,7 +18,35 @@
       color: #000;
     }
 
-    h2 { text-align: center; color: #084a58; }
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .secondary-button {
+      background-color: #d1d3d4;
+      color: #084a58;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      font-family: inherit;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .secondary-button:hover {
+      background-color: #c4c7c9;
+    }
+
+    h2 {
+      text-align: center;
+      color: #084a58;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
 
     .form-note {
       color: #084a58;
@@ -28,12 +55,13 @@
       max-width: 980px;
       margin-left: auto;
       margin-right: auto;
+      font-size: 16px;
+      line-height: 1.35;
     }
 
-    /* Layout */
     .container {
       display: flex;
-      gap: 1rem;
+      gap: 1.5rem;
       align-items: flex-start;
     }
 
@@ -41,6 +69,7 @@
       flex: 0 0 45%;
       max-width: 45%;
     }
+
     .left-pane img {
       width: 100%;
       height: auto;
@@ -54,7 +83,6 @@
       max-width: 55%;
     }
 
-    /* Card */
     form {
       background: white;
       padding: 20px;
@@ -69,11 +97,13 @@
       color: #000;
     }
 
-    /* ✅ Force form controls to use the same font as the rest of the page */
-    textarea, input, button {
+    textarea,
+    input,
+    button {
       font-family: inherit;
       font-size: 1rem;
       line-height: 1.4;
+      box-sizing: border-box;
     }
 
     textarea {
@@ -94,6 +124,7 @@
       gap: 10px;
       margin-top: 1rem;
     }
+
     .button-group button {
       flex: 1;
       min-width: 160px;
@@ -110,7 +141,10 @@
       justify-content: center;
       gap: 6px;
     }
-    .button-group button:hover { opacity: 0.9; }
+
+    .button-group button:hover {
+      opacity: 0.9;
+    }
 
     #status {
       margin-top: 1rem;
@@ -119,11 +153,31 @@
       color: #084a58;
       white-space: pre-wrap;
     }
+
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .left-pane,
+      .right-pane {
+        max-width: 100%;
+      }
+
+      .button-group button {
+        min-width: 100%;
+      }
+    }
   </style>
 </head>
 
 <body>
+  <div class="top-bar">
+    <button type="button" class="secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
+
   <h2>Exercise 8 – Page 72</h2>
+
   <div class="form-note">
     Write in the boxes before you change: describe the change and the stakeholders affected; then compare approaches and pick the best fit for your organization.
   </div>
@@ -164,105 +218,97 @@
   </div>
 
   <script>
-    // ✅ ONE shared Supabase client (matches your stabilized pattern)
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-    );
-    const sb = window.supabaseClient;
+    const PAGE_TABLE = "exercise8_page72";
+    const NEXT_PAGE = "/#page/73";
+    const BACK_PAGE = "/#page/71";
 
-    function setStatus(message, color = "#084a58") {
+    const sb = window.RBAuth.sb;
+    let currentUser = null;
+
+    function setStatus(message = "", color = "#084a58") {
       const el = document.getElementById("status");
       if (!el) return;
       el.textContent = message;
       el.style.color = color;
     }
 
-    async function requireUserOrRedirect() {
-      const { data, error } = await sb.auth.getUser();
-      if (error) console.error("Auth getUser error:", error);
-
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
-    }
-
-    function v(id) {
+    function getValue(id) {
       return (document.getElementById(id)?.value || "").trim();
     }
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+    async function loadData() {
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return;
 
-      // Load saved row (if any)
+      window.RBAuth.watchAuthState();
+
       const { data, error } = await sb
-        .from("exercise8_page72")
+        .from(PAGE_TABLE)
         .select("user_id, change_description, stakeholders_affected, pros_cons_command, pros_cons_hearts, best_approach")
-        .eq("user_id", user.id)
+        .eq("user_id", currentUser.id)
         .maybeSingle();
 
       if (error) {
-        setStatus("❌ Could not load saved data:\n" + error.message, "red");
+        console.error("Load error:", error);
+        setStatus("Could not load saved data. Please refresh and try again.", "red");
         return;
       }
 
-      if (data) {
-        document.getElementById("change_description").value = data.change_description || "";
-        document.getElementById("stakeholders_affected").value = data.stakeholders_affected || "";
-        document.getElementById("pros_cons_command").value = data.pros_cons_command || "";
-        document.getElementById("pros_cons_hearts").value = data.pros_cons_hearts || "";
-        document.getElementById("best_approach").value = data.best_approach || "";
-        setStatus("✅ Loaded saved data successfully.");
-      } else {
-        setStatus("ℹ️ No saved row found yet. Click Save once.");
+      if (!data) return;
+
+      document.getElementById("change_description").value = data.change_description || "";
+      document.getElementById("stakeholders_affected").value = data.stakeholders_affected || "";
+      document.getElementById("pros_cons_command").value = data.pros_cons_command || "";
+      document.getElementById("pros_cons_hearts").value = data.pros_cons_hearts || "";
+      document.getElementById("best_approach").value = data.best_approach || "";
+    }
+
+    async function saveData() {
+      if (!currentUser) {
+        currentUser = await window.RBAuth.requireUserOrRedirect();
+        if (!currentUser) return false;
       }
 
-      window.saveData = async function () {
-        const user = await requireUserOrRedirect();
-        if (!user) return;
+      setStatus("Saving...");
 
-        setStatus("Saving...");
-
-        const payload = {
-          user_id: user.id,
-          change_description: v("change_description"),
-          stakeholders_affected: v("stakeholders_affected"),
-          pros_cons_command: v("pros_cons_command"),
-          pros_cons_hearts: v("pros_cons_hearts"),
-          best_approach: v("best_approach"),
-        };
-
-        const { error } = await sb
-          .from("exercise8_page72")
-          .upsert(payload, { onConflict: "user_id" });
-
-        if (error) {
-          setStatus("❌ Error saving data:\n" + error.message, "red");
-        } else {
-          setStatus("✅ Saved successfully!");
-        }
+      const payload = {
+        user_id: currentUser.id,
+        change_description: getValue("change_description"),
+        stakeholders_affected: getValue("stakeholders_affected"),
+        pros_cons_command: getValue("pros_cons_command"),
+        pros_cons_hearts: getValue("pros_cons_hearts"),
+        best_approach: getValue("best_approach")
       };
 
-      window.saveAndNext = async function () {
-        await saveData();
-        const statusText = document.getElementById("status").textContent || "";
-        if (statusText.startsWith("❌")) return;
-        window.location.href = "/#page/73";
-      };
+      const { error } = await sb
+        .from(PAGE_TABLE)
+        .upsert(payload, { onConflict: "user_id" });
 
-      window.goBack = function () {
-        window.location.href = "/#page/71";
-      };
+      if (error) {
+        console.error("Save error:", error);
+        setStatus("Save failed. Please try again.", "red");
+        return false;
+      }
 
-      window.goToTOC = function () {
-        window.location.href = "/page-3.html";
-      };
-    });
+      setStatus("Saved successfully!");
+      return true;
+    }
+
+    async function saveAndNext() {
+      const saved = await saveData();
+      if (!saved) return;
+      window.location.href = NEXT_PAGE;
+    }
+
+    function goBack() {
+      window.location.href = BACK_PAGE;
+    }
+
+    function goToTOC() {
+      window.location.href = "/page-3.html";
+    }
+
+    window.addEventListener("DOMContentLoaded", loadData);
   </script>
 </body>
 </html>
-
