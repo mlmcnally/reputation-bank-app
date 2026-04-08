@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Exercise 15 – Page 104</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/auth.js"></script>
 
   <style>
     body {
@@ -14,7 +16,37 @@
       padding:2rem;
       color:#000;
     }
-    h2{color:#084a58;text-align:center;margin-top:0;}
+
+    .top-bar {
+      display:flex;
+      justify-content:flex-end;
+      max-width:1400px;
+      margin:0 auto 1rem auto;
+    }
+
+    .secondary-button {
+      background-color:#d1d3d4;
+      color:#084a58;
+      border:none;
+      padding:0.6rem 1.2rem;
+      font-size:1rem;
+      font-family:inherit;
+      border-radius:4px;
+      cursor:pointer;
+      box-shadow:2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .secondary-button:hover {
+      background-color:#c4c7c9;
+    }
+
+    h2 {
+      color:#084a58;
+      text-align:center;
+      margin-top:0;
+      font-size:28px;
+      font-weight:800;
+    }
 
     .container{
       display:flex;
@@ -23,10 +55,12 @@
       max-width:1400px;
       margin:0 auto;
     }
+
     .left{
       flex:0 0 45%;
       max-width:45%;
     }
+
     .left img{
       width:100%;
       height:auto;
@@ -41,6 +75,7 @@
       gap:10px;
       margin-top:1rem;
     }
+
     .button-bar button{
       background-color:#084a58;
       color:#fff;
@@ -50,14 +85,18 @@
       cursor:pointer;
       font-size:0.95rem;
       box-shadow:2px 2px 4px rgba(0,0,0,0.3);
-      font-family: inherit;
+      font-family:inherit;
     }
-    .button-bar button:hover{opacity:0.9;}
+
+    .button-bar button:hover {
+      opacity:0.9;
+    }
 
     .right{
       flex:1 1 55%;
       max-width:55%;
     }
+
     .instructions{
       background:#fff;
       border-radius:8px;
@@ -74,28 +113,36 @@
       border-radius:8px;
       overflow:hidden;
       box-shadow:0 2px 8px rgba(0,0,0,0.05);
-      font-family: inherit;
+      font-family:inherit;
     }
+
     th,td{
       border:1px solid #ccc;
       padding:8px;
       text-align:left;
-      font-family: inherit;
-      font-size: 1rem;
+      font-family:inherit;
+      font-size:1rem;
       color:#000;
     }
-    th{background:#e2e8f0;}
+
+    th{
+      background:#e2e8f0;
+    }
 
     td[contenteditable="true"]{
       background:#fff;
       outline:none;
-      white-space: pre-wrap;
+      white-space:pre-wrap;
     }
+
     td[contenteditable="true"]:focus{
       box-shadow: inset 0 0 0 2px rgba(8,74,88,0.25);
     }
 
-    tfoot td{background:#e0f2fe;font-weight:bold;}
+    tfoot td{
+      background:#e0f2fe;
+      font-weight:bold;
+    }
 
     .footer-buttons{
       display:flex;
@@ -103,6 +150,7 @@
       gap:10px;
       margin-top:1rem;
     }
+
     .footer-buttons button{
       flex:1;
       min-width:160px;
@@ -114,21 +162,43 @@
       cursor:pointer;
       box-shadow:2px 2px 4px rgba(0,0,0,0.3);
       font-size:0.95rem;
-      font-family: inherit;
+      font-family:inherit;
     }
-    .footer-buttons button:hover{opacity:0.9;}
+
+    .footer-buttons button:hover {
+      opacity:0.9;
+    }
 
     #statusMsg{
       margin-top:1rem;
       text-align:center;
       font-weight:600;
       color:#084a58;
-      white-space: pre-wrap;
+      white-space:pre-wrap;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        flex-direction:column;
+      }
+
+      .left,
+      .right {
+        max-width:100%;
+      }
+
+      .footer-buttons button {
+        min-width:100%;
+      }
     }
   </style>
 </head>
 
 <body>
+  <div class="top-bar">
+    <button type="button" class="secondary-button" onclick="signOutUser()">Sign Out</button>
+  </div>
+
   <div class="container">
     <div class="left">
       <img src="/page-104.jpg" alt="Exercise 15 Page 104"/>
@@ -176,7 +246,7 @@
       </table>
 
       <div class="footer-buttons">
-        <button type="button" onclick="window.location.href='/#page/103'">⬅ Back One Page</button>
+        <button type="button" onclick="goBack()">⬅ Back One Page</button>
         <button type="button" onclick="saveData(false)">💾 Save</button>
         <button type="button" onclick="saveData(true)">➡ Save & Go to Page 105</button>
         <button type="button" onclick="window.print()">🖨️ Print</button>
@@ -187,40 +257,34 @@
   </div>
 
   <script>
-    // ✅ Shared Supabase client (matches your working pages)
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(
-      'https://nidxvthbowdgdfuopmzk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZHh2dGhib3dkZ2RmdW9wbXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxNTYwMjgsImV4cCI6MjA1OTczMjAyOH0.EaRbqF0WYFzYfjL5A6ykQKzHCZzCNPWJINIVwosqYk4'
-    );
-    const sb = window.supabaseClient;
+    const PAGE_TABLE = "exercise15_page104";
+    const NEXT_PAGE = "/#page/105";
+    const BACK_PAGE = "/#page/103";
 
-    function setStatus(msg, color="#084a58") {
-      const el = document.getElementById("statusMsg");
-      el.textContent = msg;
-      el.style.color = color;
-    }
+    const sb = window.RBAuth.sb;
+    let currentUser = null;
 
-    async function requireUserOrRedirect() {
-      // ✅ more robust (session first, then getUser)
-      const { data: { session } } = await sb.auth.getSession();
-      const sessionUser = session?.user;
-      if (sessionUser) return sessionUser;
-
-      const { data } = await sb.auth.getUser();
-      const user = data?.user;
-      if (!user) {
-        window.location.href = "/login.html";
-        return null;
-      }
-      return user;
-    }
-
-    // 12 fixed rows grouped by category (3 each)
     const rowMap = {
-      cash:  [{row:0,table:'exercise10_page82'},{row:1,table:'exercise10_page83'},{row:2,table:'exercise10_page84'}],
-      gold:  [{row:3,table:'exercise11_page87'},{row:4,table:'exercise11_page88'},{row:5,table:'exercise11_page89'}],
-      debt:  [{row:6,table:'exercise13_page94'},{row:7,table:'exercise13_page95'},{row:8,table:'exercise13_page96'}],
-      crypto:[{row:9,table:'exercise14_page99'},{row:10,table:'exercise14_page100'},{row:11,table:'exercise14_page101'}]
+      cash:  [
+        { row: 0, table: 'exercise10_page82' },
+        { row: 1, table: 'exercise10_page83' },
+        { row: 2, table: 'exercise10_page84' }
+      ],
+      gold:  [
+        { row: 3, table: 'exercise11_page87' },
+        { row: 4, table: 'exercise11_page88' },
+        { row: 5, table: 'exercise11_page89' }
+      ],
+      debt:  [
+        { row: 6, table: 'exercise13_page94' },
+        { row: 7, table: 'exercise13_page95' },
+        { row: 8, table: 'exercise13_page96' }
+      ],
+      crypto: [
+        { row: 9, table: 'exercise14_page99' },
+        { row: 10, table: 'exercise14_page100' },
+        { row: 11, table: 'exercise14_page101' }
+      ]
     };
 
     const columnMap = {
@@ -230,20 +294,18 @@
       crypto: 'crypto_withdrawal'
     };
 
-    const colIndexByType = { cash:1, debt:2, gold:3, crypto:4 };
+    const colIndexByType = {
+      cash: 1,
+      debt: 2,
+      gold: 3,
+      crypto: 4
+    };
 
-    function buildRows() {
-      const tbody = document.getElementById('bankTableBody');
-      tbody.innerHTML = "";
-      for (let i = 0; i < 12; i++) {
-        const tr = document.createElement('tr');
-        for (let j = 0; j < 5; j++) {
-          const td = document.createElement('td');
-          td.contentEditable = "true";
-          tr.appendChild(td);
-        }
-        tbody.appendChild(tr);
-      }
+    function setStatus(msg = "", color = "#084a58") {
+      const el = document.getElementById("statusMsg");
+      if (!el) return;
+      el.textContent = msg;
+      el.style.color = color;
     }
 
     function parseNum(v) {
@@ -255,12 +317,27 @@
 
     function formatNum(n) {
       if (!Number.isFinite(n)) return "";
-      if (Number.isInteger(n)) return String(n);
-      return String(n);
+      return Number.isInteger(n) ? String(n) : String(n);
+    }
+
+    function buildRows() {
+      const tbody = document.getElementById('bankTableBody');
+      tbody.innerHTML = "";
+
+      for (let i = 0; i < 12; i++) {
+        const tr = document.createElement('tr');
+        for (let j = 0; j < 5; j++) {
+          const td = document.createElement('td');
+          td.contentEditable = "true";
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
     }
 
     function calculateSubtotals() {
       let cash = 0, debt = 0, gold = 0, crypto = 0;
+
       document.querySelectorAll('#bankTableBody tr').forEach(row => {
         const c = row.children;
         cash   += parseNum(c[1].textContent);
@@ -278,31 +355,35 @@
 
     function wireRecalcHandlers() {
       const tbody = document.getElementById("bankTableBody");
-      tbody.addEventListener("input", () => calculateSubtotals());
-      tbody.addEventListener("blur", () => calculateSubtotals(), true);
+      tbody.addEventListener("input", calculateSubtotals);
+      tbody.addEventListener("blur", calculateSubtotals, true);
     }
 
     async function loadSavedStatement() {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+      currentUser = await window.RBAuth.requireUserOrRedirect();
+      if (!currentUser) return;
 
-      // ✅ FIX: row_index (not row_number)
+      window.RBAuth.watchAuthState();
+
       const { data, error } = await sb
-        .from("exercise15_page104")
+        .from(PAGE_TABLE)
         .select("row_index, interaction_description, credibility_cash_deposit, credibility_debt_withdrawal, credibility_gold_deposit, credibility_crypto_withdrawal")
-        .eq("user_id", user.id)
+        .eq("user_id", currentUser.id)
         .order("row_index", { ascending: true });
 
       if (error) {
-        setStatus("❌ Could not load saved statement:\n" + error.message, "red");
+        console.error("Load statement error:", error);
+        setStatus("Could not load saved statement. Please refresh and try again.", "red");
         return;
       }
 
       const rows = document.querySelectorAll('#bankTableBody tr');
+
       if (data && data.length) {
         data.forEach(r => {
           const idx = (r.row_index ?? 0) - 1;
           if (idx < 0 || idx >= rows.length) return;
+
           const c = rows[idx].children;
           c[0].textContent = r.interaction_description ?? "";
           c[1].textContent = formatNum(r.credibility_cash_deposit ?? 0);
@@ -313,14 +394,16 @@
       }
 
       calculateSubtotals();
-      setStatus("✅ Loaded saved statement successfully.");
+      setStatus("Loaded saved statement successfully.");
     }
 
     async function insertFromExercise(type) {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+      if (!currentUser) {
+        currentUser = await window.RBAuth.requireUserOrRedirect();
+        if (!currentUser) return;
+      }
 
-      setStatus("Inserting…");
+      setStatus("Inserting...");
 
       const rows = document.querySelectorAll('#bankTableBody tr');
       const targets = rowMap[type];
@@ -331,13 +414,15 @@
         const { data, error } = await sb
           .from(target.table)
           .select(`interaction_description, ${column}`)
-          .eq('user_id', user.id)
+          .eq('user_id', currentUser.id)
           .maybeSingle();
 
         if (error) {
-          setStatus(`❌ Insert error from ${target.table}:\n${error.message}`, "red");
+          console.error(`Insert error from ${target.table}:`, error);
+          setStatus(`Could not insert data from ${target.table}.`, "red");
           continue;
         }
+
         if (!data) continue;
 
         rows[target.row].children[0].textContent = data.interaction_description || "";
@@ -345,14 +430,16 @@
       }
 
       calculateSubtotals();
-      setStatus("✅ Insert complete.");
+      setStatus("Insert complete.");
     }
 
     async function saveData(goNext = false) {
-      const user = await requireUserOrRedirect();
-      if (!user) return;
+      if (!currentUser) {
+        currentUser = await window.RBAuth.requireUserOrRedirect();
+        if (!currentUser) return;
+      }
 
-      setStatus("Saving…");
+      setStatus("Saving...");
 
       const rows = document.querySelectorAll('#bankTableBody tr');
       const payload = [];
@@ -360,11 +447,8 @@
       rows.forEach((row, i) => {
         const c = row.children;
         payload.push({
-          user_id: user.id,
-
-          // ✅ FIX: row_index required NOT NULL
+          user_id: currentUser.id,
           row_index: i + 1,
-
           interaction_description: (c[0].textContent || "").trim(),
           credibility_cash_deposit: parseNum(c[1].textContent),
           credibility_debt_withdrawal: parseNum(c[2].textContent),
@@ -373,23 +457,31 @@
         });
       });
 
-      // ✅ FIX: conflict target must match unique constraint
       const { error } = await sb
-        .from('exercise15_page104')
+        .from(PAGE_TABLE)
         .upsert(payload, { onConflict: 'user_id,row_index' });
 
       if (error) {
-        setStatus("❌ Error saving statement:\n" + error.message, "red");
+        console.error("Save statement error:", error);
+        setStatus("Save failed. Please try again.", "red");
         return;
       }
 
       calculateSubtotals();
-      setStatus("✅ Saved successfully!");
+      setStatus("Saved successfully!");
 
-      if (goNext) window.location.href = '/#page/105';
+      if (goNext) {
+        window.location.href = NEXT_PAGE;
+      }
     }
 
-    function goToTOC(){ window.location.href='/page-3.html'; }
+    function goBack() {
+      window.location.href = BACK_PAGE;
+    }
+
+    function goToTOC() {
+      window.location.href = '/page-3.html';
+    }
 
     document.addEventListener("DOMContentLoaded", async () => {
       buildRows();
